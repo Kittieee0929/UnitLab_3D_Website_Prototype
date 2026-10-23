@@ -56,7 +56,7 @@ const CAT=[
 {id:"rtx5060",name:"NVIDIA GeForce RTX 5060 8GB (example)",price:24500,watts:145,length:260,desc:"RTX 5060-class GPU. Example, not a live price or specific partner card.",url:SHOP,verified:false}
 ]},
 {key:"storage",title:"Storage",options:[
-{id:"sn580_500",name:"WD Blue SN580 NVMe SSD 500GB",price:1979,desc:"M.2 NVMe PCIe Gen4 SSD example; listed product page covers 500GB–1TB variants.",url:"https://bermorzone.com.ph/shop/storage-devices/solid-state-drives/western-digital-blue-sn580-500gb-1tb-pcie-gen4-x4-nvme-m-2-2280-solid-state-drive/",verified:true},
+{id:"sn580_500",name:"WD Blue SN580 NVMe SSD 500GB",price:1979,desc:"M.2 NVMe PCIe Gen4 SSD example; listed product page covers 500GB–1TB variants.",url:"https://bermorzone.com.ph/shop/storage-devices/solid-state-drives/western-digital-blue-sn580-500gb-1tb-pcie-gen4-x4-nvme-m-2-2280-solid-state-drive/",verified:false},
 {id:"sn580_1t",name:"WD Blue SN580 NVMe SSD 1TB",price:4695,desc:"1TB M.2 NVMe SSD. Value represents the upper end of a multi-variant listing, not a verified 1TB checkout quote.",url:"https://bermorzone.com.ph/shop/storage-devices/solid-state-drives/western-digital-blue-sn580-500gb-1tb-pcie-gen4-x4-nvme-m-2-2280-solid-state-drive/",verified:false},
 {id:"mx500",name:"Crucial MX500 SATA SSD 1TB",price:4795,desc:"2.5-inch SATA SSD example; requires SATA data and power cables.",url:SHOP,verified:false}
 ]},
@@ -96,7 +96,7 @@ function toast(s){const el=$("#toast");el.textContent=s;el.classList.add("show")
 function progressKey(){return "unitlab3d_demo_progress_"+state.student}
 function getProgress(){if(!state.student)return {modules:[],best:null,build:null};try{return JSON.parse(localStorage.getItem(progressKey()))||{modules:[],best:null,build:null}}catch{return {modules:[],best:null,build:null}}}
 function setProgress(p){if(state.student)localStorage.setItem(progressKey(),JSON.stringify(p))}
-function authUI(){$("#userBadge").textContent=state.student||"Guest";$("#loginTop").hidden=!!state.student;$("#logoutTop").hidden=!state.student;$("#loginSidebar").textContent=state.student?"◉ "+state.student:"⌁ Student sign in"}
+function authUI(){$("#userBadge").textContent=state.student||"Guest";$("#loginTop").hidden=!!state.student;$("#logoutTop").hidden=!state.student;$("#loginSidebar").textContent=state.student?"↩ Sign out ("+state.student+")":"⌁ Student sign in"}
 function showLogin(){$("#authModal").hidden=false;$("#loginCode").focus()}
 function closeLogin(){$("#authModal").hidden=true}
 function login(e){e.preventDefault();const code=$("#loginCode").value.trim().toUpperCase();if(!/^[A-Z0-9_-]{3,24}$/.test(code)){toast("Use 3–24 letters, digits, hyphens or underscores.");return}state.student=code;sessionStorage.setItem("unitlab3d_student_demo",code);closeLogin();authUI();renderModules();renderQuiz();toast("Signed into local demo as "+code)}
