@@ -34,7 +34,7 @@ const disassembly=[
  ['motherboard','Remove screws and lift out the board after verifying all cables are disconnected.'],
  ['case','Organize removed components and inspect the empty chassis for stray screws.']
 ];
-const state={mode:'explore',step:0,selected:'motherboard',visited:new Set(),rgb:true,power:true,glass:false,explode:0};
+const state={mode:'explore',step:0,selected:'motherboard',visited:new Set(),rgb:true,power:true,glass:false,explode:0,solo:false};
 const parts={};
 const movingFans=[],lightBars=[];
 const ramSticks=[],gpuFanModels=[];
@@ -188,7 +188,7 @@ window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data?.typ
 window.addEventListener('storage',e=>{if(e.key===STORAGE_KEY){const snapshot=loadSnapshot();if(snapshot)applyConfiguration(snapshot)}});
 
 function doExplode(){for(const id of order){if(id==='case')continue;const g=parts[id];g.position.copy(initialPositions[id]);const factor=({motherboard:0.25,cpu:0.8,cooler:1.8,ram:1.25,storage:1.1,psu:1.3,gpu:2.2})[id]||1;g.position.z+=state.explode*factor}}
-function updateParts(){glass.visible=state.glass;for(const id of order){parts[id].visible=true}if(liveSnapshot?.parts?.gpu?.id==='none')parts.gpu.visible=false;if(state.mode==='assemble'){const installed=new Set(assembly.slice(0,state.step).map(s=>s[0]));for(const id of order.slice(1))parts[id].visible=installed.has(id)}if(state.mode==='disassemble'){const removed=new Set(disassembly.slice(0,state.step).map(s=>s[0]));for(const id of order.slice(1))parts[id].visible=!removed.has(id)}if(liveSnapshot?.parts?.gpu?.id==='none')parts.gpu.visible=false;doExplode()}
+function updateParts(){glass.visible=state.glass;for(const id of order){parts[id].visible=true}if(liveSnapshot?.parts?.gpu?.id==='none')parts.gpu.visible=false;if(state.mode==='assemble'){const installed=new Set(assembly.slice(0,state.step).map(s=>s[0]));for(const id of order.slice(1))parts[id].visible=installed.has(id)}if(state.mode==='disassemble'){const removed=new Set(disassembly.slice(0,state.step).map(s=>s[0]));for(const id of order.slice(1))parts[id].visible=!removed.has(id)}if(liveSnapshot?.parts?.gpu?.id==='none')parts.gpu.visible=false;if(state.solo){for(const id of order)parts[id].visible=id===state.selected;}doExplode()}
 const list=$('#partList');
 for(const id of order){const b=document.createElement('button');b.className='part';b.dataset.part=id;b.innerHTML='<b>'+descriptions[id][0]+'</b><span>Click to inspect →</span>';b.addEventListener('click',()=>select(id));list.appendChild(b)}
 function select(id){state.selected=id;state.visited.add(id);$$('.part').forEach(b=>b.classList.toggle('active',b.dataset.part===id));$('#partTitle').textContent=descriptions[id][0];$('#partDesc').textContent=descriptions[id][1];$('#partSafety').textContent=descriptions[id][2];if(state.mode==='explore')$('#progressBar').style.width=(state.visited.size/order.length*100)+'%';$('#notice').textContent='Selected '+descriptions[id][0]}
@@ -206,4 +206,21 @@ $('#viewport').addEventListener('pointerup',e=>{if(!down||Math.hypot(e.clientX-d
 const clock=new THREE.Clock(),col=new THREE.Color();
 function resize(){const c=renderer.domElement,rect=c.getBoundingClientRect();if(rect.width<2||rect.height<2)return;const w=Math.floor(rect.width),h=Math.floor(rect.height);if(c.width!==Math.floor(w*renderer.getPixelRatio())||c.height!==Math.floor(h*renderer.getPixelRatio())){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}}
 function animate(){requestAnimationFrame(animate);resize();const t=clock.getElapsedTime();controls.update();for(let i=0;i<movingFans.length;i++){if(state.power)movingFans[i].rotation.z+=.09}for(let i=0;i<lightBars.length;i++){const mesh=lightBars[i];const hue=(t*.11+i*.097)%1;mesh.material.color.setHSL(hue,1,.62);mesh.visible=state.rgb&&state.power}pinkLight.intensity=state.rgb&&state.power?36:3;edgeLight.intensity=state.rgb&&state.power?48:10;renderer.render(scene,camera)}
-select('motherboard');updateStep();const initialSnapshot=loadSnapshot();if(initialSnapshot)applyConfiguration(initialSnapshot);animate();
+const initialPart=new URLSearchParams(location.search).get('part');if(initialPart&&descriptions[initialPart]){state.selected=initialPart;}
+select(state.selected);updateStep();
+function toggleSolo(force){
+ state.solo=typeof force==='boolean'?force:!state.solo;
+ if(state.solo){
+ const target=parts[state.selected],bounds=new THREE.Box3().setFromObject(target);
+ const center=bounds.getCenter(new THREE.Vector3());
+ controls.target.copy(center);
+ camera.position.copy(center.clone().add(new THREE.Vector3(2.3,1.8,3.2)));
+ controls.update();
+ } else {controls.target.set(0,.1,0);camera.position.set(6.1,3.35,8.1);controls.update()}
+ $('#soloPartBtn').textContent=state.solo?'Show whole PC':'Isolate selected part in 3D';
+ updateParts();
+}
+$('#soloPartBtn').addEventListener('click',()=>toggleSolo());
+if(new URLSearchParams(location.search).get('solo')==='1'&&initialPart)toggleSolo(true);
+const initialSnapshot=loadSnapshot();if(initialSnapshot)applyConfiguration(initialSnapshot);
+window.dispatchEvent(new Event('unitlab3d:engine-ready'));animate();
