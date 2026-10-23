@@ -62,8 +62,9 @@ const safe=p=>String(p).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;
 const formatter=n=>'₱'+Number(n).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
 const get=(k)=>catalog(k).options.find(p=>p.id===build[k])||catalog(k).options[0];
 function sync(){
-localStorage.setItem(STORE_KEY,JSON.stringify({build:{...build},time:Date.now(),version:4}));
-const frame=document.getElementById('labFrame');if(frame?.contentWindow)frame.contentWindow.postMessage({type:'unitlab3d:updatebuild',build:{...build}},location.origin);
+const snapshot={build:{...build},parts:Object.fromEntries(CAT.map(c=>[c.key,{...get(c.key)}])),choices:Object.fromEntries(['cpu','gpu','ram'].map(key=>[key,catalog(key).options.map(p=>({id:p.id,name:p.name,price:p.price,dimms:p.dimms||2,fans:p.fans||0,length:p.length||0}))])),priceTotal:total(),time:Date.now(),version:4};
+localStorage.setItem(STORE_KEY,JSON.stringify(snapshot));
+const frame=document.getElementById('labFrame');if(frame?.contentWindow)frame.contentWindow.postMessage({type:'unitlab3d:updatebuild',snapshot},location.origin);
 }
 function setPreset(i){const p=PRESETS[i];if(!p)return;build={...p.build};sync();renderBuilder()}
 const checks=()=>{
@@ -130,5 +131,6 @@ function renderPreviewModel(p){ // Existing illustration is retained but now dis
  if(g){g.textContent=gpu.id==='none'?'ONBOARD GRAPHICS':gpu.model==='5070'?'GEFORCE RTX 5070':gpu.name.replace(/.*(RTX \d+).*/,'$1');g.style.opacity=gpu.id==='none'?'.12':'1'}
 }
 renderBuilder=renderBuilderPro;
+window.addEventListener('message',event=>{if(event.origin!==location.origin||event.data?.type!=='unitlab3d:choose')return;const {key,id}=event.data;if(!['cpu','gpu','ram'].includes(key)||!catalog(key).options.some(p=>p.id===id))return;build[key]=id;window.unitlabFocus=key;sync();renderBuilder()});
 window.UnitLabCatalog={CAT,PRESETS,priceDate,STORE_KEY,totals:total,checks};
 })();
