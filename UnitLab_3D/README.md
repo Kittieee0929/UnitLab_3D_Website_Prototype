@@ -2,6 +2,14 @@
 
 **Research:** Developing and Evaluating UnitLab 3D: An Interactive Web-Based System Unit Simulation for Enhancing Learners’ Performance in Computer Hardware Servicing.
 
+## Upgraded RGB 3D Worklab (October 23, 2026)
+
+The main learning studio's **3D Workbench** now loads `worklab-pro.html` and `worklab-pro.js`. These add a genuine browser-based Three.js WebGL scene (not a static image or fixed-angle canvas), orbit and zoom controls, geometry for a gaming-style system unit, motherboard, CPU, CPU cooler, RAM, NVMe SSD, graphics card, PSU, spinning RGB fans, optional tempered-glass panel and exploded view, plus selectable parts and guided assembly/disassembly.
+
+Open directly: `UnitLab_3D/worklab-pro.html`.
+
+The Three.js library is loaded from the pinned jsDelivr CDN, so **internet access is necessary** for this upgraded worklab. The original offline-friendly `index.html` remains separately available for its earlier teaching and assessment prototype functions. The 3D meshes are original teaching approximations, **not exact CAD scans or brand-accurate manufacturer models**. The 3D guided tasks are virtual practice, not direct observations of real hardware competencies.
+
 ## Open the website
 
 On GitHub Pages, the repository-root `index.html` redirects to `UnitLab_3D/academy.html`, the updated landing page. The original `UnitLab_3D/index.html` remains available for the guided 3D laboratory and practical assessment screen.
