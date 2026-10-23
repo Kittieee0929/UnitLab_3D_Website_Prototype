@@ -94,3 +94,18 @@ Useful hardware references:
 **Student demo login:** `auth-pro.js` lets students create a local-only demo code and password. It uses salted PBKDF2-SHA256 with 180,000 iterations in HTTPS secure browser context. The derived verifier is stored locally, not a plaintext password. This is **NOT** a secure school account system: browser-local passwords/progress can be erased or manipulated by anyone who can access the device, cannot be used on a different device, and cannot restrict data from browser developer tools. The site MUST NOT be used for identifiable student records, official grades, signed consent data or sensitive research information. A production login will require a trusted backend (Firebase Auth, Supabase Auth, or equivalent), secure database/access rules, institutional DPA review, and a teacher/researcher account model.
 
 **Troubleshooting:** `worklab-pro.html` relies on external Three.js CDN modules and compatible browser WebGL. It displays a loading error/fallback link if it cannot initialize; the new `training.html` operates independently of the Three.js library. An exact commercial manufacturer's 3D mesh is not included.
+
+
+## Native WebGL 3D reliability fix — October 23, 2026
+
+The public route `UnitLab_3D/worklab-pro.html` **now loads `worklab-native.js`**, replacing its former Three.js CDN/importmap dependency with an internally authored, no-external-JavaScript WebGL renderer. The earlier `worklab-pro.js` source is retained for reference only and is not the active viewer engine. This avoids failures caused by unavailable CDN modules or broken importmaps.
+
+The viewer preserves orbit/zoom, RGB and side-panel controls, procedural PC hardware geometry, 2/4 DIMM visualizations, approximate GPU-fan count from the selected SKU, component information, assembly/disassembly practice, and a safe link to `training.html`. It displays an in-page error with a direct fallback link if the browser disables or cannot initialize WebGL.
+
+**What to do if 3D still does not appear:**
+1. Allow the latest GitHub Pages deployment to finish and hard-refresh (Ctrl+Shift+R).
+2. Use a current browser with WebGL enabled; inspect `chrome://gpu` to confirm that WebGL is available.
+3. Turn on browser hardware acceleration if supported, update GPU drivers, and retry.
+4. Open `training.html` for the independent guided/performance workbench; it does not rely on WebGL.
+
+The native model is original procedural teaching geometry, **not an exact manufacturer CAD replica**.
