@@ -109,3 +109,16 @@ The viewer preserves orbit/zoom, RGB and side-panel controls, procedural PC hard
 4. Open `training.html` for the independent guided/performance workbench; it does not rely on WebGL.
 
 The native model is original procedural teaching geometry, **not an exact manufacturer CAD replica**.
+
+
+## Real 3D hardware mesh library — October 23, 2026
+
+The previous visually simple WebGL blocks remain as a lightweight fallback, but the primary **Workbench** in `academy.html` now embeds `real-models.html`, which loads `real-models.js`.
+
+- Thirteen selectable, rotatable, textured 3D parts: GPU, motherboard, CPU, DIMM RAM, CPU cooler, NVMe SSD, PSU, system-unit chassis, fans, monitor, AVR, HDD and a complete PC
+- Actual GLB geometry, physical materials, camera orbit, zoom and optional automatic rotation
+- Hardware function and safe-handling explanations, and your saved PC build and estimated PHP component total
+- `training.html` embeds real rotating model previews for internal hardware in the learning guide while retaining the original guided trail, unassisted assessment, mistake recording and grading
+- RAM, SSD and PSU GLB files are committed inside the repository under `models/`. Larger GLB files are fetched from PC Anatomy's attributed MIT-licensed open-source repository. See `MODEL_ATTRIBUTION.md`.
+- The page uses the Apache-licensed Google `<model-viewer>` web component from a pinned CDN release (4.3.1), which requires internet access. The original `worklab-pro.html` native WebGL renderer remains available as a fallback; `training.html` remains operable for placement and scoring without the external library.
+- These are realistic examples for part recognition, **not** physically accurate manufacturer-specific meshes for every individual RTX, Ryzen, RAM or case SKU. Avoid calling them certified models of named retail products.
