@@ -52,3 +52,26 @@ The teacher's original practical rubric is still **an illustrative placeholder**
 Product compatibility flags are simplified examples: not exhaustive for firmware revisions, socket specifications, electrical connectors, form factors, cooler dimensions, PCIe power, thermal design, memory QVL, or manufacturer requirements. Always verify before assembling or buying.
 
 © 2026 UnitLab 3D / CBAR project.
+
+## Configurable named PC builds and memory layouts — October 23, 2026
+
+The `academy.html` PC Builder now loads `configurator-pro.js`. It adds:
+- AMD Ryzen 5 5600X, Ryzen 7 5700X, Ryzen 7 5700X3D, Ryzen 7 7700 and other AM4/AM5 processors.
+- RTX 4060, RTX 5070 and manufacturer-specific examples such as MSI Ventus 2X and ASUS Prime; GPU fan number and approximate size propagate to the WebGL model.
+- DDR4/DDR5 configurations including 2×8GB, 2×16GB, 4×8GB, 4×16GB and 2×32GB. Four-stick configurations are checked against the motherboard's verified DIMM-slot count (some B650M Gaming WiFi revisions have only **two** slots).
+- Presets for Ryzen 5 5600X + RTX 4060 and Ryzen 7 5700X3D + RTX 5070, including several four-DIMM examples.
+- Automatic eight-category, component-only total in Philippine pesos and itemized CSV export.
+- Core socket, memory generation, DIMM count, iGPU availability, GPU length, PSU recommendation, cooler support and case-form-factor checks with follow-up warnings for power cables, BIOS and memory training.
+
+`academy.html` and `worklab-pro.html` synchronize configurations through same-origin browser localStorage and postMessage. On the model page, users can also select CPU, GPU and RAM, and see the selected fan count, RAM-stick count, SKU label and calculated parts total. These are **SKU-inspired geometry approximations**, not licensed 1:1 manufacturer 3D files or manufacturer-approved digital twins. Exact commercial CAD/GLB reproductions would require verified assets and usage rights for each specific SKU.
+
+**Pricing:** The sample quotes represent time-stamped examples from EasyPC, PCHub or DynaQuest listings and marked educational estimates. They are **not live store prices**. RTX 5070 reference listings checked included a September 11, 2026 PCHub price snapshot, not a guaranteed current offer. Currency is PHP; totals omit shipping, assembly service, compatibility edge cases and retailer-stock confirmation.
+
+Useful hardware references:
+- AMD Ryzen 5 5600X: https://www.amd.com/en/products/processors/desktops/ryzen/5000-series/amd-ryzen-5-5600x.html
+- AMD Ryzen 7 5700X3D: https://www.amd.com/en/support/downloads/drivers.html/processors/ryzen/ryzen-5000-series/amd-ryzen-7-5700x3d.html
+- NVIDIA GeForce RTX 5070: https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5070-family/
+- MSI RTX 5070 Ventus 2X OC: https://www.msi.com/Graphics-Card/GeForce-RTX-5070-12G-VENTUS-2X-OC/Specification
+- MSI B550M PRO-VDH WiFi: https://www.msi.com/Motherboard/B550M-PRO-VDH-WIFI/Specification
+- Gigabyte B650M Gaming WiFi (2 DIMMs): https://www.gigabyte.com/Motherboard/B650M-GAMING-WIFI-rev-10/sp
+
