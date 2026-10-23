@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#070e18"><title>UnitLab 3D | RGB PC Hardware Simulator</title>
+<style>
+:root{--bg:#080f1b;--panel:#111d2a;--line:#293c51;--fg:#eef8ff;--muted:#9bb6c9;--mint:#72e9d6;--blue:#5ec9f7}
+*{box-sizing:border-box}body{margin:0;color:var(--fg);background:var(--bg);font:14px/1.55 Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.page{min-height:100vh;padding:22px 26px 32px;max-width:1690px;margin:auto}.top{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:19px}
+.kicker{font-size:10px;letter-spacing:2px;font-weight:850;color:var(--mint)}h1{font-size:clamp(25px,3vw,38px);letter-spacing:-1px;line-height:1.15;margin:7px 0}
+.top p{color:var(--muted);margin:7px 0 0}.brand{color:#b9d9e8;font-size:12px;text-align:right}
+.layout{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(275px,.9fr);gap:16px}.stage{position:relative;min-height:580px;background:radial-gradient(ellipse at 50% 45%,#17344f,#080f1b 70%);border:1px solid #25445f;border-radius:19px;overflow:hidden;box-shadow:0 23px 66px #0005}
+#viewport{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}.stage:after{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 51px,#fff1 52px),repeating-linear-gradient(90deg,transparent 0 51px,#fff1 52px);opacity:.2}
+.stage-header{position:absolute;top:20px;left:20px;right:20px;display:flex;align-items:center;justify-content:space-between;pointer-events:none;z-index:2;color:#b7ddec;font-size:10px;font-weight:850;letter-spacing:1.6px}
+.pill{border:1px solid #387282;border-radius:999px;background:#153744b0;color:#96e9e6;padding:6px 11px}
+.stage-help{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:#071523c9;border:1px solid #244258;padding:8px 15px;border-radius:999px;color:#aac3d0;white-space:nowrap;pointer-events:none;font-size:11px}
+.panel{border:1px solid var(--line);background:linear-gradient(180deg,#122435,#0b1826);border-radius:17px;padding:18px;min-width:0}
+.panel h2{font-size:17px;margin:0 0 11px}.part-info h3{font-size:22px;margin:6px 0}.part-info p{color:#b0c6d3;margin:10px 0}.info-tag{color:#6edee1;font-weight:850;letter-spacing:1.5px;font-size:10px;text-transform:uppercase}
+.info-mini{padding:11px 12px;border-radius:9px;border:1px solid #284d62;background:#102a3a;color:#aee2dc;font-size:12px}
+.side{display:grid;gap:14px;align-content:start}.tabrow{display:flex;gap:7px;flex-wrap:wrap}
+.tabrow button,.preset button,.control-btn{border:1px solid #32556a;background:#193348;color:#def6ff;border-radius:9px;padding:10px 12px;font-weight:750}
+.tabrow button.active,.control-btn.primary{color:#08202e;background:linear-gradient(90deg,#73ead2,#5fc5f5);border-color:transparent}
+.progress{height:8px;border-radius:99px;background:#0a1825;overflow:hidden;margin-top:13px}.bar{height:100%;width:0%;background:linear-gradient(90deg,#71e9d8,#58bdf8)}
+.controls{display:flex;gap:11px;align-items:center;flex-wrap:wrap;margin-top:16px}.controls label{display:flex;align-items:center;gap:7px;color:#bed8e5;font-size:12px}
+.controls input[type=checkbox]{accent-color:#75e9db}.controls input[type=range]{width:min(130px,32vw);accent-color:#6ce8d8}
+.component-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:16px}
+.part{border:1px solid #25445b;background:#101f2e;color:#e8f6ff;text-align:left;border-radius:11px;padding:12px;transition:.16s}
+.part:hover,.part.active{border-color:#5be4d7;background:#123e49}.part b{display:block;font-size:12px}.part span{font-size:10px;color:#82a8bb}
+.source{font-size:11px;color:#829faf;margin:18px 0;line-height:1.7}.source a{color:#92ecdd}
+#notice{color:#a6d4ce;font-size:11px;min-height:26px}.tiny{font-size:11px;color:#91b1c1;margin:9px 0}
+.steps{font-size:12px;line-height:1.65;color:#c0d7df}
+.link{color:#83eadf;font-weight:750;text-decoration:none}.link:hover{text-decoration:underline}
+@media(max-width:1050px){.layout{grid-template-columns:1fr}.stage{height:58vh;min-height:430px}.side{grid-template-columns:1fr 1fr}.component-list{grid-template-columns:repeat(4,1fr)}}@media(max-width:680px){.page{padding:12px}.top{align-items:flex-start}.brand{display:none}.side{grid-template-columns:1fr}.stage{height:65vh;min-height:370px}.component-list{grid-template-columns:repeat(2,1fr)}.stage-help{font-size:9px;white-space:normal;text-align:center;max-width:95%;width:max-content}.controls{gap:10px}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/"}}</script></head><body>
+<div class="page">
+<header class="top"><div><div class="kicker">UNITLAB 3D / INTERACTIVE HARDWARE TRAINING</div><h1>RGB PC Assembly Worklab</h1><p>Real-time WebGL model · rotate, zoom, select parts, assemble and disassemble virtually.</p></div><div class="brand">EDUCATIONAL PROTOTYPE<br><span style="color:#76e9db">LIVE 3D • WORKBENCH V2</span></div></header>
+<div class="layout"><div>
+<div class="stage" id="stage"><canvas id="viewport" aria-label="3D computer hardware model, drag to rotate" tabindex="0"></canvas>
+<div class="stage-header"><span>◉ LIVE 3D MODEL / OPEN CHASSIS</span><span class="pill" id="modeStatus">EXPLORE MODE</span></div>
+<div class="stage-help">⟳ Drag to rotate · Scroll/pinch to zoom · Click a component to inspect</div></div>
+<div class="controls"><label><input type="checkbox" id="rgb" checked> RGB lights</label><label><input type="checkbox" id="glass"> Glass panel</label><label><input type="checkbox" id="power" checked> System powered (visual only)</label><label>Explode <input type="range" min="0" max="100" value="0" id="explode"></label><button class="control-btn" id="resetCamera">Reset view</button></div>
+<div class="component-list" id="partList"></div>
+</div>
+<aside class="side">
+<div class="panel"><div class="info-tag">Learning mode</div><h2>Practice workflow</h2><div class="tabrow"><button class="active" data-mode="explore">Explore</button><button data-mode="assemble">Assemble</button><button data-mode="disassemble">Disassemble</button></div>
+<div class="progress"><div class="bar" id="progressBar"></div></div><p class="steps" id="stepText">Select a PC part to see its function, safety notes, and typical installation checks.</p><div class="tabrow"><button class="control-btn primary" id="doStep" hidden>Complete step →</button><button id="restart" class="control-btn" hidden>Restart</button></div></div>
+<div class="panel part-info"><div class="info-tag">Selected computer component</div><h3 id="partTitle">Motherboard</h3><p id="partDesc"></p><div class="info-tag">Handling & safety</div><p class="info-mini" id="partSafety"></p><div class="info-tag" style="margin-top:17px">Visual reference</div><p class="tiny">This is a detailed procedural 3D illustration. It does not claim to be exact manufacturer CAD geometry or a certified assembly procedure.</p></div>
+<div class="panel"><h2>Ready for a full PC build?</h2><p class="steps">Choose CPU, motherboard, RAM, GPU, PSU, case and cooler in the UnitLab compatibility builder.</p><a class="link" href="academy.html#builder" target="_parent">Open PC Builder ↗</a><p id="notice" aria-live="polite"></p></div>
+</aside></div>
+<footer class="source">Safety: Unplug actual hardware, use approved ESD controls and follow teacher supervision. Never open a PSU enclosure. Actual performance ratings use your adopted rubric. Requires an internet connection to load the Three.js WebGL library. Built for UnitLab CBAR teaching intervention.</footer>
+</div><script type="module" src="worklab-pro.js"></script></body></html>
