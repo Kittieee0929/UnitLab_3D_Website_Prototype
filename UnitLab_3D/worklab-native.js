@@ -126,7 +126,7 @@ canvas.addEventListener('pointerup',e=>{if(drag&&!drag.moved){const r=canvas.get
 canvas.addEventListener('pointercancel',()=>drag=null);canvas.addEventListener('wheel',e=>{e.preventDefault();state.zoom=Math.max(5,Math.min(16,state.zoom+(e.deltaY>0?.45:-.45)))},{passive:false});
 window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data?.type==='unitlab3d:updatebuild'){build=e.data.snapshot;showBuild()}});
 window.addEventListener('storage',e=>{if(e.key===storeKey){build=load();showBuild()}});
-const part=new URLSearchParams(location.search).get('part');if(part&&names[part])state.selected=part;
+const params=new URLSearchParams(location.search);const part=params.get('part');if(part&&names[part]){state.selected=part;state.solo=params.get('solo')==='1'}
 describe(state.selected);showBuild();mode('explore');
 window.dispatchEvent(new Event('unitlab:native3d-ready'));
 function tick(t){render(t);requestAnimationFrame(tick)}requestAnimationFrame(tick);
