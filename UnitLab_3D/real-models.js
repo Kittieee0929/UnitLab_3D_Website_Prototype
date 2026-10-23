@@ -2,6 +2,7 @@
 (()=>{
 const $=s=>document.querySelector(s);
 const ROOT='https://raw.githubusercontent.com/brickshow/pc-anatomy/main/public/models/';
+const LOCAL_ASSETS={ram:'models/ram.glb',storage:'models/m2-ssd.glb',psu:'models/psu.glb'};
 const models=[
  {id:'gpu',name:'Graphics Card',short:'GPU',file:'gpu.glb',size:'4.8 MB',desc:'Inspect the GPU cooler shroud, expansion bracket, fan housing and PCIe card form. Your RTX 4060 or RTX 5070 selection remains in the PC Builder; this is a representative graphics-card mesh.',safety:'Unplug the PC and release the PCIe slot latch. Support the card with your other hand, and use the correct power connectors.'},
  {id:'motherboard',name:'Motherboard',short:'MB',file:'motherboard.glb',size:'26.9 MB',desc:'Look closely at RAM slots, processor socket, PCIe slots, I/O ports, VRM heatsinks and onboard connectors. Compare to your chosen motherboard specification.',safety:'Handle by the edges and use school-approved ESD practice. Install standoffs before mounting.'},
@@ -54,7 +55,7 @@ $$('.part').forEach(b=>b.classList.toggle('active',b.dataset.part===id));
 $('#partName').textContent=m.name;$('#partDesc').textContent=m.desc;$('#partSafety').textContent=m.safety;$('#meshLabel').textContent=m.size+' model';
 $('#cornerName').textContent='◉ ACTUAL TEXTURED GLB • '+m.name.toUpperCase();
 showStatus('Loading '+m.name+' · '+m.size+'…');
-const url=ROOT+encodeURIComponent(m.file).replace(/%2E/gi,'.');
+const url=LOCAL_ASSETS[m.id]||ROOT+encodeURIComponent(m.file).replace(/%2E/gi,'.');
 lastURL=url;
 viewing.setAttribute('alt','Interactive textured 3D model of '+m.name);
 viewing.setAttribute('src',url);
