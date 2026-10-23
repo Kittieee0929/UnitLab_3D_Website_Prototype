@@ -75,3 +75,22 @@ Useful hardware references:
 - MSI B550M PRO-VDH WiFi: https://www.msi.com/Motherboard/B550M-PRO-VDH-WIFI/Specification
 - Gigabyte B650M Gaming WiFi (2 DIMMs): https://www.gigabyte.com/Motherboard/B650M-GAMING-WIFI-rev-10/sp
 
+
+
+## Guided drag-and-drop classroom bench and local demo accounts — October 23, 2026
+
+**New main workbench:** `training.html` + `training.js`. The main UnitLab studio embeds this workbench instead of relying exclusively on the optional Three.js model.
+
+- **Parts cabinet / tools table:** movable internal components, ESD strap, screwdriver, pliers, screw organizer, cables and power controls
+- **PC assembly bench:** labelled hardware slot targets, monitor, voltage regulator (AVR), and cable/power controls
+- **Guided Tutorial:** a glowing trail highlights the current part and its destination, with step-by-step instructions
+- **Independent Performance Test:** no glowing hints and no immediate correctness feedback; misplaced parts remain visibly placed and mistakes are recorded, not automatically fixed
+- **Formative rubric:** 100-point local practice grade, with penalties for wrong drops (4 each), unsafe/out-of-sequence actions (6 each), required missing tasks (4 each), and tasks not correct on first try (2 each). All errors remain on the final checklist and export
+- **19 actions:** safe ESD preparation, hardware installation, PSU and CPU/GPU cable connections, monitor video/power, AVR connections/switch, display power and PC boot
+- **Responsive touch alternative:** tap a cabinet item and then a target; keyboard focusable controls remain available
+- **Part 3D learning:** interactive rotating mini previews work without WebGL; internal hardware also links to the optional isolated WebGL 3D viewer via `worklab-pro.html?part=cpu&solo=1`
+- **History:** local practice reports are kept for the current local learner-code profile in the browser and can be exported to CSV
+
+**Student demo login:** `auth-pro.js` lets students create a local-only demo code and password. It uses salted PBKDF2-SHA256 with 180,000 iterations in HTTPS secure browser context. The derived verifier is stored locally, not a plaintext password. This is **NOT** a secure school account system: browser-local passwords/progress can be erased or manipulated by anyone who can access the device, cannot be used on a different device, and cannot restrict data from browser developer tools. The site MUST NOT be used for identifiable student records, official grades, signed consent data or sensitive research information. A production login will require a trusted backend (Firebase Auth, Supabase Auth, or equivalent), secure database/access rules, institutional DPA review, and a teacher/researcher account model.
+
+**Troubleshooting:** `worklab-pro.html` relies on external Three.js CDN modules and compatible browser WebGL. It displays a loading error/fallback link if it cannot initialize; the new `training.html` operates independently of the Three.js library. An exact commercial manufacturer's 3D mesh is not included.
