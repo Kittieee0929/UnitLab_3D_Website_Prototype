@@ -128,5 +128,6 @@ window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data?.typ
 window.addEventListener('storage',e=>{if(e.key===storeKey){build=load();showBuild()}});
 const part=new URLSearchParams(location.search).get('part');if(part&&names[part])state.selected=part;
 describe(state.selected);showBuild();mode('explore');
+window.dispatchEvent(new Event('unitlab:native3d-ready'));
 function tick(t){render(t);requestAnimationFrame(tick)}requestAnimationFrame(tick);
 })();
