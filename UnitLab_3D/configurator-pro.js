@@ -115,7 +115,7 @@ if(!extra){extra=document.createElement('div');extra.id='unitlabNewActions';extr
 extra.innerHTML='<div style="border:1px solid #366572;background:#102f3c;border-radius:12px;padding:14px"><strong style="display:block;font-size:21px;color:#d9fff5">FINAL PARTS TOTAL: '+formatter(t)+'</strong><small>All eight selected categories included. Estimated component-only total in PHP; shipping, assembly, tax adjustments and stock not guaranteed.</small></div><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn outline small" id="viewLivePc">View selected parts in 3D ↗</button><button class="btn outline small" id="downloadQuote">Download itemized price quotation CSV</button></div>';
 $('#viewLivePc').addEventListener('click',()=>{sync();navigate('workbench')});
 $('#downloadQuote').addEventListener('click',()=>{const lines=[['UnitLab PC Build · '+priceDate],['Category','Product','Price PHP','Basis','Source URL'],...CAT.map(c=>{const x=get(c.key);return [c.title,x.name,x.price,x.sourceDate||'illustrative',x.url||EASY]}),['TOTAL','',t,'Excludes shipping / extra service','']];const csv=lines.map(a=>a.map(s=>'"'+String(s??'').replaceAll('"','""')+'"').join(',')).join('\r\n');const a=document.createElement('a'),url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv'}));a.href=url;a.download='UnitLab3D_Build_PHP_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)});
-sync();renderPreviewModel(p);
+sync();renderPC();renderPreviewModel(p);
 }
 function renderPreviewModel(p){ // Existing illustration is retained but now displays the selected named hardware.
  const root=$('#pcVisualizer');if(!root)return;
