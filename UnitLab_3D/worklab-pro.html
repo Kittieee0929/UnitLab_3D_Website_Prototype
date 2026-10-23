@@ -35,10 +35,10 @@ button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus
 <div class="page">
 <header class="top"><div><div class="kicker">UNITLAB 3D / INTERACTIVE HARDWARE TRAINING</div><h1>RGB PC Assembly Worklab</h1><p>Real-time WebGL model · rotate, zoom, select parts, assemble and disassemble virtually.</p></div><div class="brand">EDUCATIONAL PROTOTYPE<br><span style="color:#76e9db">LIVE 3D • WORKBENCH V2</span></div></header>
 <div class="layout"><div>
-<div class="stage" id="stage"><canvas id="viewport" aria-label="3D computer hardware model, drag to rotate" tabindex="0"></canvas>
+<div class="stage" id="stage"><canvas id="viewport" aria-label="3D computer hardware model, drag to rotate" tabindex="0"></canvas><div id="engineLoading" style="position:absolute;top:60px;left:50%;transform:translateX(-50%);z-index:4;padding:12px 16px;border-radius:10px;background:#0c2537e8;border:1px solid #36687d;text-align:center;width:min(92%,500px);color:#b8eff3">Loading interactive 3D model…<div id="engineFailure" hidden style="margin-top:10px;color:#ffd5c2">The graphics engine could not start. It may be blocked by a CDN, WebGL, or browser security setting.<p><a href="training.html">Open the reliable drag-and-drop workbench instead ↗</a></p></div></div>
 <div class="stage-header"><span>◉ LIVE 3D MODEL / OPEN CHASSIS</span><span class="pill" id="modeStatus">EXPLORE MODE</span></div>
 <div class="stage-help">⟳ Drag to rotate · Scroll/pinch to zoom · Click a component to inspect</div></div>
-<div class="controls"><label><input type="checkbox" id="rgb" checked> RGB lights</label><label><input type="checkbox" id="glass"> Glass panel</label><label><input type="checkbox" id="power" checked> System powered (visual only)</label><label>Explode <input type="range" min="0" max="100" value="0" id="explode"></label><button class="control-btn" id="resetCamera">Reset view</button></div>
+<div class="controls"><button class="control-btn" id="soloPartBtn">Isolate selected part in 3D</button><label><input type="checkbox" id="rgb" checked> RGB lights</label><label><input type="checkbox" id="glass"> Glass panel</label><label><input type="checkbox" id="power" checked> System powered (visual only)</label><label>Explode <input type="range" min="0" max="100" value="0" id="explode"></label><button class="control-btn" id="resetCamera">Reset view</button></div>
 <div class="component-list" id="partList"></div>
 </div>
 <aside class="side">
@@ -51,4 +51,11 @@ button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus
 <a class="link" href="academy.html#builder" target="_parent">All components & itemized prices ↗</a><p id="notice" aria-live="polite"></p></div>
 </aside></div>
 <footer class="source">Safety: Unplug actual hardware, use approved ESD controls and follow teacher supervision. Never open a PSU enclosure. Actual performance ratings use your adopted rubric. Requires an internet connection to load the Three.js WebGL library. Built for UnitLab CBAR teaching intervention.</footer>
-</div><script type="module" src="worklab-pro.js"></script></body></html>
+</div><script>
+(function(){
+let ready=false;window.addEventListener('unitlab3d:engine-ready',()=>{ready=true;document.getElementById('engineLoading').hidden=true});
+setTimeout(()=>{if(!ready){const el=document.getElementById('engineFailure');if(el)el.hidden=false}},9000);
+window.addEventListener('error',e=>{if(!ready&&(e.target?.tagName==='SCRIPT'||e.message)){const el=document.getElementById('engineFailure');if(el)el.hidden=false}},true);
+window.addEventListener('unhandledrejection',()=>{if(!ready){const el=document.getElementById('engineFailure');if(el)el.hidden=false}});
+})();
+</script><script type="module" src="worklab-pro.js"></script></body></html>
