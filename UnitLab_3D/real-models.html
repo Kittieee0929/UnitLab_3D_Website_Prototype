@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a111a"><title>UnitLab 3D — Real PC Parts Gallery</title>
+<meta name="description" content="Explore actual downloadable 3D meshes of computer parts in UnitLab 3D. Rotatable GPU, motherboard, CPU, RAM, power supply, storage, case and peripherals.">
+<style>
+:root{color-scheme:dark;--bg:#08131c;--panel:#111f2c;--border:#263e50;--text:#e9f5f9;--muted:#91a9b8;--aqua:#79edd1;--blue:#8fc6ff}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#08131c;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,Arial,sans-serif}button,select{font:inherit}a{color:#a3e9ed}
+.page{padding:25px 30px;max-width:1660px;margin:auto}.eyebrow{color:#78e5cd;letter-spacing:2px;font-size:10px;font-weight:850}
+.header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-bottom:20px}
+h1{margin:6px 0 8px;font-size:clamp(27px,3.2vw,43px);line-height:1.06;letter-spacing:-1.3px}
+.sub{color:var(--muted);max-width:840px;font-size:13px;line-height:1.6;margin:0}
+.top-actions,.viewer-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.btn{border:1px solid #37566a;color:#ddf6ff;background:#193044;border-radius:11px;padding:10px 14px;font-size:12px;font-weight:760;text-decoration:none;cursor:pointer}
+.btn:hover{border-color:#72b8ce;background:#1e4051}.btn.primary{background:linear-gradient(120deg,#80f2cd,#64c9ec);border-color:transparent;color:#061820}.btn:focus-visible,.part:focus-visible{outline:2px solid var(--aqua);outline-offset:3px}
+.layout{display:grid;grid-template-columns:243px minmax(0,1fr) 285px;gap:16px;align-items:start}
+.panel{background:linear-gradient(160deg,#132636,#0d1c2a);border:1px solid var(--border);border-radius:18px;overflow:hidden}.inside{padding:18px}
+.section-label{font-size:10px;font-weight:850;letter-spacing:1.7px;color:var(--aqua)}.panel h2{font-size:18px;line-height:1.15;letter-spacing:-.2px;margin:8px 0 10px}
+.panel p{font-size:12px;color:#bacfdb;line-height:1.65}.parts{display:grid;gap:8px;max-height:725px;overflow:auto;padding:12px}
+.part{display:flex;align-items:center;gap:11px;width:100%;background:#102537;border:1px solid #2b475a;color:#e6f4fa;text-align:left;padding:11px;border-radius:11px;cursor:pointer}
+.part:hover,.part.active{border-color:#6be3ce;background:#184049}.part span{display:block}.part strong{font-size:12px;display:block}.part small{font-size:10px;color:#99b8c8;display:block;margin-top:3px}.chip{width:38px;height:38px;flex-shrink:0;border:1px solid #406b7c;border-radius:10px;display:grid;place-items:center;font-size:10px;font-weight:900;background:linear-gradient(145deg,#254958,#0e2a3d);color:#aaf0e4}
+.viewer{position:relative;height:min(78vh,790px);min-height:510px;border:1px solid #28526b;border-radius:19px;overflow:hidden;background:radial-gradient(ellipse at 50% 34%,#254353,#0a1420 69%);box-shadow:0 30px 80px #0005}
+.viewer:before{content:'';position:absolute;inset:0;background-image:linear-gradient(90deg,#ffffff06 1px,transparent 1px),linear-gradient(#ffffff06 1px,transparent 1px);background-size:51px 51px;opacity:.4;pointer-events:none}
+model-viewer{display:block;position:absolute;inset:0;width:100%;height:100%;outline:none;--progress-bar-color:#80f4da;--progress-bar-height:4px}
+.corner{position:absolute;left:16px;top:15px;pointer-events:none;z-index:2;font-size:10px;letter-spacing:1.6px;color:#a3e1ed;font-weight:820;background:#0b2032bd;padding:7px 10px;border:1px solid #326577;border-radius:9px}
+.status{position:absolute;left:50%;top:49%;transform:translate(-50%,-50%);z-index:2;text-align:center;color:#b9d9e4;max-width:370px;padding:16px;background:#091b2ccc;border:1px solid #2a5264;border-radius:14px;font-size:13px;line-height:1.5}
+.status[hidden]{display:none}.spinner{display:inline-block;width:25px;height:25px;border:3px solid #345e6e;border-top-color:#82e5d6;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:8px}
+@keyframes spin{to{transform:rotate(360deg)}}.viewer-foot{position:absolute;bottom:14px;left:14px;right:14px;z-index:3;display:flex;justify-content:space-between;gap:10px;pointer-events:none}
+.viewer-foot .hint{font-size:11px;background:#091e2edc;border:1px solid #274958;border-radius:999px;padding:8px 13px;color:#c0dce7}
+.viewer-actions{pointer-events:auto}
+.inventory-title{display:flex;justify-content:space-between;align-items:center;padding:18px 18px 0}.kicker{color:#91d8d5;font-weight:820;font-size:10px;letter-spacing:1px}
+.notes{padding:18px}.notes h2{font-size:25px;margin:5px 0 10px}.notes p{color:#c3d7df;line-height:1.72}
+.summary{background:#102d39;border:1px solid #346071;border-radius:12px;padding:13px;margin:14px 0}.summary strong{font-size:24px;color:#93f3dc}.meta{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 14px}.meta span{border:1px solid #345c6c;background:#173444;color:#b9dbdf;font-size:10px;border-radius:99px;padding:5px 8px}.support{margin-top:16px;border-top:1px solid #304653;padding-top:13px;color:#9eb7c4;font-size:11px;line-height:1.7}
+.footer{color:#8eacbb;font-size:11px;line-height:1.6;padding:17px 2px}
+.right-sticky{position:sticky;top:10px}.box-links{display:grid;gap:8px}
+@media(max-width:1260px){.layout{grid-template-columns:200px minmax(0,1fr)}.right-sticky{grid-column:1/-1;position:static;display:grid;grid-template-columns:1fr 1fr;gap:12px}.viewer{height:620px}}@media(max-width:780px){.page{padding:12px}.header{display:block}.top-actions{margin-top:15px}.layout{display:block}.parts{grid-template-columns:repeat(3,minmax(0,1fr));max-height:none;display:grid}.part{padding:8px}.part .chip{width:30px;height:30px}.part small{display:none}.viewer{margin:12px 0;height:58vh;min-height:440px}.right-sticky{display:block}.right-sticky .panel{margin-bottom:12px}.viewer-foot .hint{font-size:9px}}
+@media(max-width:440px){.parts{grid-template-columns:repeat(2,minmax(0,1fr))}.viewer-foot{bottom:8px;left:8px;right:8px;flex-wrap:wrap}.viewer-actions{gap:5px}.viewer-actions button{padding:7px}}
+</style>
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.3.1/model-viewer.min.js"></script>
+</head>
+<body><main class="page">
+<header class="header"><div><div class="eyebrow">UNITLAB 3D / REAL MESH ASSET COLLECTION</div><h1>Actual 3D PC Components.</h1><p class="sub">Detailed, independently rotatable glTF models—not the box-shaped WebGL illustrations. Inspect the motherboard, GPU, RAM, storage, PSU and the full system unit before your guided assembly.</p></div>
+<div class="top-actions"><a class="btn" href="academy.html#workbench">← Learning Studio</a><a class="btn primary" href="training.html">Start guided assembly →</a></div></header>
+<div class="layout">
+<aside class="panel"><div class="inventory-title"><div><div class="section-label">PARTS INVENTORY</div><h2>Hardware cabinet</h2></div><span class="kicker" id="partCount">12 MODELS</span></div><div id="parts" class="parts" role="group" aria-label="Choose a realistic 3D PC part"></div>
+<div class="inside" style="border-top:1px solid #2c5265"><p style="margin:0">These are genuine 3D meshes, not pictures. Drag directly on the model to inspect its shape, ports and hardware details.</p></div></aside>
+<section class="viewer" aria-label="3D model preview">
+<div class="corner" id="cornerName">◉ REAL MESH • GPU</div>
+<model-viewer id="actualModel" camera-controls auto-rotate rotation-per-second="14deg" shadow-intensity="1" shadow-softness="1" exposure="1.1" environment-image="neutral" interaction-prompt="none" loading="eager" reveal="auto" alt="A rotatable realistic 3D PC part">
+</model-viewer>
+<div id="loading" class="status"><span class="spinner"></span><div id="loadingText">Loading actual 3D model…</div></div>
+<div class="viewer-foot"><span class="hint">Drag to rotate · Scroll/pinch to zoom</span><div class="viewer-actions"><button id="spinBtn" class="btn">Pause rotation</button><button id="resetBtn" class="btn">Reset camera</button></div></div>
+</section>
+<aside class="right-sticky">
+<div class="panel"><div class="notes"><div class="section-label">COMPONENT INSPECTOR</div><h2 id="partName">Graphics Card</h2><p id="partDesc">Inspect a real 3D computer graphics card model.</p>
+<div class="meta"><span id="meshLabel">Detailed mesh</span><span>Interactive 360°</span><span>Textured GLB</span></div><div class="section-label">SAFE HANDLING</div><p id="partSafety">Disconnect power and check manufacturer instructions before physical assembly.</p>
+<div class="summary"><div class="section-label">YOUR SELECTED PC BUILD</div><strong id="priceTotal">No saved build</strong><p id="buildSpecs" style="margin:7px 0 0">Choose components in the PC Builder to show your CPU, GPU, RAM and total.</p></div>
+<div class="box-links"><a class="btn primary" href="academy.html#builder">Configure parts & prices →</a><a class="btn" href="training.html">Guided / assessed assembly →</a><a class="btn" href="worklab-pro.html">Fallback WebGL viewer ↗</a></div>
+</div></div>
+<div class="panel"><div class="notes"><div class="section-label">ABOUT THE 3D ASSETS</div><p>Models come from the MIT-licensed open-source <a href="https://github.com/brickshow/pc-anatomy" target="_blank" rel="noopener">PC Anatomy</a> project. Exact product names in our price catalog are labels, not guarantees that the geometry matches that SKU. Files load from its public GitHub repository.</p><div class="support">If a model is temporarily unavailable, use the fallback viewer or continue with your drag-and-drop performance training. A stable internet connection is needed for this high-detail gallery.</div></div></div>
+</aside></div><footer class="footer">UnitLab 3D • Classroom-based action research prototype. High-detail models © their respective contributors, reused with upstream MIT license notice. The learning website's independent tutorial, grading, and existing research resources are preserved.</footer></main>
+<script defer src="real-models.js"></script></body></html>
