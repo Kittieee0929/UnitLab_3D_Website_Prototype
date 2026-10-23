@@ -37,6 +37,9 @@ const disassembly=[
 const state={mode:'explore',step:0,selected:'motherboard',visited:new Set(),rgb:true,power:true,glass:false,explode:0};
 const parts={};
 const movingFans=[],lightBars=[];
+const ramSticks=[],gpuFanModels=[];
+let gpuNamePlate=null,cpuNamePlate=null;
+let liveSnapshot=null;
 const mats={
  metal:new THREE.MeshStandardMaterial({color:0x182633,metalness:.82,roughness:.33}),
  dark:new THREE.MeshStandardMaterial({color:0x0b1722,metalness:.75,roughness:.4}),
@@ -102,7 +105,14 @@ for(let i=0;i<10;i++)box(cooler,1.08,.065,.75,-.62,.34+i*.115,-.12,mats.silver);
 box(cooler,1.11,1.22,.12,-.62,.89,.36,mats.black);
 makeFan(cooler,-.62,.88,.50,.38);
 const ram=partGroup('ram');
-for(let i=0;i<2;i++){const x=.34+i*.20;box(ram,.11,1.5,.19,x,.70,-.57,mats.black);box(ram,.075,1.39,.035,x,.70,-.45,mats.board);for(let j=0;j<7;j++)box(ram,.08,.115,.05,x,1.26-j*.2,-.405,mats.nickel);const m=box(ram,.12,.095,.22,x,1.48,-.57,glowMaterial());lightBars.push(m)}
+for(let i=0;i<4;i++){
+  const stick=new THREE.Group();ram.add(stick);ramSticks.push(stick);
+  const x=.15+i*.17;
+  box(stick,.115,1.5,.18,x,.70,-.57,mats.black);
+  box(stick,.08,1.39,.035,x,.70,-.45,mats.board);
+  for(let j=0;j<7;j++)box(stick,.08,.115,.05,x,1.26-j*.2,-.405,mats.nickel);
+  const m=box(stick,.12,.095,.22,x,1.48,-.57,glowMaterial());lightBars.push(m);
+}
 const storage=partGroup('storage');
 box(storage,.72,.19,.09,-.16,-.45,-.60,mats.board);box(storage,.55,.12,.08,-.17,-.45,-.535,mats.nickel);
 label(storage,'NVMe',.49,.12,-.17,-.45,-.486,{size:38});
@@ -113,14 +123,70 @@ label(psu,'750W  POWER',1.13,.2,.5,-2.11,.716,{size:26});
 const gpu=partGroup('gpu');
 box(gpu,2.85,.64,.67,-.02,-.74,.42,mats.black);
 box(gpu,2.89,.10,.69,-.02,-.42,.42,mats.nickel);
-for(let i=0;i<3;i++)makeFan(gpu,-.90+i*.91,-.77,.83,.26);
-label(gpu,'RTX // GRAPHICS',1.9,.19,-.02,-.42,.79,{size:25});
+for(let i=0;i<3;i++)gpuFanModels.push(makeFan(gpu,-.90+i*.91,-.77,.83,.26));
+gpuNamePlate=label(gpu,'RTX // GRAPHICS',1.9,.19,-.02,-.42,.79,{size:25});
 const gpuStrip=box(gpu,2.46,.05,.05,-.02,-.35,.48,glowMaterial());lightBars.push(gpuStrip);
 const glass=box(chassis,3.12,4.48,.025,0,.01,1.35,mats.glass);glass.material.depthWrite=false;glass.userData.glass=true;
 const strip=box(chassis,.055,4.36,.055,-1.50,.06,1.18,glowMaterial());lightBars.push(strip);
 tagMeshes(chassis,'case');for(const id of order.slice(1))tagMeshes(parts[id],id);
 glass.visible=false;
 const initialPositions={};for(const id of order)initialPositions[id]=parts[id].position.clone();
+
+const STORAGE_KEY='unitlab3d_livebuild_v4';
+function loadSnapshot(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY))}catch{return null}}
+const phpmoney=n=>'₱'+Number(n||0).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+const safeText=x=>String(x||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function refreshQuickControls(snapshot){
+ const container=$('#quickChoices');
+ const choices=snapshot.choices||{};
+ if(!choices.cpu||!choices.gpu||!choices.ram)return;
+ let html='';
+ for(const [key,title] of [['cpu','Processor'],['gpu','Graphics card'],['ram','System memory']]){
+  const selected=snapshot.build?.[key]||'';
+  html+='<label class="quick-label">'+title+'<select data-quick="'+key+'" class="quick-select">'+choices[key].map(p=>'<option value="'+safeText(p.id)+'" '+(selected===p.id?'selected':'')+'>'+safeText(p.name)+'</option>').join('')+'</select></label>';
+ }
+ container.innerHTML=html;
+ container.querySelectorAll('[data-quick]').forEach(sel=>sel.addEventListener('change',e=>{
+  const key=e.target.dataset.quick,id=e.target.value;
+  if(window.parent!==window)window.parent.postMessage({type:'unitlab3d:choose',key,id},location.origin);
+  else document.location.href='academy.html#builder';
+ }));
+}
+function applyConfiguration(snapshot){
+ if(!snapshot?.parts)return;
+ liveSnapshot=snapshot;
+ const p=snapshot.parts,gpuPart=p.gpu||{},ramPart=p.ram||{},cpuPart=p.cpu||{},psuPart=p.psu||{};
+ const num=Math.max(1,Math.min(4,Number(ramPart.dimms)||2));
+ // Two DIMMs populate alternating slots (A2/B2), four fill every slot.
+ ramSticks.forEach((stick,i)=>stick.visible=num===4||i===1||i===3);
+ const fans=Math.max(0,Math.min(3,Number(gpuPart.fans)||0));
+ gpuFanModels.forEach((fan,i)=>{
+  fan.visible=i<fans;
+  if(fans===1)fan.position.x=0;
+  else if(fans===2)fan.position.x=i===0?-.62:.62;
+  else fan.position.x=-.90+i*.91;
+ });
+ gpu.visible=gpuPart.id!=='none';
+ gpu.scale.x=gpuPart.id==='none'?1:Math.max(.7,Math.min(1.08,(gpuPart.length||250)/270));
+ const text=(gpuPart.name||'RTX GRAPHICS').replace(/[^A-Za-z0-9 +]/g,' ').slice(0,30);
+ if(gpuNamePlate){gpuNamePlate.material.map.dispose();gpuNamePlate.material.map=textTexture(text,{size:24});gpuNamePlate.material.needsUpdate=true}
+ if(psuPart.capacity){const existing=parts.psu.getObjectByName('dynamicPsuLabel');if(existing){existing.parent.remove(existing);existing.geometry.dispose();existing.material.map?.dispose();existing.material.dispose()}
+ const labelMesh=label(parts.psu,String(psuPart.capacity)+'W PSU',1.13,.2,.5,-2.11,.716,{size:26});labelMesh.name='dynamicPsuLabel';}
+ const coolerType=(p.cooler?.id||'tower');
+ const coolerFans=movingFans.filter(f=>f.parent.parent===cooler);
+ // The cooler changes from a standard tower to a more open cooling accent for liquid-style choices.
+ cooler.scale.set(coolerType==='aio240'?.96:1,coolerType==='stock'?.78:1,coolerType==='aio240'?.72:1);
+ const gpuDisplay=gpuPart.name||'GPU';$('#partList [data-part="gpu"] b').textContent=gpuDisplay;
+ $('#partList [data-part="ram"] b').textContent=(ramPart.name||'Memory')+' / '+num+' DIMMs';
+ $('#partList [data-part="cpu"] b').textContent=cpuPart.name||'CPU';
+ $('#configTotal').textContent=phpmoney(snapshot.priceTotal);
+ if(state.selected==='gpu'){$('#partTitle').textContent=gpuDisplay;$('#partDesc').textContent=descriptions.gpu[1]+' Selected SKU: '+gpuDisplay+'. The visual fan count and model label follow this selection.'}
+ if(state.selected==='ram'){$('#partTitle').textContent=ramPart.name||'Memory';$('#partDesc').textContent=descriptions.ram[1]+' Installed DIMMs: '+num+'.'}
+ updateParts();refreshQuickControls(snapshot);
+}
+window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data?.type==='unitlab3d:updatebuild')applyConfiguration(e.data.snapshot)});
+window.addEventListener('storage',e=>{if(e.key===STORAGE_KEY){const snapshot=loadSnapshot();if(snapshot)applyConfiguration(snapshot)}});
+
 function doExplode(){for(const id of order){if(id==='case')continue;const g=parts[id];g.position.copy(initialPositions[id]);const factor=({motherboard:0.25,cpu:0.8,cooler:1.8,ram:1.25,storage:1.1,psu:1.3,gpu:2.2})[id]||1;g.position.z+=state.explode*factor}}
 function updateParts(){glass.visible=state.glass;for(const id of order){parts[id].visible=true}if(state.mode==='assemble'){const installed=new Set(assembly.slice(0,state.step).map(s=>s[0]));for(const id of order.slice(1))parts[id].visible=installed.has(id)}if(state.mode==='disassemble'){const removed=new Set(disassembly.slice(0,state.step).map(s=>s[0]));for(const id of order.slice(1))parts[id].visible=!removed.has(id)}doExplode()}
 const list=$('#partList');
@@ -140,4 +206,4 @@ $('#viewport').addEventListener('pointerup',e=>{if(!down||Math.hypot(e.clientX-d
 const clock=new THREE.Clock(),col=new THREE.Color();
 function resize(){const c=renderer.domElement,rect=c.getBoundingClientRect();if(rect.width<2||rect.height<2)return;const w=Math.floor(rect.width),h=Math.floor(rect.height);if(c.width!==Math.floor(w*renderer.getPixelRatio())||c.height!==Math.floor(h*renderer.getPixelRatio())){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}}
 function animate(){requestAnimationFrame(animate);resize();const t=clock.getElapsedTime();controls.update();for(let i=0;i<movingFans.length;i++){if(state.power)movingFans[i].rotation.z+=.09}for(let i=0;i<lightBars.length;i++){const mesh=lightBars[i];const hue=(t*.11+i*.097)%1;mesh.material.color.setHSL(hue,1,.62);mesh.visible=state.rgb&&state.power}pinkLight.intensity=state.rgb&&state.power?36:3;edgeLight.intensity=state.rgb&&state.power?48:10;renderer.render(scene,camera)}
-select('motherboard');updateStep();animate();
+select('motherboard');updateStep();const initialSnapshot=loadSnapshot();if(initialSnapshot)applyConfiguration(initialSnapshot);animate();
