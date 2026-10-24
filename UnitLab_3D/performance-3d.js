@@ -232,13 +232,13 @@ const ghost=slots.get(p.id),isGuide=state.mode==='tutorial'&&state.hints&&sequen
 ghost.material.opacity=isGuide?.48:state.mode==='tutorial'?.08:.012;ghost.material.color.set(isGuide?0x72f4c8:0x799cac);
 ghost.scale.setScalar(isGuide?1.18:1);
 }
-$('#hoverName').textContent=state.hover&&byId[state.hover]?'Mount: '+byId[state.hover].name:'PC workstation';
+$('#hoverName').textContent=state.mode==='tutorial'&&state.hover&&byId[state.hover]?'Mount: '+byId[state.hover].name:'3D assembly workstation';
 }
 function install(id,slot){
 if(!byId[id]||state.submitted||state.mode==='disassembly')return;
 if(state.mode==='tutorial'){
 const expected=sequence[state.step];
-if(id!==expected||slot!==id){$('#stepInstruction').textContent='Follow the glowing part and its matching slot. The next item is '+byId[expected]?.name+'.';return}
+if(id!==expected||slot!==id){$('#stepInstruction').textContent='Follow the glowing part and its matching slot. The next item is '+byId[expected]?.name+'.';returnToRack(id);return}
 state.placed[id]=slot;state.step++;
 }else{
 const expected=sequence.find(p=>state.placed[p]!==p);
@@ -313,12 +313,12 @@ stage.addEventListener('dragover',e=>{e.preventDefault();if(state.mode==='disass
 stage.addEventListener('dragleave',()=>{state.hover=null;highlights()});
 stage.addEventListener('drop',e=>{e.preventDefault();const id=e.dataTransfer.getData('text/plain')||active.dragged;if(id)install(id,nearestZone(e));state.hover=null;highlights()});
 // Grab the actual 3D mesh from the rack. OrbitControls only runs when no part is being held.
-let gesture=null;
+let gesture=null,tapTarget=null;
 canvas.addEventListener('pointerdown',e=>{
  if(state.submitted)return;
  const id=meshPick(e);
- if(!id)return; // Dragging an empty region rotates the camera.
- if(state.mode!=='disassembly'&&state.placed[id])return;
+ if(!id){if(state.mode!=='disassembly'&&state.selected)tapTarget={x:e.clientX,y:e.clientY,id:state.selected};return} // Empty area can rotate the camera.
+ if(state.mode!=='disassembly'&&state.placed[id]===id)return;
  if(state.mode==='disassembly'&&state.removed.has(id))return;
  gesture={id,startX:e.clientX,startY:e.clientY,dragged:false,origin:meshes.get(id).position.clone()};
  controls.enabled=false;canvas.setPointerCapture(e.pointerId);selectPart(id);
@@ -331,7 +331,8 @@ canvas.addEventListener('pointermove',e=>{
  tray.classList.toggle('hover',e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom)}
 });
 canvas.addEventListener('pointerup',e=>{
- if(!gesture)return;
+ if(!gesture){if(tapTarget&&state.mode!=='disassembly'&&Math.hypot(e.clientX-tapTarget.x,e.clientY-tapTarget.y)<8){const z=nearestZone(e);if(z!=='workspace')install(tapTarget.id,z)}tapTarget=null;return}
+ tapTarget=null;
  const held=gesture;gesture=null;controls.enabled=true;tray.classList.remove('hover');
  const tr=tray.getBoundingClientRect(),inTray=!tray.hidden&&e.clientX>=tr.left&&e.clientX<=tr.right&&e.clientY>=tr.top&&e.clientY<=tr.bottom;
  if(state.mode==='disassembly'){
@@ -346,7 +347,7 @@ canvas.addEventListener('pointerup',e=>{
 });
 canvas.addEventListener('pointercancel',()=>{
  if(gesture){meshes.get(gesture.id).position.copy(gesture.origin);gesture=null}
- controls.enabled=true;tray.classList.remove('hover');
+ tapTarget=null;controls.enabled=true;tray.classList.remove('hover');
 });
 tray.addEventListener('click',()=>{if(state.mode==='disassembly'&&state.selected)remove(state.selected)});
 tray.addEventListener('dragover',e=>{e.preventDefault();tray.classList.add('hover')});
