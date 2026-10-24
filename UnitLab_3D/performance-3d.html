@@ -42,7 +42,7 @@ body.embedded .stage{height:min(76vh,730px);min-height:510px}
 <section class="workspace">
 <div class="stage" id="stage"><canvas id="assemblyCanvas" tabindex="0" aria-label="3D computer assembly workbench with hardware mounting slots"></canvas>
 <div class="overlay"><span class="label" id="modeLabel">◉ GUIDED ASSEMBLY</span><span class="label" id="assetsStatus">Loading 3D hardware…</span></div>
-<div class="stage-status" id="stageStatus"><strong>Preparing real 3D hardware</strong><p>Loading the interactive workbench and model viewer…</p><a class="btn" href="training.html">Open the lightweight backup ↗</a></div>
+<div class="stage-status" id="stageStatus"><strong>Preparing 3D hardware</strong><p>Initializing the 3D workbench…</p></div>
 <div class="hint-bottom"><span>Drag a part → PC · Rotate: empty area · Zoom: wheel / pinch</span><span id="hoverName">PC assembly station</span></div>
 </div>
 <div id="removeTray" class="drop-tray" hidden><strong>↘ REMOVED COMPONENTS CABINET</strong><span>Drag a part out of the 3D case and release it in this tray (or select a part then tap here).</span></div>
@@ -55,7 +55,7 @@ body.embedded .stage{height:min(76vh,730px);min-height:510px}
 <div class="panel guide"><div class="eyebrow">3D HARDWARE INSPECTOR</div><h2 id="inspectedName">Motherboard</h2><div class="miniModel"><div class="placeholder" id="previewPlaceholder">Choose a part to preview</div><model-viewer id="preview3D" camera-controls auto-rotate rotation-per-second="22deg" shadow-intensity=".7" environment-image="neutral" interaction-prompt="none" loading="lazy" alt="Interactive 3D preview of a computer hardware part" style="display:none"></model-viewer></div><p class="big-info" id="inspectedInfo">Choose a component to learn its function.</p><div class="chips" id="inspectedChips"><span>Actual textured GLB</span><span>Learning model</span></div><div class="eyebrow">SAFETY NOTE</div><p class="tiny" id="safety">Always isolate mains power and follow the teacher's safety guidance during physical PC servicing.</p>
 <div class="warn-note" style="margin-top:13px">For class demonstration only. Actual assessment requires your approved/adopted rubric and observation by the teacher. Local records are not secure institutional grades.</div></div>
 </aside></div>
-<footer>© 2026 UnitLab 3D · 3D models credited to <a href="https://github.com/brickshow/pc-anatomy" target="_blank" rel="noopener">PC Anatomy</a> under its MIT license; see <a href="MODEL_ATTRIBUTION.md">attribution</a>. Uses Three.js for a shared scene and model-viewer for inspection. If a browser cannot load WebGL, use the lightweight fallback. Student names/identifiable research data must not be entered into local demo accounts.</footer>
+<footer>© 2026 UnitLab 3D · 3D models credited to <a href="https://github.com/brickshow/pc-anatomy" target="_blank" rel="noopener">PC Anatomy</a> under its MIT license; see <a href="MODEL_ATTRIBUTION.md">attribution</a>. Uses Three.js for a shared scene and model-viewer for inspection. If the detailed renderer cannot start, a native 3D viewer opens instead. Student names/identifiable research data must not be entered into local demo accounts.</footer>
 </div>
 <script>
 (function(){
