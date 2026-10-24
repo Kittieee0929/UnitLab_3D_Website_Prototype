@@ -18,20 +18,27 @@ footer{font-size:11px;color:#8ca9b5;margin:21px 0;line-height:1.65}.warn-note{ba
 @media(max-width:1250px){.layout{grid-template-columns:220px minmax(0,1fr)}.rightcol{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:13px}.rightcol .panel{min-width:0}}@media(max-width:830px){.page{padding:13px}.top{display:block}.nav{margin-top:12px}.layout{display:block}.shelves{grid-template-columns:repeat(2,minmax(0,1fr));max-height:none}.stage{height:60vh;min-height:470px;margin-top:13px}.workspace{margin-top:12px}.rightcol{display:block}.rightcol .panel{margin-top:13px}}@media(max-width:520px){.shelves{grid-template-columns:1fr}.stage{height:490px;min-height:490px}.hint-bottom span{font-size:9px}.overlay .label{font-size:9px}.mode-options{width:100%}.mode-options button{flex:1}}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script>
-<style>.resource-return-nav{display:flex;gap:8px;align-items:center;justify-content:flex-start;flex-wrap:wrap;background:#123443;border:1px solid #3b6574;border-radius:13px;padding:10px 12px;margin:0 0 16px}.resource-return-nav a{display:inline-block;color:#c8fbf2!important;border:1px solid #356274;border-radius:9px;text-decoration:none;padding:8px 11px;font:700 12px system-ui;background:#0a2636}.resource-return-nav a:hover{background:#275563}</style></head><body>
+<style>.resource-return-nav{display:flex;gap:8px;align-items:center;justify-content:flex-start;flex-wrap:wrap;background:#123443;border:1px solid #3b6574;border-radius:13px;padding:10px 12px;margin:0 0 16px}.resource-return-nav a{display:inline-block;color:#c8fbf2!important;border:1px solid #356274;border-radius:9px;text-decoration:none;padding:8px 11px;font:700 12px system-ui;background:#0a2636}.resource-return-nav a:hover{background:#275563}</style><style>
+html.embedded .page{max-width:none;padding:10px}
+body.embedded header.top,body.embedded .resource-return-nav,body.embedded footer{display:none!important}
+body.embedded .stage{height:min(76vh,730px);min-height:510px}
+.layout.fallback-open>:not(#inlineFallback){display:none!important}
+.layout.fallback-open{display:block}
+@media(max-width:830px){body.embedded .page{padding:7px}body.embedded .stage{height:70vh;min-height:445px}}
+</style>
+<script>if(new URLSearchParams(location.search).has('embedded'))document.documentElement.classList.add('embedded');</script></head><body>
 <div class="page">
-<div class="resource-return-nav" role="navigation" aria-label="Learning Studio sections"><a href="academy.html#home">⌂ Home</a><a href="academy.html#modules">Learning modules</a><a href="academy.html#plans">Lesson plans</a><a href="academy.html#curriculum">DepEd resources</a><a href="academy.html#builder">PC Builder</a><a href="training.html">Safe practice</a></div>
-<header class="top"><div><div class="kicker">UNITLAB 3D / AUTHENTIC 3D HARDWARE PRACTICUM</div><h1>Assemble a PC. Prove you can.</h1><p class="sub">Real textured 3D hardware models, an interactive assembly bench, guided practice and independent performance grading. Rotate the workstation, drag parts from the cabinet, then reverse the build in disassembly mode.</p></div><div class="nav"><a class="btn" href="academy.html#workbench">Learning studio</a><a class="btn" href="real-models.html">Hardware library ↗</a><a class="btn" href="training.html">Lightweight fallback</a></div></header>
+<div class="resource-return-nav" role="navigation" aria-label="Learning Studio"><a href="academy.html#home">← Back to UnitLab</a></div>
+<header class="top"><div><div class="kicker">UNITLAB 3D / AUTHENTIC 3D HARDWARE PRACTICUM</div><h1>Assemble a PC. Prove you can.</h1><p class="sub">Real textured 3D hardware models, an interactive assembly bench, guided practice and independent performance grading. Rotate the workstation, drag parts from the cabinet, then reverse the build in disassembly mode.</p></div></header>
 <div class="modes"><div class="mode-options" role="group" aria-label="Select training mode"><button type="button" class="btn active" data-mode="tutorial">01 · Guided Build</button><button type="button" class="btn" data-mode="assembly">02 · Performance Build</button><button type="button" class="btn" data-mode="disassembly">03 · Disassembly Test</button></div><div class="badge" id="student">Guest · local demonstration</div></div>
 <div class="layout">
 <aside class="panel">
 <div class="panel-head"><div class="eyebrow">SUPPLY CABINET</div><h2>Grab a real 3D part</h2><p class="tiny">Drag a component to its socket on the rotating PC. On touchscreens, tap a component then tap the 3D location.</p></div>
 <div id="shelves" class="shelves"></div><div class="shelf-bottom"><p class="tiny">3D asset fidelity depends on mesh loading. Assets are educational representations, not exact SKU-specific CAD models.</p></div>
 </aside>
-<div class="inline-fallback" id="inlineFallback" hidden style="grid-column:1/-1;border:1px solid #327977;border-radius:16px;background:#10303d;padding:18px;margin:14px 0">
-<h2 style="margin:0 0 7px">Switching to the reliable assembly workbench</h2><p style="color:#b8d6df;font-size:13px">The detailed 3D engine could not load in this browser. You can still complete the tutorial, independent performance task, safety activities and export your checklist below.</p>
-<p><a class="btn primary" href="training.html">Open full-screen reliable assessment ↗</a> <a class="btn" href="academy.html#modules">Learning modules</a> <a class="btn" href="academy.html#curriculum">DepEd resources</a></p>
-<iframe id="trainingFallbackFrame" title="Reliable UnitLab PC assembly performance task" style="width:100%;height:850px;border:1px solid #477381;border-radius:12px;background:#09202f" loading="lazy"></iframe></div>
+<div class="inline-fallback" id="inlineFallback" hidden style="grid-column:1/-1;border:1px solid #327977;border-radius:16px;background:#10303d;padding:16px;margin:12px 0">
+<h2 style="margin:0 0 7px">3D backup viewer</h2><p style="color:#b8d6df;font-size:13px">Detailed assembly models could not initialize. The backup still shows a rotatable 3D computer, but graded drag-and-drop is unavailable until the detailed viewer is working.</p>
+<iframe id="native3dFallbackFrame" title="UnitLab 3D backup viewer" style="width:100%;height:760px;border:1px solid #477381;border-radius:12px;background:#09202f" loading="lazy"></iframe></div>
 <section class="workspace">
 <div class="stage" id="stage"><canvas id="assemblyCanvas" tabindex="0" aria-label="3D computer assembly workbench with hardware mounting slots"></canvas>
 <div class="overlay"><span class="label" id="modeLabel">◉ GUIDED ASSEMBLY</span><span class="label" id="assetsStatus">Loading 3D hardware…</span></div>
@@ -55,15 +62,14 @@ footer{font-size:11px;color:#8ca9b5;margin:21px 0;line-height:1.65}.warn-note{ba
 let ready=false,failed=false;
 function showWorkingFallback(reason){
  if(ready||failed)return;failed=true;
- const box=document.getElementById('stageStatus');
- if(box){box.hidden=false;box.innerHTML='<strong>Detailed 3D could not start</strong><p>'+reason+'</p><a class="btn primary" href="training.html">Open working performance assessment ↗</a>'}
- const fallback=document.getElementById('inlineFallback');
- if(fallback){fallback.hidden=false;const iframe=document.getElementById('trainingFallbackFrame');if(iframe&&!iframe.getAttribute('src'))iframe.src='training.html'}
+ const backup=document.getElementById('inlineFallback');
+ if(backup){backup.hidden=false;const frame=document.getElementById('native3dFallbackFrame');if(frame&&!frame.getAttribute('src'))frame.src='worklab-pro.html?embedded=1'}
+ const layout=document.querySelector('.layout');if(layout)layout.classList.add('fallback-open');
 }
 addEventListener('unitlab3d:performance-ready',()=>{ready=true;const box=document.getElementById('stageStatus');if(box)box.hidden=true});
 addEventListener('error',e=>{if(!ready&&(e.target?.tagName==='SCRIPT'||e.message)){showWorkingFallback('3D JavaScript or graphics engine failed to start.')}},true);
 addEventListener('unhandledrejection',()=>{if(!ready)showWorkingFallback('3D resources failed to load.')});
-setTimeout(()=>{if(!ready)showWorkingFallback('The graphics engine did not initialize. The working training task is available below.')},12000);
+setTimeout(()=>{if(!ready)showWorkingFallback('The graphics engine did not initialize. A 3D backup is available below.')},12000);
 })();
 </script>
 <script type="module" src="performance-3d.js"></script>
