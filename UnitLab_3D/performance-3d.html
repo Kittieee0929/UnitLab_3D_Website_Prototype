@@ -45,6 +45,15 @@ footer{font-size:11px;color:#8ca9b5;margin:21px 0;line-height:1.65}.warn-note{ba
 </aside></div>
 <footer>© 2026 UnitLab 3D · 3D models credited to <a href="https://github.com/brickshow/pc-anatomy" target="_blank" rel="noopener">PC Anatomy</a> under its MIT license; see <a href="MODEL_ATTRIBUTION.md">attribution</a>. Uses Three.js for a shared scene and model-viewer for inspection. If a browser cannot load WebGL, use the lightweight fallback. Student names/identifiable research data must not be entered into local demo accounts.</footer>
 </div>
+<script>
+(function(){
+let ready=false;
+window.addEventListener('unitlab3d:performance-ready',()=>{ready=true});
+setTimeout(()=>{if(ready)return;const box=document.getElementById('stageStatus');if(!box)return;
+box.hidden=false;box.innerHTML='<strong>3D engine could not start</strong><p>The WebGL or model-library modules may be blocked. Your lightweight assessment is still available.</p><a class="btn primary" href="training.html">Open reliable fallback ↗</a>';
+},12500);
+})();
+</script>
 <script type="module" src="performance-3d.js"></script>
 <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.3.1/model-viewer.min.js"></script>
 </body></html>
