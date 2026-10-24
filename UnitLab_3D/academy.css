@@ -16,3 +16,16 @@
 .lab-links{display:flex;gap:9px;flex-wrap:wrap}
 @media(max-width:1000px){.workbench-hub{grid-template-columns:1fr}.lab-choice{min-height:0}}
 @media(max-width:760px){.study-quicknav{padding:12px;gap:7px}.study-quicknav strong{width:100%;margin-bottom:1px}.study-quicknav button{padding:8px 10px;font-size:11px}.lab-choice{padding:18px}}
+
+/* 2026-10-24: four-item navigation with one expandable Learning group */
+.nav-learning-group{min-width:0}
+.nav-group-button{justify-content:flex-start}
+.nav-group-button>.nav-chevron{margin-left:auto;color:#a5ccd4!important;width:auto!important;font-size:17px!important;transition:transform .16s}
+.nav-group-button.expanded>.nav-chevron{transform:rotate(180deg)}
+.nav-subnav{margin:2px 0 8px 19px;border-left:1px solid #305666;padding:2px 0 2px 10px;display:grid;gap:2px}
+.nav-subnav[hidden]{display:none!important}
+.nav-subitem{font-size:12px!important;padding:10px 11px!important;min-height:36px}
+.nav-subitem.active{box-shadow:inset 2px 0 var(--mint)!important;background:#173849}
+.workbench-stage{border-radius:18px;border:1px solid #335a6c;background:#081824;overflow:hidden;min-height:760px;margin:18px 0}
+.workbench-stage iframe{display:block;width:100%;height:min(1120px,90vh);min-height:760px;border:0;background:#081824}
+@media(max-width:760px){.workbench-stage{min-height:650px}.workbench-stage iframe{height:90vh;min-height:650px}.nav-subnav{margin-left:21px}}
