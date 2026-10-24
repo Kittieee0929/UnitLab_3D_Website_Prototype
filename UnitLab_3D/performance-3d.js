@@ -28,8 +28,8 @@ try{
  renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.outputColorSpace=THREE.SRGBColorSpace;
  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.55;
  renderer.shadowMap.enabled=true;scene=new THREE.Scene();scene.background=new THREE.Color(0x091722);scene.fog=new THREE.FogExp2(0x091722,.025);
- camera=new THREE.PerspectiveCamera(40,1,.1,100);camera.position.set(6.6,3.6,8.5);
- controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.minDistance=4.8;controls.maxDistance=16;controls.maxPolarAngle=Math.PI*.85;controls.target.set(0,0,0);
+ camera=new THREE.PerspectiveCamera(40,1,.1,100);camera.position.set(7.0,3.8,11.7);
+ controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.minDistance=6.0;controls.maxDistance=20;controls.maxPolarAngle=Math.PI*.85;controls.target.set(-.95,0,0);
  loader=new GLTFLoader();
 }catch(e){$('#stageStatus').innerHTML='<strong>3D unavailable</strong><p>WebGL failed. Use the lightweight workbench instead.</p><a class="btn" href="training.html">Open fallback</a>';throw e}
 scene.add(new THREE.HemisphereLight(0xe2f5ff,0x263647,2.7));
@@ -122,18 +122,67 @@ const child=normalize(model,p.dims,id);group.clear();group.add(child);active.loa
 return group;
 }
 function markInstalled(id,where){
-const obj=ensureMesh(id),target=byId[where]?.pos||[3.02,-1.32,1.42];obj.position.set(...target);obj.visible=true;
+const obj=ensureMesh(id),target=byId[where]?.pos||[3.02,-1.32,1.42];obj.position.set(...target);obj.scale.setScalar(1);obj.visible=true;
 if(id==='ram')updateRam();
 }
+
+/* The 3D parts are real separate mesh objects on the LEFT rack inside the same Three.js scene.
+   Each is the exact object students drag from shelf to the open chassis. */
+const rackPositions=Object.fromEntries(parts.map((p,i)=>[p.id,new THREE.Vector3(-3.60,2.04-i*.68,.48)]));
+const rack=new THREE.Group();scene.add(rack);
+for(const p of parts){
+ const here=rackPositions[p.id];
+ box(rack,[1.18,.055,.72],[here.x,here.y-.34,.18],steel);
+ box(rack,[1.10,.56,.045],[here.x,here.y,.00],dark);
+ const led=new THREE.Mesh(new THREE.PlaneGeometry(1.10,.04),new THREE.MeshBasicMaterial({color:0x55dfce,transparent:true,opacity:.37}));
+ led.position.set(here.x,here.y-.31,.46);rack.add(led);
+}
+function modelRackScale(id){const p=byId[id];return .72/Math.max(...p.dims)}
+function returnToRack(id){
+ const obj=ensureMesh(id);
+ obj.position.copy(rackPositions[id]);obj.scale.setScalar(modelRackScale(id));obj.visible=true;
+}
+function rackDrop(clientX,clientY){
+ const rect=canvas.getBoundingClientRect();
+ const x=clientX-rect.left,y=clientY-rect.top;
+ for(const p of parts){
+  const center=rackPositions[p.id].clone().project(camera);
+  const xx=(center.x+1)*.5*rect.width,yy=(1-center.y)*.5*rect.height;
+  if(Math.hypot(x-xx,y-yy)<Math.max(48,Math.min(105,rect.height*.14)))return true;
+ }
+ return false;
+}
+function worldAtPointer(event){
+ const rect=canvas.getBoundingClientRect();
+ const mouseX=(event.clientX-rect.left)/rect.width*2-1;
+ const mouseY=-(event.clientY-rect.top)/rect.height*2+1;
+ ray.setFromCamera(new THREE.Vector2(mouseX,mouseY),camera);
+ const plane=new THREE.Plane(new THREE.Vector3(0,0,1),-1.15);
+ return ray.ray.intersectPlane(plane,new THREE.Vector3());
+}
+
 function renderShelf(){
 const shelves=$('#shelves');shelves.replaceChildren();const groups=new Map();
 for(const p of parts){if(!groups.has(p.category))groups.set(p.category,[]);groups.get(p.category).push(p)}
 for(const [cat,members] of groups){const container=document.createElement('div');container.className='shelf';const head=document.createElement('div');head.className='shelf-name';head.textContent=cat;container.appendChild(head);
 for(const p of members){
 const button=document.createElement('button');button.className='inventory';button.dataset.part=p.id;button.type='button';button.draggable=true;
-const icon=document.createElement('span');icon.className='inventory-icon';icon.textContent=p.short;
-const wrapper=document.createElement('span'),title=document.createElement('b'),subtitle=document.createElement('small');
-title.textContent=p.name;subtitle.textContent='Textured 3D part';wrapper.append(title,subtitle);button.append(icon,wrapper);
+const icon=document.createElement('span');icon.className='inventory-icon';
+const model=document.createElement('model-viewer');
+model.setAttribute('src',p.url);model.setAttribute('alt','Actual 3D model of '+p.name);
+model.setAttribute('camera-orbit','30deg 75deg auto');model.setAttribute('environment-image','neutral');
+model.setAttribute('auto-rotate','');model.setAttribute('rotation-per-second','18deg');
+model.setAttribute('interaction-prompt','none');model.setAttribute('loading','lazy');
+model.setAttribute('shadow-intensity','.65');model.setAttribute('exposure','1.3');
+model.setAttribute('aria-hidden','true');
+const loading=document.createElement('span');loading.className='model-loading';loading.textContent='3D '+p.short;
+icon.append(loading,model);
+model.addEventListener('load',()=>loading.hidden=true);
+model.addEventListener('error',()=>{loading.hidden=false;loading.textContent=p.short+' (preview unavailable)'});
+const wrapper=document.createElement('span');wrapper.className='inventory-text';
+const title=document.createElement('b'),subtitle=document.createElement('small');
+title.textContent=p.name;subtitle.textContent='Drag this 3D model → PC case';
+wrapper.append(title,subtitle);button.append(icon,wrapper);
 button.addEventListener('click',()=>selectPart(p.id));button.addEventListener('dragstart',e=>{
 state.selected=p.id;inspect(p.id);active.dragged=p.id;
 e.dataTransfer.setData('text/plain',p.id);e.dataTransfer.effectAllowed='move';renderShelfStyles();
@@ -203,7 +252,7 @@ function remove(id){
 if(state.mode!=='disassembly'||state.submitted||!byId[id]||state.removed.has(id))return;
 const expected=reverse.find(p=>!state.removed.has(p));
 state.attempts.push({id,slot:'tray',kind:id===expected?'correct':'out-of-sequence',time:Date.now()});
-state.removed.add(id);meshes.get(id).visible=false;
+state.removed.add(id);returnToRack(id);
 state.step=state.removed.size;selectPart(id);drawStatus();
 }
 function drawStatus(){
@@ -252,27 +301,53 @@ const url=URL.createObjectURL(new Blob([text],{type:'text/csv'})),link=document.
 function reset(mode){
 state.mode=mode;state.step=0;state.selected=null;state.placed={};state.removed.clear();state.attempts=[];state.submitted=false;state.report=null;$('#result').replaceChildren();
 $$('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
-for(const p of parts){let mesh=meshes.get(p.id);if(mode==='disassembly'){mesh=ensureMesh(p.id);mesh.position.set(...p.pos);mesh.visible=true;state.placed[p.id]=p.id;if(p.id==='ram')updateRam()}else if(mesh)mesh.visible=false}
+for(const p of parts){
+ const mesh=ensureMesh(p.id);
+ if(mode==='disassembly'){mesh.position.set(...p.pos);mesh.scale.setScalar(1);mesh.visible=true;state.placed[p.id]=p.id;if(p.id==='ram')updateRam()}
+ else returnToRack(p.id);
+}
 selectPart(mode==='disassembly'?'gpu':'motherboard');drawStatus();highlights();
 }
 const stage=$('#stage'),tray=$('#removeTray');
 stage.addEventListener('dragover',e=>{e.preventDefault();if(state.mode==='disassembly')return;state.hover=nearestZone(e);highlights()});
 stage.addEventListener('dragleave',()=>{state.hover=null;highlights()});
 stage.addEventListener('drop',e=>{e.preventDefault();const id=e.dataTransfer.getData('text/plain')||active.dragged;if(id)install(id,nearestZone(e));state.hover=null;highlights()});
-let gesture=null,clickOrigin=null;
+// Grab the actual 3D mesh from the rack. OrbitControls only runs when no part is being held.
+let gesture=null;
 canvas.addEventListener('pointerdown',e=>{
-if(state.mode!=='disassembly'&&!state.submitted)clickOrigin={x:e.clientX,y:e.clientY};
-if(state.mode!=='disassembly'||state.submitted)return;
-const id=meshPick(e);if(!id)return;gesture={id,x:e.clientX,y:e.clientY};controls.enabled=false;canvas.setPointerCapture(e.pointerId);selectPart(id)
+ if(state.submitted)return;
+ const id=meshPick(e);
+ if(!id)return; // Dragging an empty region rotates the camera.
+ if(state.mode!=='disassembly'&&state.placed[id])return;
+ if(state.mode==='disassembly'&&state.removed.has(id))return;
+ gesture={id,startX:e.clientX,startY:e.clientY,dragged:false,origin:meshes.get(id).position.clone()};
+ controls.enabled=false;canvas.setPointerCapture(e.pointerId);selectPart(id);
+});
+canvas.addEventListener('pointermove',e=>{
+ if(!gesture)return;
+ if(Math.hypot(e.clientX-gesture.startX,e.clientY-gesture.startY)>7)gesture.dragged=true;
+ if(gesture.dragged){const v=worldAtPointer(e);if(v)meshes.get(gesture.id).position.copy(v)}
+ if(state.mode==='disassembly'){const r=tray.getBoundingClientRect();
+ tray.classList.toggle('hover',e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom)}
 });
 canvas.addEventListener('pointerup',e=>{
-if(state.mode==='disassembly'){if(gesture){const r=tray.getBoundingClientRect();if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom)remove(gesture.id)}
-gesture=null;controls.enabled=true;tray.classList.remove('hover');return}
-if(state.selected&&!state.submitted&&clickOrigin&&Math.hypot(e.clientX-clickOrigin.x,e.clientY-clickOrigin.y)<8)install(state.selected,nearestZone(e));
-clickOrigin=null;
+ if(!gesture)return;
+ const held=gesture;gesture=null;controls.enabled=true;tray.classList.remove('hover');
+ const tr=tray.getBoundingClientRect(),inTray=!tray.hidden&&e.clientX>=tr.left&&e.clientX<=tr.right&&e.clientY>=tr.top&&e.clientY<=tr.bottom;
+ if(state.mode==='disassembly'){
+  if(inTray||rackDrop(e.clientX,e.clientY))remove(held.id);
+  else meshes.get(held.id).position.copy(held.origin);
+  return;
+ }
+ const slot=nearestZone(e);
+ if(slot!=='workspace')install(held.id,slot);
+ else if(held.dragged&&state.mode==='assembly')install(held.id,'workspace');
+ else returnToRack(held.id);
 });
-canvas.addEventListener('pointermove',e=>{if(gesture){const r=tray.getBoundingClientRect();tray.classList.toggle('hover',e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom)}});
-canvas.addEventListener('pointercancel',()=>{gesture=null;clickOrigin=null;controls.enabled=true;tray.classList.remove('hover')});
+canvas.addEventListener('pointercancel',()=>{
+ if(gesture){meshes.get(gesture.id).position.copy(gesture.origin);gesture=null}
+ controls.enabled=true;tray.classList.remove('hover');
+});
 tray.addEventListener('click',()=>{if(state.mode==='disassembly'&&state.selected)remove(state.selected)});
 tray.addEventListener('dragover',e=>{e.preventDefault();tray.classList.add('hover')});
 tray.addEventListener('dragleave',()=>tray.classList.remove('hover'));
@@ -282,11 +357,11 @@ $('#resetScene').addEventListener('click',()=>reset(state.mode));$('#submitBtn')
 $('#hints').addEventListener('change',e=>{state.hints=e.target.checked;highlights()});
 $('#glass').addEventListener('change',e=>panelGlass.visible=e.target.checked);
 $('#rgb').addEventListener('change',e=>fans.forEach(f=>f.ring.visible=e.target.checked));
-$('#resetCamera').addEventListener('click',()=>{camera.position.set(6.6,3.6,8.5);controls.target.set(0,0,0);controls.update()});
+$('#resetCamera').addEventListener('click',()=>{camera.position.set(7.0,3.8,11.7);controls.target.set(-.95,0,0);controls.update()});
 function resize(){const r=canvas.getBoundingClientRect(),w=Math.floor(r.width),h=Math.floor(r.height),pixel=renderer.getPixelRatio();
 if(w>0&&h>0&&(canvas.width!==Math.floor(w*pixel)||canvas.height!==Math.floor(h*pixel))){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}}
 const clock=new THREE.Clock();
 function frame(){requestAnimationFrame(frame);resize();controls.update();const t=clock.getElapsedTime();for(const f of fans)if($('#rgb').checked){f.rotor.rotation.z+=.08;f.ring.material.color.setHSL((t*.11+f.i*.23)%1,.95,.61)}renderer.render(scene,camera)}
 renderShelf();reset('tutorial');requestAnimationFrame(frame);$('#stageStatus').hidden=true;status();
 window.dispatchEvent(new Event('unitlab3d:performance-ready'));
-setTimeout(()=>{for(const id of ['ram','storage','psu'])fetchModel(byId[id]).catch(()=>{})},1000);
+// Real hardware meshes load asynchronously into the visible left-hand 3D rack at startup.
