@@ -3,6 +3,7 @@ import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 
 const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const canvas=$('#assemblyCanvas');
 const upstream='https://raw.githubusercontent.com/brickshow/pc-anatomy/main/public/models/';
 const specs=[
 ['motherboard','Motherboard','MB','01 · CORE HARDWARE','motherboard.glb',[2.46,2.88,.20],[-.3,.40,-.56],[-1.32,.41,.08],'Connects the processor, RAM, GPU, storage and power connections. Align standoffs and board form factor.','Isolate mains power and use an approved ESD-safe workspace.'],
