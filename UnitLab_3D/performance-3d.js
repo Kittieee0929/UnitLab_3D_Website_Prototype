@@ -82,11 +82,20 @@ return holder;
 }
 function normalize(model,dim,id){
 const clone=model.clone(true);
-const b=new THREE.Box3().setFromObject(clone),sz=b.getSize(new THREE.Vector3()),cent=b.getCenter(new THREE.Vector3());
-if(sz.length()<.001)throw Error('Empty model for '+id);
-const ratios=[dim[0]/Math.max(sz.x,.005),dim[1]/Math.max(sz.y,.005),dim[2]/Math.max(sz.z,.005)];
-clone.position.copy(cent).multiplyScalar(-1);
-const grp=new THREE.Group();grp.scale.setScalar(Math.min(...ratios));grp.add(clone);
+let best={scale:0,rotation:[0,0,0],center:new THREE.Vector3()};
+const orientations=[[0,0,0],[Math.PI/2,0,0],[0,Math.PI/2,0],[0,0,Math.PI/2],[Math.PI/2,Math.PI/2,0],[Math.PI/2,0,Math.PI/2],[0,Math.PI/2,Math.PI/2]];
+for(const angles of orientations){
+ clone.rotation.set(...angles);clone.position.set(0,0,0);clone.updateMatrixWorld(true);
+ const bounds=new THREE.Box3().setFromObject(clone),size=bounds.getSize(new THREE.Vector3());
+ if(size.length()<.001)continue;
+ const fitted=Math.min(dim[0]/Math.max(size.x,.005),dim[1]/Math.max(size.y,.005),dim[2]/Math.max(size.z,.005));
+ if(fitted>best.scale)best={scale:fitted,rotation:angles,center:bounds.getCenter(new THREE.Vector3())};
+}
+if(best.scale===0)throw Error('Empty model for '+id);
+clone.rotation.set(...best.rotation);
+// Recenter in rotated world space inside its scaling group.
+clone.position.copy(best.center).multiplyScalar(-1);
+const grp=new THREE.Group();grp.scale.setScalar(best.scale);grp.add(clone);
 grp.traverse(o=>{o.userData.partId=id;if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
 return grp;
 }
@@ -276,4 +285,5 @@ if(w>0&&h>0&&(canvas.width!==Math.floor(w*pixel)||canvas.height!==Math.floor(h*p
 const clock=new THREE.Clock();
 function frame(){requestAnimationFrame(frame);resize();controls.update();const t=clock.getElapsedTime();for(const f of fans)if($('#rgb').checked){f.rotor.rotation.z+=.08;f.ring.material.color.setHSL((t*.11+f.i*.23)%1,.95,.61)}renderer.render(scene,camera)}
 renderShelf();reset('tutorial');requestAnimationFrame(frame);$('#stageStatus').hidden=true;status();
+window.dispatchEvent(new Event('unitlab3d:performance-ready'));
 setTimeout(()=>{for(const id of ['ram','storage','psu'])fetchModel(byId[id]).catch(()=>{})},1000);
