@@ -122,3 +122,25 @@ The previous visually simple WebGL blocks remain as a lightweight fallback, but 
 - RAM, SSD and PSU GLB files are committed inside the repository under `models/`. Larger GLB files are fetched from PC Anatomy's attributed MIT-licensed open-source repository. See `MODEL_ATTRIBUTION.md`.
 - The page uses the Apache-licensed Google `<model-viewer>` web component from a pinned CDN release (4.3.1), which requires internet access. The original `worklab-pro.html` native WebGL renderer remains available as a fallback; `training.html` remains operable for placement and scoring without the external library.
 - These are realistic examples for part recognition, **not** physically accurate manufacturer-specific meshes for every individual RTX, Ryzen, RAM or case SKU. Avoid calling them certified models of named retail products.
+
+
+## Authentic 3D assembly/disassembly performance worklab — October 24, 2026
+
+**Primary Workbench:** `academy.html#workbench` now opens `performance-3d.html` (backed by `performance-3d.js`). The light 2D training workbench `training.html` remains available for the AVR, monitor, power-cable and broader safety exercises; the standalone model gallery `real-models.html` remains available.
+
+### Student interactions
+
+- **Guided Build:** select or drag real model-backed motherboard, processor, cooler, RAM kit, SSD, PSU and graphics card into approximate mounting locations of a rotatable, open-frame 3D system unit. The current part and target glow; incorrect placements provide tutorial feedback without advancing.
+- **Performance Build:** repeat without highlighted targets or correctness feedback. All drop attempts are recorded, including errors and out-of-order attempts. Wrong placement is left on the scene; the student may reposition it but the error remains counted.
+- **Disassembly Test:** starts with all seven components installed as independent mesh objects. Select/grab the actual model in the 3D case and drag it to the removal tray; touch users can select the part and tap the tray. Every removal attempt is counted for sequence accuracy.
+- **Assessment report:** shows a 100-point **formative prototype grade** after submission, with a per-part checklist (completed, first attempt, number of attempts), errors, order violations and missing tasks. Reports are stored in the current browser only and export to CSV.
+- **Build-aware RAM:** the engine draws two or four independent GLB RAM models based on the PC Builder's chosen DIMM kit.
+- **Quality and fallback:** CPU, GPU, motherboard and cooler meshes stream from the attributed open-source PC Anatomy library; RAM, SSD and PSU meshes load from this repository. A temporary simplified proxy appears while each detailed mesh loads or if it is unavailable. The webpage has a WebGL startup fallback to `training.html`.
+
+### Important scope and safeguards
+
+This is an **educational interactive prototype**, not an accurately dimensioned hardware digital twin. The shared scene uses a purpose-built chassis frame and positions/scales representative third-party meshes; it does not simulate pin-level, screw-level, firmware, current draw or electrical interlocks. It cannot certify a physical PC build. GPU models are representative rather than exact branded SKU meshes.
+
+The **current scoring weights** are illustrative and not claimed to be adopted, validated or approved for the CBAR pretest/posttest. In graded modes the local simulation subtracts 8 points per wrong target, 6 per out-of-sequence action, 10 per unfinished component and 2 for completed components not correct on first try, to a floor of zero. These weights should be aligned with the research adviser's approved rubric before collecting actual participant data. Use a teacher's observation of real assembly for a formal practical performance measure.
+
+All login, practice results and exported reports remain **device-local and insecure for school records**. Do not store identifiable learner information, official research outcomes or sensitive personal records in the static GitHub Pages site. All actual physical servicing must follow teacher-supervised electrical isolation, ESD and manufacturer procedures.
