@@ -144,3 +144,17 @@ This is an **educational interactive prototype**, not an accurately dimensioned 
 The **current scoring weights** are illustrative and not claimed to be adopted, validated or approved for the CBAR pretest/posttest. In graded modes the local simulation subtracts 8 points per wrong target, 6 per out-of-sequence action, 10 per unfinished component and 2 for completed components not correct on first try, to a floor of zero. These weights should be aligned with the research adviser's approved rubric before collecting actual participant data. Use a teacher's observation of real assembly for a formal practical performance measure.
 
 All login, practice results and exported reports remain **device-local and insecure for school records**. Do not store identifiable learner information, official research outcomes or sensitive personal records in the static GitHub Pages site. All actual physical servicing must follow teacher-supervised electrical isolation, ESD and manufacturer procedures.
+
+
+## Drag actual 3D parts from the side rack (October 24, 2026)
+
+The main 3D Workbench (`academy.html#workbench` / `performance-3d.html`) now starts with a visibly **empty PC chassis and actual 3D component meshes arranged on a shelf beside it**. There are two synchronized ways to assemble:
+
+- Grab a model **directly inside the rotating 3D scene**, drag toward the target mounting location, and release.
+- Drag the matching **3D model thumbnail** from the side hardware cabinet onto the 3D PC. On touchscreens, tap the side part and then tap the case slot.
+
+Actual PC Anatomy GLB models appear as they finish loading. A shaped fallback temporarily appears where a mesh has not loaded. Assets are the same meshes previously used for the 3D hardware gallery, not generic text buttons. The rotating part inspector remains available.
+
+Guided mode highlights the next required model and its placement. Independent assessment hides hints, does not auto-correct mistakes, counts incorrect and out-of-order drops and allows manual retries while preserving error penalties. Disassembly mode begins with installed models that students can drag back toward the 3D rack or the removal tray.
+
+The 3D application requires WebGL and the remote Three.js module CDN; models sourced from upstream also require connectivity. The lower-detail native 3D fallback remains available if the full engine fails. These remain representative GLB parts, not certified manufacturer CAD models.
