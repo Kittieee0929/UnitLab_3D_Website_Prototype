@@ -26,14 +26,32 @@ body.embedded .stage{height:min(76vh,730px);min-height:510px}
 .layout.fallback-open{display:block}
 @media(max-width:830px){body.embedded .page{padding:7px}body.embedded .stage{height:70vh;min-height:445px}}
 </style>
-<script>if(new URLSearchParams(location.search).has('embedded'))document.documentElement.classList.add('embedded');</script></head><body>
+<script>if(new URLSearchParams(location.search).has('embedded'))document.documentElement.classList.add('embedded');</script>
+<style>
+/* Real GLB inventory: each part appears as an actual live 3D thumbnail, not an abbreviation box */
+.shelves{gap:10px}
+.shelf{padding:10px}
+.inventory{display:grid;grid-template-columns:96px minmax(0,1fr);gap:11px;min-height:103px;align-items:center;padding:7px 10px;position:relative;touch-action:pan-y;cursor:grab}
+.inventory:active{cursor:grabbing}
+.inventory-icon{width:96px;height:86px;display:grid;place-items:center;overflow:hidden;position:relative;background:radial-gradient(circle,#265268,#112938 78%);border-radius:10px}
+.inventory-icon model-viewer{display:block;width:100%;height:100%;pointer-events:none;--progress-bar-height:2px}
+.inventory-icon .model-loading{font-size:10px;color:#b7d2d9;font-weight:700;letter-spacing:.3px}
+.inventory .inventory-text{min-width:0}
+.inventory .inventory-text b{font-size:12px}
+.inventory .inventory-text small{font-size:10px;line-height:1.5}
+.inventory.ghost{box-shadow:inset 0 0 0 2px #6cf4d3,0 0 16px #6bdfae52}
+.inventory.loaded .inventory-icon{filter:grayscale(.75);opacity:.76}
+.stage-direction{position:absolute;left:12%;right:9%;bottom:60px;z-index:2;display:flex;justify-content:space-between;align-items:center;pointer-events:none;color:#b6faf0;font-weight:850;font-size:10px;letter-spacing:1.3px;text-shadow:0 2px 6px #000;background:#0b213288;border:1px solid #396b74;padding:8px 12px;border-radius:99px}
+.stage-direction span:nth-child(2){font-size:18px}
+@media(max-width:830px){.inventory{grid-template-columns:80px minmax(0,1fr);min-height:87px}.inventory-icon{width:80px;height:70px}.stage-direction{bottom:52px;font-size:9px}}
+</style></head><body>
 <div class="page">
 <div class="resource-return-nav" role="navigation" aria-label="Learning Studio"><a href="academy.html#home">← Back to UnitLab</a></div>
 <header class="top"><div><div class="kicker">UNITLAB 3D / AUTHENTIC 3D HARDWARE PRACTICUM</div><h1>Assemble a PC. Prove you can.</h1><p class="sub">Real textured 3D hardware models, an interactive assembly bench, guided practice and independent performance grading. Rotate the workstation, drag parts from the cabinet, then reverse the build in disassembly mode.</p></div></header>
 <div class="modes"><div class="mode-options" role="group" aria-label="Select training mode"><button type="button" class="btn active" data-mode="tutorial">01 · Guided Build</button><button type="button" class="btn" data-mode="assembly">02 · Performance Build</button><button type="button" class="btn" data-mode="disassembly">03 · Disassembly Test</button></div><div class="badge" id="student">Guest · local demonstration</div></div>
 <div class="layout">
 <aside class="panel">
-<div class="panel-head"><div class="eyebrow">SUPPLY CABINET</div><h2>Grab a real 3D part</h2><p class="tiny">Drag a component to its socket on the rotating PC. On touchscreens, tap a component then tap the 3D location.</p></div>
+<div class="panel-head"><div class="eyebrow">SUPPLY CABINET</div><h2>3D Parts Shelf</h2><p class="tiny">These are actual rotatable-model assets, not text-only buttons. Drag a hardware model from this shelf into the empty case. You can also drag the part directly from the shelf inside the 3D scene.</p></div>
 <div id="shelves" class="shelves"></div><div class="shelf-bottom"><p class="tiny">3D asset fidelity depends on mesh loading. Assets are educational representations, not exact SKU-specific CAD models.</p></div>
 </aside>
 <div class="inline-fallback" id="inlineFallback" hidden style="grid-column:1/-1;border:1px solid #327977;border-radius:16px;background:#10303d;padding:16px;margin:12px 0">
@@ -41,9 +59,9 @@ body.embedded .stage{height:min(76vh,730px);min-height:510px}
 <iframe id="native3dFallbackFrame" title="UnitLab 3D backup viewer" style="width:100%;height:760px;border:1px solid #477381;border-radius:12px;background:#09202f" loading="lazy"></iframe></div>
 <section class="workspace">
 <div class="stage" id="stage"><canvas id="assemblyCanvas" tabindex="0" aria-label="3D computer assembly workbench with hardware mounting slots"></canvas>
-<div class="overlay"><span class="label" id="modeLabel">◉ GUIDED ASSEMBLY</span><span class="label" id="assetsStatus">Loading 3D hardware…</span></div>
+<div class="overlay"><span class="label" id="modeLabel">◉ GUIDED ASSEMBLY</span><span class="label" id="assetsStatus">Loading 3D hardware…</span></div><div class="stage-direction"><span>3D PARTS SHELF</span><span>→</span><span>PC SYSTEM CASE</span></div>
 <div class="stage-status" id="stageStatus"><strong>Preparing 3D hardware</strong><p>Initializing the 3D workbench…</p></div>
-<div class="hint-bottom"><span>Drag a part → PC · Rotate: empty area · Zoom: wheel / pinch</span><span id="hoverName">PC assembly station</span></div>
+<div class="hint-bottom"><span>Drag visible 3D parts → case · Rotate empty area · Scroll to zoom</span><span id="hoverName">PC assembly station</span></div>
 </div>
 <div id="removeTray" class="drop-tray" hidden><strong>↘ REMOVED COMPONENTS CABINET</strong><span>Drag a part out of the 3D case and release it in this tray (or select a part then tap here).</span></div>
 <div class="panel" style="padding:13px 16px"><div class="controls"><label><input type="checkbox" id="rgb" checked> RGB fans</label><label><input type="checkbox" id="hints" checked> Show tutorial trail</label><label><input type="checkbox" id="glass"> Glass side panel</label><button class="btn" id="resetCamera">Reset camera</button><button class="btn" id="resetScene">Restart this activity</button></div></div>
