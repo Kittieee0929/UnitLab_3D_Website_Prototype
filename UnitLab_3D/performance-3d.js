@@ -258,18 +258,20 @@ const stage=$('#stage'),tray=$('#removeTray');
 stage.addEventListener('dragover',e=>{e.preventDefault();if(state.mode==='disassembly')return;state.hover=nearestZone(e);highlights()});
 stage.addEventListener('dragleave',()=>{state.hover=null;highlights()});
 stage.addEventListener('drop',e=>{e.preventDefault();const id=e.dataTransfer.getData('text/plain')||active.dragged;if(id)install(id,nearestZone(e));state.hover=null;highlights()});
-let gesture=null;
+let gesture=null,clickOrigin=null;
 canvas.addEventListener('pointerdown',e=>{
+if(state.mode!=='disassembly'&&!state.submitted)clickOrigin={x:e.clientX,y:e.clientY};
 if(state.mode!=='disassembly'||state.submitted)return;
 const id=meshPick(e);if(!id)return;gesture={id,x:e.clientX,y:e.clientY};controls.enabled=false;canvas.setPointerCapture(e.pointerId);selectPart(id)
 });
 canvas.addEventListener('pointerup',e=>{
 if(state.mode==='disassembly'){if(gesture){const r=tray.getBoundingClientRect();if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom)remove(gesture.id)}
 gesture=null;controls.enabled=true;tray.classList.remove('hover');return}
-if(state.selected&&!state.submitted&&e.pointerType!=='mouse')install(state.selected,nearestZone(e));
+if(state.selected&&!state.submitted&&clickOrigin&&Math.hypot(e.clientX-clickOrigin.x,e.clientY-clickOrigin.y)<8)install(state.selected,nearestZone(e));
+clickOrigin=null;
 });
 canvas.addEventListener('pointermove',e=>{if(gesture){const r=tray.getBoundingClientRect();tray.classList.toggle('hover',e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom)}});
-canvas.addEventListener('pointercancel',()=>{gesture=null;controls.enabled=true;tray.classList.remove('hover')});
+canvas.addEventListener('pointercancel',()=>{gesture=null;clickOrigin=null;controls.enabled=true;tray.classList.remove('hover')});
 tray.addEventListener('click',()=>{if(state.mode==='disassembly'&&state.selected)remove(state.selected)});
 tray.addEventListener('dragover',e=>{e.preventDefault();tray.classList.add('hover')});
 tray.addEventListener('dragleave',()=>tray.classList.remove('hover'));
