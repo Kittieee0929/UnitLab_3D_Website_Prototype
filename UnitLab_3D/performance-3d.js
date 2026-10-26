@@ -276,7 +276,12 @@ locatorBox([.045,.16,.073],[-1.11,-.74,.186],socketMetal);
 const snapTweens=new Map();
 const boardLocalIds=new Set(Object.keys(BOARD_CONNECTORS));
 function socketParent(id){return boardLocalIds.has(id)?boardAssembly:rig}
-function socketPose(id){return BOARD_CONNECTORS[id]||CHASSIS_CONNECTORS[id]}
+function socketPose(id){
+ if(id==='ram'&&numRam()===4){
+  return {position:[.7125,.23,.330],rotation:[0,0,0]};
+ }
+ return BOARD_CONNECTORS[id]||CHASSIS_CONNECTORS[id];
+}
 function socketWorld(id){
  const parent=socketParent(id),pose=socketPose(id);
  parent.updateWorldMatrix(true,false);
@@ -1159,16 +1164,33 @@ reset('tutorial');
 status();
 // Read-only observability for classroom QA and automated browser checks.
 window.__unitlabQA={
- snapshot:()=>({mode:state.mode,step:state.step,placed:{...state.placed},boardMounted:state.boardMounted,loaded:active.loaded}),
+ snapshot:()=>({
+   mode:state.mode,step:state.step,placed:{...state.placed},
+   boardMounted:state.boardMounted,removed:Array.from(state.removed),
+   loaded:active.loaded,pendingAnimations:Array.from(snapTweens.keys()),
+   parentBoard:boardAssembly.parent===rig?'case':'mat'
+ }),
  targetClient:id=>{
-   const part=byId[id];if(!part)return null;
-   const local=project(part),rect=canvas.getBoundingClientRect();
-   return {x:Math.round(rect.left+local.x),y:Math.round(rect.top+local.y)};
+   if(!byId[id])return null;
+   const p=project(byId[id]),rect=canvas.getBoundingClientRect();
+   return {x:Math.round(rect.left+p.x),y:Math.round(rect.top+p.y),
+     withinStage:p.x>=0&&p.x<rect.width&&p.y>=0&&p.y<rect.height};
  },
- meshes:()=>Array.from(meshes.entries()).map(([id,obj])=>({id,visible:obj.visible,worldSize:(()=>{
-   const sz=new THREE.Box3().setFromObject(obj).getSize(new THREE.Vector3());
-   return sz.toArray().map(v=>+v.toFixed(2));
- })()}))
+ anchors:()=>parts.map(p=>{
+   const model=meshes.get(p.id),target=socketWorld(p.id);
+   if(model)model.updateWorldMatrix(true,true);
+   const pos=model?model.getWorldPosition(new THREE.Vector3()):null;
+   const pose=socketPose(p.id);
+   return {id:p.id,parent:model?.parent===boardAssembly?'board':model?.parent===rig?'case':model?.parent===scene?'scene':'none',
+     assigned:(state.mode==='disassembly'?!state.removed.has(p.id):state.placed[p.id]===p.id),
+     local:model?.position.toArray().map(x=>+x.toFixed(3)),targetLocal:pose.position,
+     world:pos?.toArray().map(x=>+x.toFixed(3)),
+     socketWorld:target.toArray().map(x=>+x.toFixed(3)),
+     distance:pos?+pos.distanceTo(target).toFixed(4):null};
+ }),
+ meshes:()=>Array.from(meshes.entries()).map(([id,obj])=>({id,visible:obj.visible,
+   worldSize:new THREE.Box3().setFromObject(obj).getSize(new THREE.Vector3()).toArray().map(v=>+v.toFixed(2))
+ }))
 };
 requestAnimationFrame(frame);
 // Real hardware meshes load asynchronously into the visible left-hand 3D rack at startup.
