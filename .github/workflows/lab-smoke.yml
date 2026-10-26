@@ -106,7 +106,7 @@ jobs:
             await page.locator('#mountBoardBtn').click();
             await page.waitForTimeout(1450);
             const mounted=await page.evaluate(()=>window.__unitlabQA.snapshot());
-            if(!mounted.boardMounted||mounted.parentBoard!=='case')throw new Error('Motherboard failed to mount');
+            if(!mounted.boardMounted||mounted.parentBoard!=='case'||mounted.boardLocal.some((v,i)=>Math.abs(v-[-.40,.35,-.83][i])>.01))throw new Error('Motherboard is not actually seated on case standoffs: '+JSON.stringify(mounted));
             for(const id of ['motherboard','cpu','ram','storage','cooler']){
               const a=await page.evaluate(id=>window.__unitlabQA.anchors().find(x=>x.id===id),id);
               if(a.parent!=='board'||a.distance>.085)throw new Error(id+' shifted when board entered the chassis');
