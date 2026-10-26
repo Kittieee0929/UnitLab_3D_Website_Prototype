@@ -244,9 +244,131 @@ const urls=[p.url];
   }throw last||new Error('Asset unavailable')})();
 assetCache.set(p.id,promise);return promise;
 }
+/* Detailed procedural fallback for every hardware class.
+   A GLB replaces the fallback as soon as it loads. The fallback is intentionally
+   a generic educational representation, not a manufacturer CAD model. */
 function placeholder(p){
-const holder=new THREE.Group();box(holder,p.dims,[0,0,0],new THREE.MeshStandardMaterial({color:0x42606b,wireframe:true,transparent:true,opacity:.27,metalness:.1,roughness:.9}));
-return holder;
+ const g=new THREE.Group(),id=p.id;
+ const pcb=new THREE.MeshStandardMaterial({color:0x162d2a,metalness:.18,roughness:.75});
+ const pcbLight=new THREE.MeshStandardMaterial({color:0x296254,metalness:.31,roughness:.60});
+ const black=new THREE.MeshStandardMaterial({color:0x15191d,metalness:.35,roughness:.61});
+ const brushed=new THREE.MeshStandardMaterial({color:0x9fa8ac,metalness:.91,roughness:.31});
+ const alloy=new THREE.MeshStandardMaterial({color:0x525c65,metalness:.87,roughness:.39});
+ const copper=new THREE.MeshStandardMaterial({color:0xb98b4c,metalness:.68,roughness:.43});
+ const slotMat=new THREE.MeshStandardMaterial({color:0x222a31,metalness:.30,roughness:.60});
+ const pale=new THREE.MeshStandardMaterial({color:0xd2d7d9,metalness:.54,roughness:.48});
+ const red=new THREE.MeshStandardMaterial({color:0x98564c,metalness:.40,roughness:.53});
+ function disc(parent,rad,height,x,y,z,mat,segments=32){
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(rad,rad,height,segments),mat);
+  m.rotation.x=Math.PI/2;m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;
+ }
+ function fan(cx,cy,z,r){
+  const border=new THREE.Mesh(new THREE.TorusGeometry(r,.055,10,40),alloy);
+  border.position.set(cx,cy,z);g.add(border);
+  disc(g,r*.70,.02,cx,cy,z-.027,black);
+  for(let i=0;i<7;i++){
+   const angle=i*Math.PI*2/7,blade=new THREE.Mesh(new THREE.SphereGeometry(r*.32,10,6),brushed);
+   blade.position.set(cx+Math.cos(angle)*r*.41,cy+Math.sin(angle)*r*.41,z+.025);
+   blade.scale.set(.48,1.5,.09);blade.rotation.z=angle+.63;g.add(blade);
+  }
+  disc(g,r*.21,.065,cx,cy,z+.079,alloy);
+  for(let i=0;i<4;i++){
+   const a=(i+.5)*Math.PI/2;
+   const mount=new THREE.Mesh(new THREE.SphereGeometry(.045,8,6),pale);
+   mount.position.set(cx+Math.cos(a)*r*.9,cy+Math.sin(a)*r*.9,z+.045);g.add(mount);
+  }
+ }
+ if(id==='motherboard'){
+  const w=2.58,h=2.80;
+  box(g,[w,h,.085],[0,0,0],pcb);
+  // Fine traces + printed copper pads reveal a physical PCB rather than a flat slab.
+  for(let i=0;i<27;i++){
+   const x=-1.16+(i*57%218)/100,y=-1.24+(i*97%242)/100;
+   box(g,[.19+(i%4)*.06,.009,.005],[x,y,.049],i%4===0?copper:pcbLight);
+  }
+  // CPU LGA/AM socket base without a processor inside.
+  box(g,[.64,.66,.050],[-.29,.44,.079],alloy);
+  box(g,[.55,.56,.018],[-.29,.44,.112],slotMat);
+  box(g,[.36,.37,.018],[-.29,.44,.124],brushed);
+  box(g,[.08,.08,.014],[-.50,.66,.128],pale);
+  // Four DIMM slots along the board edge.
+  for(let i=0;i<4;i++){
+   const x=.45+i*.175;
+   box(g,[.084,1.49,.105],[x,.23,.107],black);
+   box(g,[.105,.09,.13],[x,1.02,.12],pale);
+   box(g,[.105,.09,.13],[x,-.57,.12],pale);
+  }
+  // Two full-length PCIe expansion slots + one x1.
+  for(let i=0;i<2;i++){
+   const y=-.60-i*.34;
+   box(g,[1.64,.125,.115],[-.37,y,.112],i?alloy:black);
+   box(g,[.03,.16,.14],[-1.14,y,.12],pale);
+  }
+  box(g,[.47,.13,.09],[-.90,-1.20,.106],slotMat);
+  // Power / chipset heatsink fins.
+  box(g,[.40,1.16,.14],[-.99,.53,.112],alloy);
+  box(g,[.93,.30,.18],[-.49,1.13,.13],alloy);
+  box(g,[.55,.45,.14],[.57,-1.06,.12],alloy);
+  for(let i=0;i<9;i++){
+   box(g,[.035,1.10,.043],[-1.17+i*.035,.55,.206],black);
+  }
+  // Power connectors and capacitors.
+  box(g,[.16,.56,.18],[1.19,.62,.116],black);
+  box(g,[.34,.17,.22],[-1.05,1.29,.14],brushed);
+  for(let i=0;i<19;i++){
+   const x=-1.11+(i*19%85)/100,y=-.20+(i*37%111)/100;
+   disc(g,.031,.060,x,y,.12,i%5===0?copper:black,10);
+  }
+  for(let i=0;i<7;i++){const x=-.94+i*.29;box(g,[.07,.045,.04],[x,-1.34,.067],copper)}
+ }else if(id==='cpu'){
+  box(g,[.46,.46,.03],[0,0,0],pcbLight);
+  box(g,[.38,.38,.048],[0,0,.035],alloy);
+  box(g,[.33,.33,.009],[0,0,.066],brushed);
+  for(let i=0;i<7;i++)for(let j=0;j<7;j++)
+   box(g,[.017,.017,.006],[-.17+i*.055,-.17+j*.055,-.020],copper);
+  box(g,[.042,.042,.009],[-.192,.192,.065],pale);
+ }else if(id==='ram'){
+  box(g,[.12,1.16,.30],[0,0,0],pcb);
+  box(g,[.145,1.05,.26],[0,.025,.025],black);
+  for(let i=0;i<8;i++)box(g,[.078,.092,.015],[0,-.44+i*.129,.171],alloy);
+  for(let i=0;i<10;i++)box(g,[.03,.046,.028],[0,-.50+i*.107,-.16],copper);
+  box(g,[.16,.08,.31],[0,.49,.025],alloy);
+ }else if(id==='storage'){
+  box(g,[.78,.24,.035],[0,0,0],pcb);
+  for(let i=0;i<4;i++)box(g,[.13,.15,.018],[-.22+i*.15,.02,.026],black);
+  box(g,[.12,.18,.008],[.27,0,.028],alloy);
+  for(let i=0;i<8;i++)box(g,[.018,.09,.013],[-.32+i*.02,-.10,-.01],copper);
+  disc(g,.025,.012,.36,0,.02,brushed,12);
+ }else if(id==='cooler'){
+  box(g,[.80,.80,.30],[0,0,-.16],alloy);
+  for(let i=0;i<20;i++)box(g,[.78,.76,.008],[0,0,-.33+i*.020],i%3?brushed:alloy);
+  for(const x of [-.29,.29])for(const y of [-.29,.29])disc(g,.025,.41,x,y,-.26,copper,12);
+  box(g,[.88,.88,.11],[0,0,.19],black);
+  fan(0,0,.29,.32);
+ }else if(id==='psu'){
+  const [w,h,d]=p.dims;
+  box(g,[w,h,d],[0,0,0],black);
+  for(const x of [-w*.47,w*.47])box(g,[.025,h,.03],[x,0,d*.5],alloy);
+  fan(0,0,d*.5+.05,.31);
+  for(let i=0;i<7;i++)box(g,[.035,.03,.09],[w*.5-.02,-h*.38+i*.11,-d*.33],pale);
+  box(g,[.17,.13,.018],[-w*.27,-h*.34,d*.5+.015],red);
+ }else if(id==='gpu'){
+  const [w,h,d]=p.dims;
+  box(g,[w,h,d],[0,0,0],black);
+  box(g,[w*.95,h*.89,.075],[0,0,d*.5+.04],alloy);
+  for(const x of [-.68,0,.68])fan(x,0,d*.5+.105,.23);
+  box(g,[w*.72,.028,.05],[0,-h*.52,-d*.12],copper);
+  box(g,[.11,h,.07],[-w*.50,0,0],pale);
+  for(let i=0;i<12;i++)box(g,[.015,.04,.02],[-.48+i*.07,-h*.55,-d*.10],copper);
+ }else if(id==='casefans'){
+  box(g,[.79,2.56,.13],[0,0,0],black);
+  for(let i=0;i<3;i++){
+   const cy=-.83+i*.83;
+   box(g,[.79,.79,.09],[0,cy,.04],alloy);
+   fan(0,cy,.15,.325);
+  }
+ }
+ return g;
 }
 function normalize(model,dim,id){
 const clone=model.clone(true);
@@ -290,7 +412,7 @@ const child=normalize(model,p.dims,id);group.clear();group.add(child);active.loa
  active.failed++;failure.add(id);
  const msg=$('#meshNotice');
  if(msg){
-   msg.hidden=false;msg.textContent=p.name+' could not be downloaded. The assembly desk remains available, but this part has a simplified wireframe placeholder. Check your connection and reload to retry.';
+   msg.hidden=false;msg.textContent=p.name+' could not be downloaded. The assembly desk remains available, but this part is shown using a generic procedural learning model. Check your connection and reload to retry.';
  }
 }).finally(()=>{active.loading--;status()});
 return group;
