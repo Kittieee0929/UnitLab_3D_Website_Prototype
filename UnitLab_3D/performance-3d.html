@@ -94,7 +94,7 @@ body{font-size:16px;line-height:1.65;color:#ebf6f9}
 html.embedded .page{padding:8px 10px}
 html.embedded header.top,html.embedded .resource-return-nav,html.embedded footer{display:none!important}
 html.embedded .stage{height:clamp(570px,75vh,830px)}
-</style></head><body>
+</style><style>.mount-board{display:flex;width:100%;margin:10px 0 14px;padding:14px 18px!important;font-size:15px!important;line-height:1.4!important}.mount-board[hidden]{display:none!important}</style></head><body>
 <div class="page">
 <div class="resource-return-nav" role="navigation" aria-label="Learning Studio"><a href="hub-v2.html">← Back to UnitLab</a></div>
 <header class="top"><div><div class="kicker">UNITLAB 3D / AUTHENTIC 3D HARDWARE PRACTICUM</div><h1>Assemble a PC. Prove you can.</h1><p class="sub">Inspect individually modeled real GLB hardware parts on a service bench. Follow guided placements or attempt an independent assembly/disassembly practice. Realistic reference view is available for comparison.</p></div></header>
@@ -123,7 +123,7 @@ html.embedded .stage{height:clamp(570px,75vh,830px)}
 </section>
 <aside class="rightcol">
 <div class="panel guide"><div class="eyebrow" id="modeKicker">GUIDED TRAINING</div><h2 id="stepHeading">Follow the highlighted mounting point</h2><div class="step"><strong id="stepNumber">STEP 1</strong><p id="stepInstruction">Install each item into the real 3D build in the proper order.</p></div>
-<div class="bar"><i id="progressFill"></i></div><div class="stats" id="progressText">0 / 8 tasks completed</div>
+<button class="btn primary mount-board" id="mountBoardBtn" type="button" hidden>Mount populated motherboard into case →</button><div class="bar"><i id="progressFill"></i></div><div class="stats" id="progressText">0 / 8 tasks completed</div>
 <div class="controls" style="margin-top:14px"><button class="btn primary" id="submitBtn" hidden>Submit performance</button><button class="btn" id="csvBtn" hidden>Download report CSV</button><button class="btn" id="againBtn" hidden>Try again</button></div><div id="result" aria-live="polite"></div></div>
 <div class="panel guide"><div class="eyebrow">3D HARDWARE INSPECTOR</div><h2 id="inspectedName">Motherboard</h2><div class="miniModel"><div class="placeholder" id="previewPlaceholder">Choose a part to preview</div><model-viewer id="preview3D" camera-controls auto-rotate rotation-per-second="22deg" shadow-intensity=".7" environment-image="neutral" interaction-prompt="none" loading="lazy" alt="Interactive 3D preview of a computer hardware part" style="display:none"></model-viewer></div><p class="big-info" id="inspectedInfo">Choose a component to learn its function.</p><div class="chips" id="inspectedChips"><span>Actual textured GLB</span><span>Learning model</span></div><div class="eyebrow">SAFETY NOTE</div><p class="tiny" id="safety">Always isolate mains power and follow the teacher's safety guidance during physical PC servicing.</p>
 <div class="warn-note" style="margin-top:13px">This is a formative prototype: modeled mounting points are educational approximations, not CAD-accurate sockets. Formal competency assessment requires the approved rubric and teacher observation.</div></div>
