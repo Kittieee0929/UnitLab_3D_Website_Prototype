@@ -165,3 +165,8 @@ html.embedded .lab-v3{padding:8px}
  .lab-v3 .guide-illustration{height:225px}
 }
 @media(prefers-reduced-motion:reduce){.lab-v3 *, .lab-v3 *::before,.lab-v3 *::after{transition-duration:0s!important;animation-duration:0s!important}}
+
+/* Tray thumbnails do not steal touch/click/drag events from part cards. */
+.lab-v3 .inventory .inventory-icon model-viewer{pointer-events:none}
+.lab-v3 .inventory[hidden]{display:none!important}
+.lab-v3 .guide-attention{box-shadow:0 0 0 3px #f3d591!important}
