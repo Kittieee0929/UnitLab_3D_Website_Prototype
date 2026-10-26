@@ -481,7 +481,9 @@ function worldAtPointer(event){
    The REAL GLB is loaded in the assembly scene on part selection. */
 function renderShelf(){
  const shelves=$('#shelves');shelves.replaceChildren();
- for(const p of parts){
+ const trayOrder=['cpu','cooler','ram','storage','gpu','psu','casefans','motherboard'];
+ for(const id of trayOrder){
+  const p=byId[id];
   const button=document.createElement('button');
   button.type='button';button.className='inventory';button.dataset.part=p.id;
   button.setAttribute('aria-label','Select '+p.name+' for 3D installation');
@@ -489,7 +491,18 @@ function renderShelf(){
   const icon=document.createElement('span');icon.className='inventory-icon';
   icon.setAttribute('aria-hidden','true');
   const glyph=document.createElement('span');glyph.className='hardware-glyph';
-  glyph.textContent=p.short;icon.appendChild(glyph);
+  const art={
+   cpu:'<rect x="32" y="9" width="56" height="64" rx="6" fill="#aeb9c4" stroke="#e1edef" stroke-width="3"/><rect x="39" y="17" width="42" height="48" rx="2" fill="#d3d9d9"/><text x="60" y="44" fill="#47626e" font-size="10" text-anchor="middle">CPU</text>',
+   motherboard:'<rect x="23" y="4" width="74" height="76" rx="3" fill="#194e48" stroke="#499880" stroke-width="3"/><rect x="36" y="19" width="29" height="27" fill="#b5c5c4" stroke="#4b626a" stroke-width="3"/><path d="M73 12v48m8-48v48M28 56h39M28 67h50" stroke="#0a202b" stroke-width="6"/><path d="M23 11h10m56 41h8" stroke="#b8a77a" stroke-width="3"/>',
+   cooler:'<rect x="24" y="9" width="73" height="65" fill="#59636a" stroke="#adc1c4" stroke-width="3"/><path d="M26 18h69M26 24h69M26 65h69" stroke="#bdc3c9" stroke-width="2"/><circle cx="60" cy="42" r="24" fill="#15232b" stroke="#7f95a1" stroke-width="4"/><path d="M60 19v46M38 42h44M45 27l31 31M76 27 45 58" stroke="#566c78" stroke-width="7"/><circle cx="60" cy="42" r="7" fill="#273b47"/>',
+   ram:'<g transform="rotate(-7 60 42)"><rect x="7" y="18" width="106" height="18" rx="3" fill="#304347" stroke="#718e92" stroke-width="2"/><path d="M16 35v5h90v-5" stroke="#bd9655" stroke-width="4"/><rect x="10" y="45" width="100" height="18" rx="3" fill="#26333d" stroke="#77969d" stroke-width="2"/><path d="M22 47v14m19-14v14m19-14v14m19-14v14m19-14v14" stroke="#526a73" stroke-width="6"/></g>',
+   storage:'<g transform="rotate(-10 60 42)"><rect x="5" y="28" width="110" height="27" rx="3" fill="#1c594d" stroke="#76af91" stroke-width="2"/><rect x="18" y="32" width="26" height="18" fill="#19232a"/><rect x="49" y="32" width="25" height="18" fill="#19232a"/><rect x="79" y="32" width="22" height="18" fill="#19232a"/><circle cx="109" cy="41" r="3" fill="#cbd2c9"/></g>',
+   gpu:'<rect x="4" y="23" width="112" height="43" rx="5" fill="#27323c" stroke="#7c98a1" stroke-width="3"/><circle cx="38" cy="44" r="18" fill="#131e28" stroke="#92a8b0" stroke-width="3"/><circle cx="82" cy="44" r="18" fill="#15202a" stroke="#92a8b0" stroke-width="3"/><path d="M38 28v32M22 44h32M82 28v32M66 44h32" stroke="#607987" stroke-width="5"/><circle cx="38" cy="44" r="5" fill="#1d2b33"/><circle cx="82" cy="44" r="5" fill="#1d2b33"/>',
+   psu:'<rect x="27" y="6" width="68" height="70" rx="6" fill="#303942" stroke="#98a6b1" stroke-width="3"/><circle cx="61" cy="42" r="26" fill="#0f1c28" stroke="#a2b8ba" stroke-width="4"/><path d="M36 42h50M61 17v50M42 23l39 38M80 23 42 61" stroke="#688089" stroke-width="3"/><circle cx="61" cy="42" r="5" fill="#45585f"/>',
+   casefans:'<rect x="27" y="8" width="68" height="68" rx="5" fill="#223844" stroke="#83bbc0" stroke-width="3"/><circle cx="61" cy="42" r="27" fill="#0d1c27" stroke="#83adb7" stroke-width="4"/><path d="M61 18v47M38 42h46M44 25l34 33M78 25 44 58" stroke="#50717c" stroke-width="7"/><circle cx="61" cy="42" r="7" fill="#213943"/>'
+  };
+  glyph.innerHTML='<svg viewBox="0 0 120 84" aria-hidden="true">'+art[p.id]+'</svg>';
+  icon.appendChild(glyph);
   const wrapper=document.createElement('span');wrapper.className='inventory-text';
   const title=document.createElement('b'),subtitle=document.createElement('small');
   title.textContent=p.name;subtitle.textContent='Select and place';
@@ -672,6 +685,14 @@ function reset(mode){
    }else if(meshes.has(p.id))returnToRack(p.id);
  }
  selectPart(mode==='disassembly'?'casefans':'motherboard');
+ if(mode!=='disassembly'){
+  // Real-scale motherboard is visible on the antistatic mat before installation.
+  // Clicking its highlighted target confirms the first guided placement.
+  const loose=ensureMesh('motherboard');
+  scene.add(loose);loose.position.set(-3.78,-2.48,.10);
+  loose.rotation.set(-Math.PI/2,0,0);loose.scale.setScalar(1);loose.visible=true;
+ }
+
  drawStatus();
  cameraView([7.5,7.3,12.4],[-.35,-1.6,-.1]);
 }
