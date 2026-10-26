@@ -199,7 +199,7 @@ const caseFeet=box(rig,[.55,.08,.55],[-1.15,-2.56,-.95],rubber);
 // It shows the real fan mount geometry in the open-case demonstration.
 const rearRing=new THREE.Mesh(new THREE.TorusGeometry(.37,.038,10,44),accentMetal);
 rearRing.position.set(0,2.35,-.29);rearRing.rotation.x=Math.PI/2;rig.add(rearRing);
-const fanHub=new THREE.Mesh(new THREE.CylinderGeometry(.10,.10,.07,24),black);
+const fanHub=new THREE.Mesh(new THREE.CylinderGeometry(.10,.10,.07,24),paintBlack);
 fanHub.position.set(0,2.32,-.29);rig.add(fanHub);
 for(let i=0;i<7;i++){
  const a=i*Math.PI*2/7;
