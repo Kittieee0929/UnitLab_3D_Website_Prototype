@@ -373,27 +373,43 @@ if(page==="workbench"){const frame=$("#labFrame");if(frame&&!frame.getAttribute(
 if(location.hash!=="#"+page)location.hash=page;
 }
 function source(id){return RESOURCES.find(r=>r.id===id)}
-function resourceAction(r){return r.kind==="pdf"?"Open official PDF ↗":r.kind==="catalog"?"Open DepEd catalog record ↗":"Browse official PDF collection ↗"}
-function srcLink(id,label){const r=source(id);return r?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer">'+esc(label||r.title)+' ('+(r.kind==="pdf"?"direct official PDF":r.kind==="catalog"?"official portal record":"official collection")+') ↗</a>':""}
+function resourceAction(r){return r.kind==="slides"?"View the slides ↗":r.kind==="pdf"?"Open actual PDF ↗":"Read the guide ↗"}
+function sourceStatus(r){return r.level==="official"?"OFFICIAL PDF":r.level==="manufacturer"?"MANUFACTURER SOURCE":"INDEPENDENT PRESENTATION"}
+function sourceKind(r){return r.kind==="slides"?"PRESENTATION":r.kind==="pdf"?"PDF DOCUMENT":"LEARNING GUIDE"}
+function srcLink(id,label){const r=source(id);return r?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer">'+esc(label||r.title)+' ('+esc(sourceKind(r).toLowerCase())+') ↗</a>':""}
 function moduleResourceLinks(index){
-  const sources=RESOURCES.filter(r=>r.kind==="pdf"&&r.lessons.includes(index)).slice(0,5);
-  return '<section class="lesson-source-box" aria-label="Official lesson PDFs"><div class="source-box-head"><b>VERIFIED OFFICIAL PDF RESOURCES</b><small>Published by DepEd or TESDA — opens the actual PDF URL.</small></div>'+sources.map(r=>'<a class="lesson-source-link" href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer"><span>PDF</span><strong>'+esc(r.title)+'</strong><i aria-hidden="true">↗</i></a>').join("")+'<p>UnitLab lesson explanations are independently authored. These are attributed source documents, not UnitLab publications.</p></section>';
+ const items=RESOURCES.filter(r=>r.lessons.includes(index)).sort((a,b)=>(b.featured?1:0)-(a.featured?1:0));
+ const slides=items.filter(r=>r.kind==="slides");
+ const pdfs=items.filter(r=>r.kind==="pdf");
+ const guides=items.filter(r=>r.kind==="guide");
+ const selected=[...slides.slice(0,2),...pdfs.slice(0,3),...guides.slice(0,3)].slice(0,8);
+ const cards=selected.map(r=>'<article class="lesson-media-card'+(r.featured?" featured":"")+'"><div class="lesson-media-label"><span class="media-kind type-'+esc(r.kind)+'">'+esc(sourceKind(r))+'</span><span>'+esc(sourceStatus(r))+'</span></div><h4>'+esc(r.title)+'</h4><p>'+esc(r.description)+'</p><small>'+esc(r.detail)+'</small><div class="lesson-media-controls"><a class="lesson-media-open" href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer">'+esc(resourceAction(r))+'</a>'+(r.kind==="pdf"?'<button type="button" class="lesson-preview-btn" data-preview-pdf="'+esc(r.id)+'">Preview PDF here</button>':"")+'</div>'+(r.level==="thirdparty"?'<p class="lesson-provider-note">Independently uploaded slides. This is not an official DepEd/TESDA module. Follow current safety and manufacturer guidance.</p>':"")+'</article>').join("");
+ return '<section class="lesson-source-box" aria-label="Real lesson materials"><div class="source-box-head"><b>REAL LEARNING MATERIALS FOR THIS LESSON</b><small>Working presentation pages, PDF documents and step-by-step guides</small></div><p class="lesson-source-intro">Open the actual source, not a description-only catalog record. SlideShare downloads may require sign-in, but the presentations are viewable online.</p><div class="lesson-media-grid">'+cards+'</div><div id="pdfPreviewArea" class="lesson-pdf-preview" hidden></div><p class="lesson-media-footnote"><b>Safety note:</b> some independently uploaded presentations include dated or unsafe ESD advice (such as working on carpeting or on antistatic packaging). Use school OHS procedures and the component manufacturers’ instructions instead.</p></section>';
+}
+function setupModulePDFPreview(){
+ $$("[data-preview-pdf]").forEach(button=>button.addEventListener("click",()=>{
+  const r=source(button.dataset.previewPdf);
+  if(!r||r.kind!=="pdf")return;
+  const box=$("#pdfPreviewArea");if(!box)return;
+  box.hidden=false;
+  box.innerHTML='<div class="pdf-preview-heading"><strong>'+esc(r.title)+'</strong><button type="button" id="closePdfPreview">Close ×</button></div><p>If the publisher blocks embedding, use the link below to open the original file.</p><iframe title="'+esc(r.title)+'" src="'+esc(r.url)+'" loading="lazy" referrerpolicy="no-referrer"></iframe><a href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer">Open original PDF in new tab ↗</a>';
+  $("#closePdfPreview").addEventListener("click",()=>{box.hidden=true;box.innerHTML=""});
+  box.scrollIntoView({behavior:"smooth",block:"nearest"});
+ }));
 }
 function renderResources(){
  const q=($("#resourceSearch")?.value||"").trim().toLowerCase();
- const shown=RESOURCES.filter(r=>(resourceFilter==="all"||r.kind===resourceFilter)&&[r.title,r.description,r.meta,r.agency].join(" ").toLowerCase().includes(q));
+ const shown=RESOURCES.filter(r=>(resourceFilter==="all"||r.kind===resourceFilter)&&[r.title,r.description,r.detail,r.agency].join(" ").toLowerCase().includes(q));
  const filters=$("#resourceFilters");
  if(filters){
   filters.innerHTML=RESOURCE_FILTERS.map(f=>'<button type="button" class="resource-filter'+(resourceFilter===f[0]?' selected':'')+'" data-resource-filter="'+f[0]+'" aria-pressed="'+(resourceFilter===f[0])+'">'+esc(f[1])+'</button>').join("");
-  $$("[data-resource-filter]",filters).forEach(b=>b.addEventListener("click",()=>{resourceFilter=b.dataset.resourceFilter;renderResources()}));
+  $$("[data-resource-filter]",filters).forEach(btn=>btn.addEventListener("click",()=>{resourceFilter=btn.dataset.resourceFilter;renderResources()}));
  }
- $("#resourceCount").textContent=shown.length+" official "+(shown.length===1?"entry":"entries")+" shown";
+ $("#resourceCount").textContent=shown.length+" reviewed "+(shown.length===1?"material":"materials")+" available";
  $("#resourcesGrid").innerHTML=shown.map(r=>{
-  const type=r.kind==="pdf"?"DIRECT PDF":r.kind==="catalog"?"CATALOG RECORD":"COLLECTION";
-  const actions='<a class="resource-open" href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer">'+resourceAction(r)+'</a>'+(r.sourcePage?'<a class="resource-secondary" href="'+esc(r.sourcePage)+'" target="_blank" rel="noopener noreferrer">Catalog record ↗</a>':'');
-  return '<article class="resource-card"><div class="resource-card-top"><span class="resource-type type-'+r.kind+'">'+type+'</span><span>'+esc(r.agency)+'</span></div><div class="res-kicker">'+esc(r.tag)+'</div><h3>'+esc(r.title)+'</h3><p>'+esc(r.description)+'</p><small>'+esc(r.meta)+'</small><div class="resource-actions">'+actions+'</div><div class="resource-note">'+(r.kind==="pdf"?"This opens an official PDF URL; use your browser's PDF toolbar to download.":"This opens an official resource page, NOT a direct PDF download.")+'</div></article>';
- }).join("")||'<p class="resource-no-match">No matching official sources. Try another keyword.</p>';
- const map=[["Use Hand Tools","Module 4 · tools and safe preparation"],["Apply Quality Standards","Module 6 · inspect, document and verify"],["Install and Configure Computer Systems — LO1","Modules 2, 3, 5 · components, selection and assembly"],["OHS and safety procedures","Modules 1 and 4 · hazards and ESD"]];
+  return '<article class="resource-card"><div class="resource-card-top"><span class="resource-type type-'+esc(r.kind)+'">'+esc(sourceKind(r))+'</span><span>'+esc(r.agency)+'</span></div><div class="res-kicker">'+esc(sourceStatus(r))+'</div><h3>'+esc(r.title)+'</h3><p>'+esc(r.description)+'</p><small>'+esc(r.detail)+'</small><div class="resource-actions"><a class="resource-open" href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer">'+esc(resourceAction(r))+'</a></div><div class="resource-file-note">'+esc(r.access)+'</div></article>';
+ }).join("")||'<p class="resource-no-match">No available materials match your search. Try another keyword.</p>';
+ const map=[["Use Hand Tools","Lesson 4 · safe preparation and tool selection"],["Apply Quality Standards","Lesson 6 · inspect, document and verify"],["Install and Configure Computer Systems","Lessons 2, 3 and 5 · component identification, compatibility and assembly"],["OHS and safety procedures","Lessons 1 and 4 · workplace hazards and ESD control"]];
  $("#competencyMap").innerHTML=map.map(x=>'<div class="mapping-card"><b>'+esc(x[0])+'</b><p>'+esc(x[1])+'</p></div>').join("");
 }
 function renderModules(){const saved=getProgress();$("#moduleList").innerHTML=MODULES.map((m,i)=>'<button class="lesson-tab '+(i===state.module?"active":"")+'" data-mod="'+i+'"><strong>'+(i+1)+'. '+esc(m.title)+(saved.modules&&saved.modules.includes(i)?" ✓":"")+'</strong><small>'+esc(m.unit)+' · '+esc(m.time)+'</small></button>').join("");const m=MODULES[state.module];$("#moduleBody").innerHTML='<div class="lesson-meta">'+esc(m.unit)+' · '+esc(m.time)+'</div><h2>'+esc(m.title)+'</h2><p><b>Learning competency:</b> '+esc(m.target)+'</p><h3>Learning objectives</h3><ul class="obj-list">'+m.outcomes.map(x=>"<li>"+esc(x)+"</li>").join("")+'</ul>'+m.content.map(x=>"<h3>"+esc(x[0])+"</h3><p>"+esc(x[1])+"</p>").join("")+'<div class="activity-box"><b>✎ Apply / performance practice</b><p>'+esc(m.activity)+'</p><b>Reflect / knowledge check</b><p>'+esc(m.check)+'</p></div><p class="score-note">Curriculum mapping: '+esc(m.codes)+'</p><p>Official supporting material: '+srcLink(m.resource)+'</p>'+moduleResourceLinks(state.module)+'<div class="paper-actions"><button class="btn solid" id="completeModule">'+(saved.modules&&saved.modules.includes(state.module)?"✓ Completed — continue":"Mark studied ✓")+'</button><button class="btn outline" id="nextModule">Next module →</button></div><p class="score-note">A completed module flag records self-reported study only, not a verified practical competency.</p>';$$("[data-mod]").forEach(b=>b.addEventListener("click",()=>{state.module=Number(b.dataset.mod);renderModules()}));$("#completeModule").addEventListener("click",()=>{if(!state.student){showLogin();return}const p=getProgress();p.modules=p.modules||[];if(!p.modules.includes(state.module))p.modules.push(state.module);setProgress(p);toast("Module progress saved to local demo profile");renderModules()});$("#nextModule").addEventListener("click",()=>{state.module=(state.module+1)%MODULES.length;renderModules()})}
