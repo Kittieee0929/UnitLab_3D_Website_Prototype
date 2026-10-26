@@ -33,7 +33,7 @@ const withTimeout=(promise,ms)=>new Promise((resolve,reject)=>{
 });
 async function start(){
  let lab;
- try{lab=await import('./performance-3d.js')}catch(e){
+ try{lab=await import('./performance-3d.js?rev=fix20261026')}catch(e){
    errorPanel('The local assembly script could not load: '+String(e.message||e));
    return;
  }
