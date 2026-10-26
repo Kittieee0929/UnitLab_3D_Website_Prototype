@@ -302,12 +302,16 @@ function startSnapTween(obj,partId,target,rotation,lift){
    start:performance.now(),duration:520,ease:k=>1-Math.pow(1-k,3)});
 }
 function beginBoardMount(){
- rig.attach(boardAssembly); // Preserve board + CPU + RAM + NVMe + cooler assembly as ONE object.
- const fromPosition=boardAssembly.position.clone(),fromRotation=boardAssembly.quaternion.clone();
- const targetRotation=new THREE.Quaternion();
- snapTweens.set('board-mount',{obj:boardAssembly,fromPosition,
-  toPosition:new THREE.Vector3(...CASE_BOARD_LOCATION),fromRotation,toRotation,
-  start:performance.now(),duration:1150,ease:k=>k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2});
+ // A finished board must be physically inside the case immediately.
+ // Never rely on an rAF animation to finish before its socket transforms
+ // become valid (slow hardware/GLB decoding can pause frames for seconds).
+ rig.add(boardAssembly);
+ boardAssembly.position.set(...CASE_BOARD_LOCATION);
+ boardAssembly.rotation.set(0,0,0);
+ boardAssembly.scale.setScalar(1);
+ rig.updateWorldMatrix(true,true);
+ // The case includes matching standoff and tray geometry; every component
+ // remains a descendant of boardAssembly and therefore follows case rotation.
 }
 const slots=new Map();
 for(const p of parts){
@@ -1180,7 +1184,7 @@ status();
 window.__unitlabQA={
  snapshot:()=>({
    mode:state.mode,step:state.step,placed:{...state.placed},
-   boardMounted:state.boardMounted,removed:Array.from(state.removed),
+   boardMounted:state.boardMounted,removed:Array.from(state.removed),boardLocal:boardAssembly.position.toArray().map(v=>+v.toFixed(3)),
    loaded:active.loaded,pendingAnimations:Array.from(snapTweens.keys()),frames:renderedFrames,
    parentBoard:boardAssembly.parent===rig?'case':'mat',camera:camera.position.toArray().map(v=>+v.toFixed(2)),
    cameraTarget:controls.target.toArray().map(v=>+v.toFixed(2)),
