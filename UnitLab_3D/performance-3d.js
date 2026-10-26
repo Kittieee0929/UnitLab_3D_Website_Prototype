@@ -693,10 +693,18 @@ const v=new THREE.Vector3(...activeZone(p)).project(camera),r=canvas.getBounding
 return {x:(v.x+1)/2*r.width,y:(1-v.y)/2*r.height}
 }
 function nearestZone(e){
-const rect=canvas.getBoundingClientRect();const x=e.clientX-rect.left,y=e.clientY-rect.top;
-let found='workspace',distance=Infinity;
-for(const p of parts){const v=project(p),d=Math.hypot(x-v.x,y-v.y);if(d<distance){found=p.id;distance=d}}
-return distance<Math.min(104,rect.height*.16)?found:'workspace';
+ const rect=canvas.getBoundingClientRect(),x=e.clientX-rect.left,y=e.clientY-rect.top;
+ // When installing a selected part, the user must actually reach ITS
+ // projected socket (not just click anywhere on the motherboard).
+ const radius=Math.min(76,Math.max(39,rect.width*.064));
+ const candidate=state.mode!=='disassembly'&&state.selected&&byId[state.selected]&&
+                 state.placed[state.selected]!==state.selected ? [byId[state.selected]] : parts;
+ let nearest='workspace',distance=Infinity;
+ for(const p of candidate){
+   const point=project(p),d=Math.hypot(x-point.x,y-point.y);
+   if(d<distance){nearest=p.id;distance=d}
+ }
+ return distance<=radius?nearest:'workspace';
 }
 function meshPick(e){
 const rect=canvas.getBoundingClientRect();mouse.set((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1);
@@ -706,19 +714,24 @@ for(const hit of hits){let o=hit.object;while(o&&!o.userData.partId)o=o.parent;i
 return null;
 }
 function highlights(){
- const next=sequence[state.step],focus=state.selected||(state.mode==='tutorial'?next:null);
+ const next=sequence[state.step];
+ const focus=state.selected||(state.mode==='tutorial'?next:null);
  for(const p of parts){
-   const target=slots.get(p.id);
-   const guideTarget=state.mode==='tutorial'?next===p.id:focus===p.id;
-   const already=state.mode==='disassembly'?state.removed.has(p.id):state.placed[p.id]===p.id;
-   target.visible=guideTarget&&!already&&(!state.submitted);
-   target.position.set(...activeZone(p));
-   target.rotation.x=inPreassembly(p.id)?-Math.PI/2:rig.rotation.x;
-   target.material.opacity=state.mode==='tutorial'&&state.hints?.78:.53;
-   target.material.color.set(guideTarget?0x87fae0:0x8ecbd8);
-   target.scale.setScalar(guideTarget?1.08:1);
+   const ring=slots.get(p.id),selected=state.mode==='tutorial'?next===p.id:focus===p.id;
+   const removed=state.mode==='disassembly'?state.removed.has(p.id):state.placed[p.id]===p.id;
+   ring.visible=selected&&!removed&&!state.submitted;
+   // Both ring position and ring plane are driven by the same socket parent
+   // as the physical part, even while the board/case is being rotated.
+   ring.position.copy(socketWorld(p.id));
+   const parent=socketParent(p.id);
+   ring.quaternion.copy(parent.getWorldQuaternion(new THREE.Quaternion()));
+   ring.material.opacity=state.mode==='tutorial'&&state.hints?.85:.62;
+   ring.material.color.set(selected?0x66fce4:0x8ecbd8);
+   ring.scale.setScalar(selected?1.10:1);
  }
- $('#hoverName').textContent=focus&&byId[focus]?'Selected: '+byId[focus].name+' · Click the highlighted target to install':'Rotate the desk · Scroll to zoom · Select parts from the tray';
+ $('#hoverName').textContent=focus&&byId[focus]
+  ?'Place '+byId[focus].name+' on the glowing socket · Scroll to inspect'
+  :'Rotate workstation · Zoom onto connector · Choose a part';
 }
 function install(id,slot){
  if(!byId[id]||state.submitted||state.mode==='disassembly')return;
