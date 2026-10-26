@@ -243,12 +243,16 @@ function showWorkingFallback(reason){
  const backup=document.getElementById('inlineFallback');
  if(backup){backup.hidden=false;const frame=document.getElementById('native3dFallbackFrame');if(frame&&!frame.getAttribute('src'))frame.src='worklab-pro.html?embedded=1'}
 }
-addEventListener('unitlab3d:performance-ready',()=>{ready=true;/* Keep the loading panel until GLB models have actually finished loading. */});
-addEventListener('error',e=>{if(!ready&&(e.target?.tagName==='SCRIPT'||e.message)){showWorkingFallback('3D JavaScript or graphics engine failed to start.')}},true);
-addEventListener('unhandledrejection',e=>{
- if(!ready)showWorkingFallback('An essential 3D module could not load: '+String(e.reason?.message||e.reason||'unknown module error'));
-});
-addEventListener('unitlab3d:performance-error',()=>showWorkingFallback('The browser failed to render the 3D assembly desk. Try the backup viewer.'));
+addEventListener('unitlab3d:performance-ready',()=>{ready=true;/* WebGL is rendering; detailed hardware may still download. */});
+addEventListener('unitlab3d:engine-unavailable',e=>showWorkingFallback(e.detail?.message||'The graphics engine could not be loaded.'));
+addEventListener('unitlab3d:performance-error',()=>showWorkingFallback('The browser cannot render the 3D desk. Use the backup viewer.'));
+addEventListener('error',e=>{
+ // Ignore optional model-viewer thumbnail/preview errors. The true engine
+ // failure is handled by performance-3d-boot.js instead.
+ if(!ready&&e.target?.tagName==='SCRIPT'&&e.target?.src?.includes('performance-3d-boot.js')){
+  showWorkingFallback('The local 3D bootstrap script could not load. Check GitHub Pages deployment and refresh.');
+ }
+},true);
 setTimeout(()=>{if(!ready)showWorkingFallback('The primary graphics source and backup provider could not initialize the scene. Open the backup 3D lab below.')},26000);
 })();
 </script>
