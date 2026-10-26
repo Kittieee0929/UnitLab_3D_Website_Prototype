@@ -287,9 +287,11 @@ function startSnapTween(obj,partId,target,rotation,lift){
  obj.position.copy(toPosition).add(new THREE.Vector3(0,0,lift));
  const fromPosition=obj.position.clone();
  const toRotation=new THREE.Quaternion().setFromEuler(new THREE.Euler(...rotation));
- obj.quaternion.copy(toRotation);
- snapTweens.set(partId,{obj,fromPosition,toPosition,start:performance.now(),duration:650,
-   ease:k=>1-Math.pow(1-k,3)});
+ const fromRotation=toRotation.clone();
+ if(partId==='storage')fromRotation.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-.34));
+ obj.quaternion.copy(fromRotation);
+ snapTweens.set(partId,{obj,fromPosition,toPosition,fromRotation,toRotation,
+   start:performance.now(),duration:650,ease:k=>1-Math.pow(1-k,3)});
 }
 function beginBoardMount(){
  rig.attach(boardAssembly); // Preserve board + CPU + RAM + NVMe + cooler assembly as ONE object.
@@ -1099,28 +1101,43 @@ function frame(){
  try{
   resize();
   rig.rotation.x+=(orientationAngles[orientation]-rig.rotation.x)*.13;
-  rig.position.y=-2.69+Math.abs(Math.cos(rig.rotation.x))*2.55+Math.abs(Math.sin(rig.rotation.x))*1.2+.13;
-  rig.updateMatrixWorld(true);
-  // Exploded view is visual-only: it does not change correctness or install state.
+  rig.position.y=-2.69+Math.abs(Math.cos(rig.rotation.x))*2.55+
+    Math.abs(Math.sin(rig.rotation.x))*1.2+.13;
+  rig.updateWorldMatrix(true,true);
+  boardAssembly.updateWorldMatrix(true,true);
+  const now=performance.now();
+  // Smoothly seat parts into the exact connector, or lift them back out.
+  for(const [key,tween] of Array.from(snapTweens.entries())){
+    const k=Math.max(0,Math.min(1,(now-tween.start)/tween.duration));
+    const t=tween.ease(k);
+    tween.obj.position.lerpVectors(tween.fromPosition,tween.toPosition,t);
+    if(tween.fromRotation&&tween.toRotation)
+      tween.obj.quaternion.slerpQuaternions(tween.fromRotation,tween.toRotation,t);
+    if(k>=1){snapTweens.delete(key);tween.onComplete?.()}
+  }
+  // Explode is a temporary inspection view. Return to the SAME anchored
+  // motherboard/chassis socket rather than the old free-floating scene coords.
   for(const [index,p] of parts.entries()){
-   const obj=meshes.get(p.id);
-   if(!obj||obj.parent!==rig||!obj.visible||gesture?.id===p.id)continue;
-   const base=new THREE.Vector3(...p.pos);
-   const offset=new THREE.Vector3((index%3-1)*.48,(index-3.5)*.20,1.1+(index%2)*.30);
-   if(exploded)base.add(offset);
-   obj.position.lerp(base,.12);
+    const obj=meshes.get(p.id);
+    if(!obj||!obj.visible||gesture?.id===p.id||snapTweens.has(p.id)||snapTweens.has('remove-'+p.id))
+      continue;
+    const parent=socketParent(p.id);
+    if(obj.parent!==parent)continue;
+    const pose=socketPose(p.id),target=new THREE.Vector3(...pose.position);
+    if(exploded){
+      const offset=new THREE.Vector3((index%3-1)*.41,(index-3.5)*.16,.82+(index%2)*.34);
+      target.add(offset);
+    }
+    obj.position.lerp(target,.17);
   }
   for(const p of parts){
-   const ring=slots.get(p.id);
-   if(ring?.visible){
-    ring.position.set(...activeZone(p));
-    ring.rotation.x=inPreassembly(p.id)?-Math.PI/2:rig.rotation.x;
-   }
+    const ring=slots.get(p.id);if(!ring?.visible)continue;
+    ring.position.copy(socketWorld(p.id));
+    ring.quaternion.copy(socketParent(p.id).getWorldQuaternion(new THREE.Quaternion()));
   }
   controls.update();renderer.render(scene,camera);
   if(!firstSuccessfulFrame){
-    firstSuccessfulFrame=true;
-    $('#stageStatus').hidden=true;
+    firstSuccessfulFrame=true;$('#stageStatus').hidden=true;
     window.dispatchEvent(new Event('unitlab3d:performance-ready'));
   }
  }catch(e){
@@ -1128,11 +1145,10 @@ function frame(){
   if(!firstSuccessfulFrame){
     firstSuccessfulFrame=true;
     const box=$('#stageStatus');box.hidden=false;
-    const label=document.createElement('strong');
-    label.textContent='3D graphics could not start';
-    const info=document.createElement('p');
-    info.textContent='Browser rendering error: '+String(e?.message||e);
-    const link=document.createElement('a');link.className='btn';link.href='worklab-pro.html?embedded=1';link.textContent='Open backup 3D workbench';
+    const label=document.createElement('strong');label.textContent='3D graphics could not start';
+    const info=document.createElement('p');info.textContent='Browser rendering error: '+String(e?.message||e);
+    const link=document.createElement('a');link.className='btn';link.href='worklab-pro.html?embedded=1';
+    link.textContent='Open backup 3D workbench';
     box.replaceChildren(label,info,link);
     window.dispatchEvent(new Event('unitlab3d:performance-error'));
   }
