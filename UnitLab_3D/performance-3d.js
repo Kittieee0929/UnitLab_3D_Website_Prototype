@@ -91,10 +91,15 @@ for(let i=0;i<20;i++){
 }
 // Optional subtle storage drawers and pegboard are visual context, not draggable tools.
 box(bench,[8.6,3.2,.14],[-.8,-.48,-4.1],trim);
+// Pegboard holes use one GPU draw call instead of hundreds of meshes.
+const pegboardHoles=new THREE.InstancedMesh(new THREE.CircleGeometry(.016,8),
+ new THREE.MeshBasicMaterial({color:0x080d12}),12*32);
+const pegDummy=new THREE.Object3D();let pegIndex=0;
 for(let row=0;row<12;row++)for(let col=0;col<32;col++){
- const hole=new THREE.Mesh(new THREE.CircleGeometry(.016,8),new THREE.MeshBasicMaterial({color:0x080d12}));
- hole.position.set(-5+col*.26,-1.9+row*.235,-4.014);bench.add(hole);
+ pegDummy.position.set(-5+col*.26,-1.9+row*.235,-4.014);
+ pegDummy.updateMatrix();pegboardHoles.setMatrixAt(pegIndex++,pegDummy.matrix);
 }
+pegboardHoles.instanceMatrix.needsUpdate=true;bench.add(pegboardHoles);
 const storageMat=new THREE.MeshStandardMaterial({color:0x303e49,metalness:.6,roughness:.54});
 for(let i=0;i<5;i++){
  const drawer=box(bench,[.9,.40,.68],[-6.3,-2.35+i*.42,-3.1],storageMat);
@@ -102,7 +107,7 @@ for(let i=0;i<5;i++){
 }
 // Chassis: side-open, actual PC-case form with a bottom tray, rails and vents.
 const rig=new THREE.Group();scene.add(rig);
-rig.position.set(2.28,-1.51,-.10);
+rig.position.set(2.28,-1.36,-.10);
 const caseSideGlassMaterial=new THREE.MeshPhysicalMaterial({color:0xa1c2cf,metalness:.03,roughness:.08,transparent:true,opacity:.14,depthWrite:false,side:THREE.DoubleSide});
 const panelGlass=box(rig,[3.5,4.78,.022],[0,0,1.19],caseSideGlassMaterial);
 panelGlass.visible=false;panelGlass.castShadow=false;
@@ -516,7 +521,7 @@ $('[data-filter]').forEach(button=>button.addEventListener('click',()=>{
 $('[data-orientation]').forEach(button=>button.addEventListener('click',()=>{
  orientation=button.dataset.orientation;
  $('[data-orientation]').forEach(b=>{const current=b===button;b.classList.toggle('selected',current);b.setAttribute('aria-pressed',String(current))});
- if(orientation==='upright')cameraView([7.7,2.7,11.2],[2.28,-1.50,0]);
+ if(orientation==='upright')cameraView([7.7,4.5,11.2],[2.28,-.1,0]);
  else if(orientation==='inverted')cameraView([7.6,4.4,10],[2.28,-1.50,0]);
  else cameraView([7.5,7.3,12.4],[-.35,-1.60,-.1]);
 }));
@@ -581,7 +586,10 @@ $('#focusMotherboard').addEventListener('click',()=>state.mode!=='disassembly'&&
 $('#focusCase').addEventListener('click',()=>cameraView([7.7,7.2,8.5],[2.28,-1.50,-.1]));
 function resize(){const r=canvas.getBoundingClientRect(),w=Math.floor(r.width),h=Math.floor(r.height),pixel=renderer.getPixelRatio();
 if(w>0&&h>0&&(canvas.width!==Math.floor(w*pixel)||canvas.height!==Math.floor(h*pixel))){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}}
-function frame(){requestAnimationFrame(frame);resize();rig.rotation.x+=(orientationAngles[orientation]-rig.rotation.x)*.13;rig.updateMatrixWorld(true);for(const p of parts){const ring=slots.get(p.id);if(ring?.visible){ring.position.set(...activeZone(p));ring.rotation.x=inPreassembly(p.id)?-Math.PI/2:rig.rotation.x;}}controls.update();renderer.render(scene,camera)}
+function frame(){requestAnimationFrame(frame);resize();rig.rotation.x+=(orientationAngles[orientation]-rig.rotation.x)*.13;
+// Keep the entire case ABOVE the desk while rotating it to upright or inverted.
+rig.position.y=-2.69+Math.abs(Math.cos(rig.rotation.x))*2.55+Math.abs(Math.sin(rig.rotation.x))*1.2+.13;
+rig.updateMatrixWorld(true);for(const p of parts){const ring=slots.get(p.id);if(ring?.visible){ring.position.set(...activeZone(p));ring.rotation.x=inPreassembly(p.id)?-Math.PI/2:rig.rotation.x;}}controls.update();renderer.render(scene,camera)}
 renderShelf();reset('tutorial');requestAnimationFrame(frame);status();
 const assetMonitor=setInterval(()=>{if(active.loading!==0)return;clearInterval(assetMonitor);if(active.failed){$('#stageStatus').innerHTML='<strong>Some detailed 3D meshes failed to load</strong><p>Outlined forms are temporary fallbacks, not realistic hardware. Reconnect and restart to load licensed GLB models.</p>';}else{$('#stageStatus').hidden=true;}},450);
 window.dispatchEvent(new Event('unitlab3d:performance-ready'));
