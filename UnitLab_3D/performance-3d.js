@@ -454,7 +454,13 @@ let gesture=null,tapTarget=null;
 canvas.addEventListener('pointerdown',e=>{
  if(state.submitted)return;
  const id=meshPick(e);
- if(!id){if(state.mode!=='disassembly'&&state.selected)tapTarget={x:e.clientX,y:e.clientY,id:state.selected};return} // Empty area can rotate the camera.
+ // A placed motherboard sits UNDER the CPU, RAM and NVMe targets. Its mesh
+ // must not steal taps intended for the next component.
+ if(state.mode!=='disassembly'&&state.selected&&state.placed[state.selected]!==state.selected
+    &&(!id||state.placed[id]===id)){
+   tapTarget={x:e.clientX,y:e.clientY,id:state.selected};return;
+ }
+ if(!id)return;
  if(state.mode!=='disassembly'&&state.placed[id]===id)return;
  if(state.mode==='disassembly'&&state.removed.has(id))return;
  gesture={id,startX:e.clientX,startY:e.clientY,dragged:false,origin:meshes.get(id).position.clone()};
@@ -473,7 +479,7 @@ canvas.addEventListener('pointerup',e=>{
  const held=gesture;gesture=null;controls.enabled=true;tray.classList.remove('hover');
  const tr=tray.getBoundingClientRect(),inTray=!tray.hidden&&e.clientX>=tr.left&&e.clientX<=tr.right&&e.clientY>=tr.top&&e.clientY<=tr.bottom;
  if(state.mode==='disassembly'){
-  if(inTray||rackDrop(e.clientX,e.clientY))remove(held.id);
+  if(inTray)remove(held.id);
   else meshes.get(held.id).position.copy(held.origin);
   return;
  }
