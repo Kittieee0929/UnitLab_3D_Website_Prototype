@@ -2,23 +2,271 @@
 "use strict";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
-/* Audited against official DepEd/TESDA pages on 2026-10-26. 'pdf' = official direct PDF URL; 'catalog' = NOT a PDF URL. */
+/* Audited actual sources 2026-10-26. Broken/unconfirmed PDF links and catalog-only entries removed.
+SlideShare decks are independently uploaded, not government publications. */
 const RESOURCES=[
-{"id":"cg","kind":"pdf","category":"curriculum","agency":"DepEd","title":"Computer Systems Servicing NC II — K to 12 Curriculum Guide","description":"Official 2016 curriculum competencies including computer assembly.","meta":"2016 DepEd curriculum · Direct PDF","url":"https://www.deped.gov.ph/wp-content/uploads/2019/01/Computer-Systems-Servicing-NC-II-CG.pdf","sourcePage":"https://lrmds.deped.gov.ph/detail/14540","lessons":[0,1,2,3,4,5],"tag":"OFFICIAL PDF"},
-{"id":"course","kind":"pdf","category":"curriculum","agency":"DepEd","title":"Computer Systems Servicing — Official Course Description","description":"DepEd course competencies and performance standards. Check the edition before formal mapping.","meta":"Official DepEd course document · Direct PDF","url":"https://www.deped.gov.ph/wp-content/uploads/Computer-Systems-Servicing.pdf","sourcePage":"","lessons":[0,2,4,5],"tag":"OFFICIAL PDF"},
-{"id":"tesda","kind":"pdf","category":"curriculum","agency":"TESDA","title":"Computer Systems Servicing NC II — Training Regulations","description":"TESDA competency standards and training requirements; amended December 2013.","meta":"2013 amendment · Direct PDF","url":"https://www.tesda.gov.ph/Downloadables/TRs/TR%20Computer%20Systems%20Servicing%20NC%20II%20.pdf","sourcePage":"","lessons":[0,3,4,5],"tag":"OFFICIAL PDF"},
-{"id":"las05","kind":"pdf","category":"activity","agency":"DepEd","title":"LAS05 — Hand Tools in Computer Systems Servicing","description":"Official activity sheet on identifying tools and equipment.","meta":"Q1 LAS05 · Direct PDF","url":"https://www.deped.gov.ph/wp-content/uploads/Q1-TLE9-ICT-LAS05-Computer-System-Servicing.pdf","sourcePage":"","lessons":[0,3],"tag":"OFFICIAL PDF"},
-{"id":"las09","kind":"pdf","category":"activity","agency":"DepEd","title":"LAS09 — Motherboard Parts and Functions","description":"Official activity sheet on the motherboard and its connections.","meta":"Q1 LAS09 · Direct PDF","url":"https://www.deped.gov.ph/wp-content/uploads/Q1-TLE9-ICT-LAS09-Computer-System-Servicing.pdf","sourcePage":"","lessons":[1,4],"tag":"OFFICIAL PDF"},
-{"id":"las25","kind":"pdf","category":"activity","agency":"DepEd","title":"LAS25 — Proper Workspace for Computer Assembly","description":"Official activity sheet about safe, clean and organized assembly workspace.","meta":"Q1 LAS25 · Direct PDF","url":"https://www.deped.gov.ph/wp-content/uploads/Q1-TLE9-ICT-LAS25-Computer-System-Servicing.pdf","sourcePage":"","lessons":[0,3,4],"tag":"OFFICIAL PDF"},
-{"id":"las26","kind":"pdf","category":"activity","agency":"DepEd","title":"LAS26 — Gathering Tools and Supplies","description":"Official activity sheet on proper tools and supplies before assembly.","meta":"Q1 LAS26 · Direct PDF","url":"https://www.deped.gov.ph/wp-content/uploads/Q1-TLE9-ICT-LAS26-Computer-System-Servicing.pdf","sourcePage":"","lessons":[3,4],"tag":"OFFICIAL PDF"},
-{"id":"las39","kind":"pdf","category":"activity","agency":"DepEd","title":"LAS39 — Proper PC Cable Connection","description":"Official activity sheet about ATX, CPU power, storage, front-panel and fan connections.","meta":"Q1 LAS39 · Direct PDF","url":"https://www.deped.gov.ph/wp-content/uploads/Q1-TLE9-ICT-LAS39-Computer-System-Servicing.pdf","sourcePage":"","lessons":[1,4,5],"tag":"OFFICIAL PDF"},
-{"id":"module","kind":"catalog","category":"module","agency":"DepEd","title":"Grade 11 CSS Q1M2 — Computer Hardware Assembly","description":"Official catalog entry for a 1.44 MB PDF. Use View/Download on the portal to access the actual file.","meta":"Grade 11 learner module · Catalog record","url":"https://lrmds.deped.gov.ph/detail/19129","sourcePage":"","lessons":[3,4],"tag":"OFFICIAL RECORD — NOT A DIRECT PDF"},
-{"id":"hand","kind":"catalog","category":"module","agency":"DepEd","title":"Learning Exemplar Module 5 — Use of Hand Tools","description":"DepEd-hosted material record. Available files are accessed using portal controls.","meta":"Official DepEd catalog record","url":"https://lrmds.deped.gov.ph/detail/25869","sourcePage":"","lessons":[3],"tag":"OFFICIAL RECORD — NOT A DIRECT PDF"},
-{"id":"system","kind":"catalog","category":"module","agency":"DepEd","title":"The System Unit — Learning Material and Teacher's Guide","description":"DepEd resource catalog listing about component functions and workplace safety.","meta":"DepEd catalog record · ZIP file, not PDF","url":"https://lrmds.deped.gov.ph/detail/16475","sourcePage":"","lessons":[1],"tag":"OFFICIAL RECORD — NOT A DIRECT PDF"},
-{"id":"sampleplan","kind":"catalog","category":"teacher","agency":"DepEd","title":"CSS Lesson Plan — Software Updates","description":"DepEd-hosted example lesson plan about software updates, not hardware assembly.","meta":"Teacher resource · Catalog record","url":"https://lrmds.deped.gov.ph/detail/15756","sourcePage":"","lessons":[5],"tag":"OFFICIAL RECORD — NOT A DIRECT PDF"},
-{"id":"activities","kind":"collection","category":"activity","agency":"DepEd","title":"Ligtas Aral — Computer System Servicing Activity Sheets","description":"Official DepEd page with individual DOWNLOAD actions for LAS05–LAS40. Find Quarter 1 / TLE / Grade 9–10 / ICT / CSS.","meta":"Official PDF collection page","url":"https://www.deped.gov.ph/ligtas-aral/","sourcePage":"","lessons":[0,1,3,4,5],"tag":"OFFICIAL COLLECTION — SELECT PDF ON PAGE"}
+  {
+    "id": "tesda-regs",
+    "kind": "pdf",
+    "agency": "TESDA",
+    "title": "CSS NC II — Training Regulations",
+    "description": "Actual TESDA training regulation document for computer hardware assembly, OHS and maintenance.",
+    "detail": "Official TESDA PDF · 2013 edition",
+    "url": "https://tesda.gov.ph/Downloadables/TRs/TR%20Computer%20Systems%20Servicing%20NC%20II%20.pdf",
+    "lessons": [
+      0,
+      2,
+      3,
+      4,
+      5
+    ],
+    "level": "official",
+    "access": "Real PDF file opens at its original publisher URL.",
+    "featured": false
+  },
+  {
+    "id": "tesda-sag",
+    "kind": "pdf",
+    "agency": "TESDA",
+    "title": "CSS NC II — Self-Assessment Guide",
+    "description": "Actual seven-page TESDA self-assessment guide with hardware installation and checking competencies.",
+    "detail": "Official TESDA PDF · 7 pages",
+    "url": "https://www.tesda.gov.ph/Downloadables/SAG%20-%20Computer%20Systems%20Servicing%20NC%20II.pdf",
+    "lessons": [
+      0,
+      3,
+      4,
+      5
+    ],
+    "level": "official",
+    "access": "Real PDF file opens at its original publisher URL.",
+    "featured": false
+  },
+  {
+    "id": "las39",
+    "kind": "pdf",
+    "agency": "DepEd",
+    "title": "LAS39 — Proper Cable Connections During Assembly",
+    "description": "One-page DepEd activity sheet on motherboard power, CPU power, storage and front-panel cables.",
+    "detail": "Official DepEd activity sheet · 1 page",
+    "url": "https://www.deped.gov.ph/wp-content/uploads/Q1-TLE9-ICT-LAS39-Computer-System-Servicing.pdf",
+    "lessons": [
+      1,
+      4,
+      5
+    ],
+    "level": "official",
+    "access": "Real PDF file opens at its original publisher URL.",
+    "featured": false
+  },
+  {
+    "id": "crucial-ram",
+    "kind": "pdf",
+    "agency": "Crucial / Micron",
+    "title": "Memory Module Installation — Illustrated Guide",
+    "description": "Genuine manufacturer PDF with installation illustrations, ESD and troubleshooting guidance.",
+    "detail": "Manufacturer installation PDF · 4 pages",
+    "url": "https://www.crucial.com/content/dam/crucial/dram-products/dram-family/documents/installation-guides/crucial-dram-install-guide-en.pdf",
+    "lessons": [
+      1,
+      3,
+      4,
+      5
+    ],
+    "level": "manufacturer",
+    "access": "Real PDF file opens at its original publisher URL.",
+    "featured": false
+  },
+  {
+    "id": "assembly-slides",
+    "kind": "slides",
+    "agency": "SlideShare · ErwinIruma",
+    "title": "PC Assembly and Disassembly.pptx",
+    "description": "Your 41-slide reference showing removal, installation, motherboard preparation and cable connections.",
+    "detail": "Third-party presentation · 41 slides",
+    "url": "https://www.slideshare.net/slideshow/pc-assembly-and-disassemblypptx/256188561",
+    "lessons": [
+      1,
+      3,
+      4
+    ],
+    "level": "thirdparty",
+    "access": "Slides viewable online; downloading may require an account. Independently uploaded, not official curriculum.",
+    "featured": true
+  },
+  {
+    "id": "lesson12-slides",
+    "kind": "slides",
+    "agency": "SlideShare · jkingmonderin",
+    "title": "Personal Computer Assembly and Disassembly — Lesson 1 & 2",
+    "description": "Viewable 12-slide illustrated presentation introducing required tools, safety, components and troubleshooting.",
+    "detail": "Third-party classroom slides · 12 slides",
+    "url": "https://www.slideshare.net/slideshow/lesson-1-2-personal-computer-assembly-and-disassembly-pptx/274917121",
+    "lessons": [
+      0,
+      1,
+      3,
+      4
+    ],
+    "level": "thirdparty",
+    "access": "Slides viewable online; downloading may require an account. Independently uploaded, not official curriculum.",
+    "featured": false
+  },
+  {
+    "id": "css-coc-slides",
+    "kind": "slides",
+    "agency": "SlideShare · ReminPasion1",
+    "title": "CSS NC II — LO1/COC1: Assemble Computer Hardware",
+    "description": "Viewable 28-slide classroom presentation explaining installation, OHS and computer hardware.",
+    "detail": "Third-party presentation · 28 slides",
+    "url": "https://www.slideshare.net/slideshow/computer-systems-servicing-nc-ii-lo1-coc1-2024-pptx/271067268",
+    "lessons": [
+      0,
+      1,
+      3,
+      4
+    ],
+    "level": "thirdparty",
+    "access": "Slides viewable online; downloading may require an account. Independently uploaded, not official curriculum.",
+    "featured": false
+  },
+  {
+    "id": "ohs-slides",
+    "kind": "slides",
+    "agency": "SlideShare · dexdexjoyjoy",
+    "title": "Computer Systems Servicing 10 — OHS",
+    "description": "Viewable 49-slide classroom presentation on safety hazards and workplace procedures.",
+    "detail": "Third-party presentation · 49 slides · 2017",
+    "url": "https://www.slideshare.net/slideshow/computer-systems-servicing-10-ohs-pptx/270741769",
+    "lessons": [
+      0,
+      3
+    ],
+    "level": "thirdparty",
+    "access": "Slides viewable online; downloading may require an account. Independently uploaded, not official curriculum.",
+    "featured": false
+  },
+  {
+    "id": "msi-build",
+    "kind": "guide",
+    "agency": "MSI",
+    "title": "Build a PC — Illustrated 10-Step Guide",
+    "description": "Manufacturer's actual step-by-step page: CPU, RAM, M.2, cooler, motherboard, GPU, PSU, cables and OS.",
+    "detail": "Manufacturer illustrated learning guide",
+    "url": "https://www.msi.com/Landing/how-to-build-a-pc",
+    "lessons": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "level": "manufacturer",
+    "access": "Full tutorial available on the manufacturer's website.",
+    "featured": false
+  },
+  {
+    "id": "asus-cpu",
+    "kind": "guide",
+    "agency": "ASUS",
+    "title": "How to Install a CPU on a Motherboard",
+    "description": "Manufacturer illustrations for AMD and Intel processor installation and orientation.",
+    "detail": "Official ASUS guide · updated March 2026",
+    "url": "https://www.asus.com/us/support/faq/1047659/",
+    "lessons": [
+      1,
+      2,
+      4
+    ],
+    "level": "manufacturer",
+    "access": "Full tutorial available on the manufacturer's website.",
+    "featured": false
+  },
+  {
+    "id": "asus-gpu",
+    "kind": "guide",
+    "agency": "ASUS",
+    "title": "How to Install a Graphics Card",
+    "description": "Actual GPU mounting, PSU cable connection and no-display troubleshooting instructions.",
+    "detail": "Official ASUS guide · updated May 2026",
+    "url": "https://www.asus.com/us/support/faq/1047391/",
+    "lessons": [
+      1,
+      2,
+      4,
+      5
+    ],
+    "level": "manufacturer",
+    "access": "Full tutorial available on the manufacturer's website.",
+    "featured": false
+  },
+  {
+    "id": "amd-am4",
+    "kind": "guide",
+    "agency": "AMD",
+    "title": "AMD AM4 — Motherboard Compatibility",
+    "description": "Manufacturer's real AM4 chipset and Ryzen 5000 compatibility matrix.",
+    "detail": "AMD platform comparison · AM4 / DDR4",
+    "url": "https://www.amd.com/en/products/processors/chipsets/am4.html",
+    "lessons": [
+      1,
+      2
+    ],
+    "level": "manufacturer",
+    "access": "Full tutorial available on the manufacturer's website.",
+    "featured": false
+  },
+  {
+    "id": "amd-am5",
+    "kind": "guide",
+    "agency": "AMD",
+    "title": "AMD AM5 — Motherboard Platform",
+    "description": "Manufacturer's actual AM5 platform and chipset information for DDR5 systems.",
+    "detail": "AMD platform reference · AM5",
+    "url": "https://www.amd.com/en/products/processors/chipsets/am5.html",
+    "lessons": [
+      2
+    ],
+    "level": "manufacturer",
+    "access": "Full tutorial available on the manufacturer's website.",
+    "featured": false
+  },
+  {
+    "id": "amd-cpu",
+    "kind": "guide",
+    "agency": "AMD",
+    "title": "Processor Handling Guidance",
+    "description": "Safe CPU handling, pin protection and hardware installation precautions from AMD.",
+    "detail": "Official processor safety guidance",
+    "url": "https://www.amd.com/en/resources/support-articles/faqs/CPU-100.html",
+    "lessons": [
+      0,
+      3,
+      4
+    ],
+    "level": "manufacturer",
+    "access": "Full tutorial available on the manufacturer's website.",
+    "featured": false
+  },
+  {
+    "id": "amd-bios",
+    "kind": "guide",
+    "agency": "AMD",
+    "title": "Ryzen BIOS Update and Compatibility Guide",
+    "description": "Manufacturer guidance explaining why a processor may not boot until BIOS support is updated.",
+    "detail": "Official AMD troubleshooting guide",
+    "url": "https://www.amd.com/en/resources/support-articles/faqs/cpu-99.html",
+    "lessons": [
+      2,
+      5
+    ],
+    "level": "manufacturer",
+    "access": "Full tutorial available on the manufacturer's website.",
+    "featured": false
+  }
 ];
-const RESOURCE_FILTERS=[["all","All official sources"],["pdf","Direct PDF files"],["catalog","Catalog records"],["collection","Download collections"]];
+const RESOURCE_FILTERS=[["all","All available materials"],["slides","Presentations"],["pdf","PDF documents"],["guide","Practical guides"]];
 let resourceFilter="all";
 const MODULES=[
 {title:"Occupational Health & Safety",unit:"01 / SAFE PREPARATION",time:"30–40 min",target:"Apply workplace safety procedures and electrostatic-discharge controls before touching components.",outcomes:["Identify electrical, sharp-edge, dust and ESD hazards.","Distinguish personal protective equipment from ESD-control equipment.","Perform safe power-down and workspace preparation."],content:[["What is OHS?","Occupational Health and Safety (OHS) means controlling risks before work begins. For PC servicing, the most important controls include shutdown and isolation from mains power, removing unnecessary liquids and clutter, and checking for exposed electrical or mechanical hazards."],["Electrostatic discharge","Static charge from a person can damage sensitive electronic components. Where appropriate, use an approved ESD wrist strap and antistatic mat connected to a suitable designated grounding point. Follow the manufacturer's and school's ESD procedures; do not improvise connections to live equipment."],["Before opening a case","Shut down the operating system; switch off and unplug the mains power; disconnect peripherals; allow components to cool; confirm the computer is not powered; maintain a clean, dry, stable workspace. Never open the internal housing of a PSU."]],activity:"Scenario: You are asked to replace RAM. The PC is running and a drink sits beside the keyboard. Write the first four actions you would take before touching the memory modules.",check:"Explain why safety glasses and an ESD wrist strap solve different problems.",resource:"activities",codes:"DepEd Ligtas Aral LAS06, LAS25 and LAS29; TESDA CSS NC II OHS"},
