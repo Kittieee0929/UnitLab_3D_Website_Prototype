@@ -55,3 +55,18 @@ The following **existing, real GLB assets from the same attributed PC Anatomy up
 - The current guided simulator provides a motherboard-on-mat pre-assembly stage, an explicit mounting transition, and placement interaction for eight parts. Screw-thread physics, keyed 24-pin/EPS/PCIe/SATA connectors, torque verification, fan wiring and OS installation remain **future development**, not completed features.
 - Real GLB models are downloaded at runtime and require an internet connection. A wireframe placeholder indicates asset loading/failure; it must not be described as a realistic representation.
 - The source files' MIT license statement is inherited from the repository cited above. Models from unrelated Sketchfab links have not been copied because their individual reuse permissions were not verified.
+
+
+## Assembly Lab v3 — interaction and model fidelity (October 26, 2026)
+
+The live 3D laboratory in `performance-3d.html`, `performance-3d.js`, and `assembly-lab-v3.css` uses the following design:
+
+- **A horizontal computer case on a textured workbench**, alongside an ESD preparation mat. The case uses original Three.js mesh geometry for frame, standoffs, motherboard tray and ventilation; it is not an imported manufacturer's PC-case CAD model.
+- **Eight individual GLB component classes** sourced from the PC Anatomy project: motherboard, CPU, memory kit, M.2 SSD, CPU cooler, PSU, GPU and case fans. The tray is HTML UI with GLB thumbnail previews rather than the old vertical floating 3D display rack.
+- The motherboard is scaled to full-size board proportions relative to a desktop CPU (approximately a 2.58-to-0.46 visual-width ratio). These are *approximate visual proportions* rather than physical millimeter-accurate geometry.
+- The computer case may be switched between **upright, on its side and inverted**. The actual Three.js case and all mounted component meshes rotate together. The case is automatically positioned above the desk as its height changes.
+- **Guided build** asks students to place the motherboard on the anti-static mat, install CPU, RAM, SSD and cooler, then mount the populated board into the chassis before PSU, graphics card and fans. Drag/drop and click-to-place are supported through the scene targets.
+- **Free Assembly** and **Disassembly** remain separate formative modes. Wrong part sequence and target errors are recorded for local feedback, not authenticated research results.
+- Current controls support zoom, orbit, pan, motherboard/case viewpoints and case orientation. The complete-system GLB remains an optional 3D reference view.
+
+**Remaining fidelity limitations:** no real-world screw torque, cable routing or port-keying physics; proprietary motherboard socket/CAD fits are not validated; case orientation is an educational demonstration and not a shop-safety procedure. The stage is a real-time WebGL educational simulation, **not** an image or a photorealistic reconstruction of an exact commercial SKU. Do not claim that the Sketchfab assets provided in the conversation have been incorporated: their permission and downloadable mesh access have not been verified.
