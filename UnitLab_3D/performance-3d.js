@@ -226,11 +226,11 @@ const studioFill=new THREE.PointLight(0xe4f5ff,24,14);studioFill.position.set(4,
    it is not exact connector geometry of a specific commercial SKU. */
 const BOARD_CONNECTORS={
  motherboard:{position:[0,0,0],rotation:[0,0,0]},
- cpu:{position:[-.29,.44,.153],rotation:[0,0,0]},
- ram:{position:[.80,.23,.335],rotation:[0,0,0]},
- storage:{position:[-.56,-.265,.154],rotation:[0,0,0]},
- cooler:{position:[-.29,.44,.515],rotation:[0,0,0]},
- gpu:{position:[-.34,-.74,.39],rotation:[Math.PI/2,0,0]}
+ cpu:{position:[-.29,.44,.208],rotation:[0,0,0]},
+ ram:{position:[.80,.23,.330],rotation:[0,0,0]},
+ storage:{position:[-.56,-.265,.202],rotation:[0,0,0]},
+ cooler:{position:[-.29,.44,.550],rotation:[0,0,0]},
+ gpu:{position:[-.34,-.74,.468],rotation:[Math.PI/2,0,0]}
 };
 const CHASSIS_CONNECTORS={
  psu:{position:[.97,-1.79,-.54],rotation:[0,0,0]},
@@ -243,6 +243,36 @@ boardAssembly.name='Motherboard assembly with real snap connectors';
 scene.add(boardAssembly);
 boardAssembly.position.set(...MAT_BOARD_LOCATION);
 boardAssembly.rotation.x=-Math.PI/2;
+/* Shared visible landmarks: generic training motherboard connectors. The same
+   anchors drive the click targets and part transforms (no independent guesswork). */
+const socketGuides=new THREE.Group();
+socketGuides.name='Board sockets: LGA/AM CPU, DIMMs, M.2 and PCIe';
+boardAssembly.add(socketGuides);
+const socketMetal=new THREE.MeshStandardMaterial({color:0xa4b5b5,metalness:.82,roughness:.32});
+const socketPlastic=new THREE.MeshStandardMaterial({color:0x101921,metalness:.26,roughness:.58});
+const socketPin=new THREE.MeshStandardMaterial({color:0xbda36c,metalness:.88,roughness:.40});
+const highlightPCB=new THREE.MeshStandardMaterial({color:0x2b5d57,metalness:.23,roughness:.69});
+function locatorBox(dim,pos,material){
+ const m=new THREE.Mesh(new THREE.BoxGeometry(...dim),material);
+ m.position.set(...pos);m.receiveShadow=true;socketGuides.add(m);return m;
+}
+// Reinforced CPU socket seating area and hinged clamp silhouette.
+locatorBox([.57,.57,.028],[-.29,.44,.145],socketMetal);
+locatorBox([.49,.49,.013],[-.29,.44,.164],socketPlastic);
+locatorBox([.42,.42,.008],[-.29,.44,.174],socketMetal);
+locatorBox([.054,.054,.011],[-.495,.645,.184],socketPin); // alignment corner
+// Four DIMM sockets; configured 2-DIMM build snaps to board slots A2/B2.
+for(const x of [.45,.625,.80,.975]){
+ locatorBox([.093,1.25,.038],[x,.23,.165],socketPlastic);
+ for(const y of [-.41,.88])locatorBox([.118,.065,.060],[x,y,.178],socketMetal);
+}
+// M.2 drive connects lengthwise on the motherboard, not floating by the PSU.
+locatorBox([.79,.18,.021],[-.56,-.265,.156],socketPlastic);
+locatorBox([.065,.21,.025],[-.91,-.265,.172],socketMetal);
+locatorBox([.032,.032,.018],[-.20,-.265,.180],socketPin);
+// PCIe x16 receiving connector, below the CPU socket.
+locatorBox([1.59,.115,.062],[-.34,-.74,.171],socketPlastic);
+locatorBox([.045,.16,.073],[-1.11,-.74,.186],socketMetal);
 const snapTweens=new Map();
 const boardLocalIds=new Set(Object.keys(BOARD_CONNECTORS));
 function socketParent(id){return boardLocalIds.has(id)?boardAssembly:rig}
@@ -518,8 +548,8 @@ const child=normalize(model,p.dims,id);
   // The source's board chips sit on the reverse side of its default axis.
   // Flatten the imported height and lift connectors above our dark PCB,
   // keeping the motherboard's real visible surface and proportions.
-  child.scale.z=.52;
-  child.position.z=.28;
+  child.scale.z=.29;
+  child.position.z=.08;
  }
  group.add(child);active.loaded++;if(id==='ram')updateRam();
 }).catch(error=>{
