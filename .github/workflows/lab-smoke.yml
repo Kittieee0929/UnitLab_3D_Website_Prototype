@@ -32,7 +32,7 @@ jobs:
           node <<'NODE'
           const fs=require('fs');
           const code=fs.readFileSync('UnitLab_3D/performance-3d.js','utf8');
-          const errors=[...code.matchAll(/(?<!\\$)\\$\\(['"][^'"]+['"]\\)\\.forEach/g)].map(m=>m[0]);
+          const errors=[...code.matchAll(/(?<!\$)\$\(['"][^'"]+['"]\)\.forEach/g)].map(m=>m[0]);
           if(errors.length)throw new Error('Single-element selector used with forEach: '+errors.join(', '));
           console.log('Static selector test PASS');
           NODE
