@@ -220,6 +220,55 @@ rig.rotation.x=orientationAngles.landscape;
 const taskLight=new THREE.PointLight(0xffdfa5,42,11);taskLight.position.set(-4,4,1.8);scene.add(taskLight);
 const studioFill=new THREE.PointLight(0xe4f5ff,24,14);studioFill.position.set(4,5,4);scene.add(studioFill);
 /* True top-surface target rings; the learner can drag or click the intended location. */
+/* Motherboard socket coordinate system (board-local XY plane, +Z is the
+   component side). All mounted components are children of this assembly.
+   This is an educational socket map for the generic modeled motherboard;
+   it is not exact connector geometry of a specific commercial SKU. */
+const BOARD_CONNECTORS={
+ motherboard:{position:[0,0,0],rotation:[0,0,0]},
+ cpu:{position:[-.29,.44,.153],rotation:[0,0,0]},
+ ram:{position:[.80,.23,.335],rotation:[0,0,0]},
+ storage:{position:[-.56,-.265,.154],rotation:[0,0,0]},
+ cooler:{position:[-.29,.44,.515],rotation:[0,0,0]},
+ gpu:{position:[-.34,-.74,.39],rotation:[Math.PI/2,0,0]}
+};
+const CHASSIS_CONNECTORS={
+ psu:{position:[.97,-1.79,-.54],rotation:[0,0,0]},
+ casefans:{position:[1.43,.03,-.45],rotation:[0,0,0]}
+};
+const MAT_BOARD_LOCATION=[-3.65,-2.48,-.15];
+const CASE_BOARD_LOCATION=[-.40,.35,-.83];
+const boardAssembly=new THREE.Group();
+boardAssembly.name='Motherboard assembly with real snap connectors';
+scene.add(boardAssembly);
+boardAssembly.position.set(...MAT_BOARD_LOCATION);
+boardAssembly.rotation.x=-Math.PI/2;
+const snapTweens=new Map();
+const boardLocalIds=new Set(Object.keys(BOARD_CONNECTORS));
+function socketParent(id){return boardLocalIds.has(id)?boardAssembly:rig}
+function socketPose(id){return BOARD_CONNECTORS[id]||CHASSIS_CONNECTORS[id]}
+function socketWorld(id){
+ const parent=socketParent(id),pose=socketPose(id);
+ parent.updateWorldMatrix(true,false);
+ return parent.localToWorld(new THREE.Vector3(...pose.position));
+}
+function startSnapTween(obj,partId,target,rotation,lift){
+ const toPosition=new THREE.Vector3(...target);
+ obj.position.copy(toPosition).add(new THREE.Vector3(0,0,lift));
+ const fromPosition=obj.position.clone();
+ const toRotation=new THREE.Quaternion().setFromEuler(new THREE.Euler(...rotation));
+ obj.quaternion.copy(toRotation);
+ snapTweens.set(partId,{obj,fromPosition,toPosition,start:performance.now(),duration:650,
+   ease:k=>1-Math.pow(1-k,3)});
+}
+function beginBoardMount(){
+ rig.attach(boardAssembly); // Preserve board + CPU + RAM + NVMe + cooler assembly as ONE object.
+ const fromPosition=boardAssembly.position.clone(),fromRotation=boardAssembly.quaternion.clone();
+ const targetRotation=new THREE.Quaternion();
+ snapTweens.set('board-mount',{obj:boardAssembly,fromPosition,
+  toPosition:new THREE.Vector3(...CASE_BOARD_LOCATION),fromRotation,toRotation,
+  start:performance.now(),duration:1150,ease:k=>k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2});
+}
 const slots=new Map();
 for(const p of parts){
  const size=p.id==='motherboard'?.43:p.id==='casefans'?.28:.20;
