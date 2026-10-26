@@ -768,6 +768,7 @@ function focusConnector(id){
  const offset=normal.multiplyScalar(distance).add(new THREE.Vector3(1.05,1.2,1.55));
  camera.position.copy(target.clone().add(offset));
  controls.target.copy(target);controls.update();
+ camera.lookAt(target);camera.updateMatrixWorld(true);camera.updateProjectionMatrix();
 }
 function install(id,slot){
  if(!byId[id]||state.submitted||state.mode==='disassembly'||state.placed[id]===id)return;
@@ -1181,7 +1182,9 @@ window.__unitlabQA={
    mode:state.mode,step:state.step,placed:{...state.placed},
    boardMounted:state.boardMounted,removed:Array.from(state.removed),
    loaded:active.loaded,pendingAnimations:Array.from(snapTweens.keys()),frames:renderedFrames,
-   parentBoard:boardAssembly.parent===rig?'case':'mat'
+   parentBoard:boardAssembly.parent===rig?'case':'mat',camera:camera.position.toArray().map(v=>+v.toFixed(2)),
+   cameraTarget:controls.target.toArray().map(v=>+v.toFixed(2)),
+   casePose:rig.position.toArray().map(v=>+v.toFixed(2))
  }),
  targetClient:id=>{
    if(!byId[id])return null;
