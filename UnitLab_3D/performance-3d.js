@@ -41,8 +41,8 @@ const pink=new THREE.PointLight(0xaec3f3,10,10);pink.position.set(3,1,-2);scene.
 scene.background=new THREE.Color(0x17212c);
 scene.fog=new THREE.FogExp2(0x17212c,.012);
 renderer.toneMappingExposure=1.36;
-camera.position.set(7.5,7.3,12.4);
-controls.target.set(-.35,-1.6,-.1);
+camera.position.set(5.20,5.05,8.35);
+controls.target.set(-.50,-1.98,-.10);
 controls.minDistance=4;
 controls.maxDistance=27;
 controls.maxPolarAngle=Math.PI*.88;
@@ -370,24 +370,48 @@ function placeholder(p){
  }
  return g;
 }
+/* Scale models by visible footprint rather than always by their thinnest
+   bounding-box axis. Real motherboard GLBs have tall heatsinks/ports; using
+   a 0.12-thick board envelope made the entire motherboard look microscopic. */
 function normalize(model,dim,id){
-const clone=model.clone(true);
-let best={scale:0,rotation:[0,0,0],center:new THREE.Vector3()};
-const orientations=[[0,0,0],[Math.PI/2,0,0],[0,Math.PI/2,0],[0,0,Math.PI/2],[Math.PI/2,Math.PI/2,0],[Math.PI/2,0,Math.PI/2],[0,Math.PI/2,Math.PI/2]];
-for(const angles of orientations){
- clone.rotation.set(...angles);clone.position.set(0,0,0);clone.updateMatrixWorld(true);
- const bounds=new THREE.Box3().setFromObject(clone),size=bounds.getSize(new THREE.Vector3());
- if(size.length()<.001)continue;
- const fitted=Math.min(dim[0]/Math.max(size.x,.005),dim[1]/Math.max(size.y,.005),dim[2]/Math.max(size.z,.005));
- if(fitted>best.scale)best={scale:fitted,rotation:angles,center:bounds.getCenter(new THREE.Vector3())};
-}
-if(best.scale===0)throw Error('Empty model for '+id);
-clone.rotation.set(...best.rotation);
-// Recenter in rotated world space inside its scaling group.
-clone.position.copy(best.center).multiplyScalar(-1);
-const grp=new THREE.Group();grp.scale.setScalar(best.scale);grp.add(clone);
-grp.traverse(o=>{o.userData.partId=id;if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
-return grp;
+ const clone=model.clone(true);
+ const envelope={
+   motherboard:[2.60,2.78,.92],cpu:[.46,.46,.22],
+   ram:[.17,1.17,.38],storage:[.78,.24,.16],
+   cooler:[.88,.88,.76],gpu:[2.20,.61,.78],
+   psu:[1.15,.89,1.09],casefans:[.86,2.64,.52]
+ }[id]||dim;
+ let best={score:-Infinity,scale:0,rotation:[0,0,0],center:new THREE.Vector3(),measured:null};
+ const quarter=Math.PI/2;
+ const orientations=[
+  [0,0,0],[quarter,0,0],[0,quarter,0],[0,0,quarter],
+  [quarter,quarter,0],[quarter,0,quarter],[0,quarter,quarter],
+  [Math.PI,0,0],[0,Math.PI,0],[0,0,Math.PI]
+ ];
+ for(const angles of orientations){
+   clone.rotation.set(...angles);clone.position.set(0,0,0);clone.updateMatrixWorld(true);
+   const bounds=new THREE.Box3().setFromObject(clone),size=bounds.getSize(new THREE.Vector3());
+   if(size.length()<.001||![size.x,size.y,size.z].every(Number.isFinite))continue;
+   const widthRatio=envelope[0]/Math.max(.005,size.x);
+   const heightRatio=envelope[1]/Math.max(.005,size.y);
+   const depthRatio=envelope[2]/Math.max(.005,size.z);
+   const scale=Math.min(widthRatio,heightRatio,depthRatio);
+   const fillX=size.x*scale/envelope[0],fillY=size.y*scale/envelope[1];
+   // The visually largest front-facing footprint wins; extra heatsinks
+   // can extend behind the motherboard without shrinking the whole PCB.
+   const score=fillX*fillY + .04*Math.min(fillX,fillY);
+   if(score>best.score)best={score,scale,rotation:angles,center:bounds.getCenter(new THREE.Vector3()),measured:size.clone()};
+ }
+ if(!(best.scale>0))throw Error('3D model had invalid bounds: '+id);
+ clone.rotation.set(...best.rotation);
+ clone.position.copy(best.center).multiplyScalar(-1);
+ const grp=new THREE.Group();grp.scale.setScalar(best.scale);grp.add(clone);
+ grp.traverse(o=>{o.userData.partId=id;if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
+ if(!window.__unitlabFit)window.__unitlabFit={};
+ window.__unitlabFit[id]={original:best.measured.toArray().map(v=>+v.toFixed(3)),
+  result:best.measured.toArray().map(v=>+(v*best.scale).toFixed(3)),
+  target:envelope,scale:+best.scale.toFixed(6),rotation:best.rotation};
+ return grp;
 }
 function updateRam(){
 const holder=meshes.get('ram');if(!holder)return;
@@ -531,7 +555,12 @@ preview.addEventListener('error',()=>{$('#previewPlaceholder').hidden=false;prev
 function inspect(id){const p=byId[id];if(!p)return;
 $('#inspectedName').textContent=p.name;$('#inspectedInfo').textContent=p.desc;$('#safety').textContent=p.safety;
 $('#inspectedChips').textContent='Textured GLB · '+(id==='ram'?numRam()+' DIMM modules':'360° preview');
-$('#previewPlaceholder').hidden=false;preview.style.display='none';preview.src=p.url;preview.alt='Realistic 3D '+p.name;
+const previewPlaceholder=$('#previewPlaceholder');
+ const card=document.querySelector('.inventory[data-part="'+id+'"] .hardware-glyph svg');
+ previewPlaceholder.hidden=false;
+ previewPlaceholder.innerHTML=card?card.outerHTML:'Hardware preview loading';
+ preview.style.display='none';
+ preview.src=p.url;preview.alt='3D '+p.name;
 }
 function selectPart(id){
  if(!byId[id])return;
@@ -716,7 +745,7 @@ function reset(mode){
  }
 
  drawStatus();
- cameraView([7.5,7.3,12.4],[-.35,-1.6,-.1]);
+ cameraView([5.20,5.05,8.35],[-.50,-1.98,-.10]);
 }
 const stage=$('#stage'),tray=$('#removeTray');
 stage.addEventListener('dragover',e=>{e.preventDefault();if(state.mode==='disassembly')return;state.hover=nearestZone(e);highlights()});
@@ -783,7 +812,7 @@ $$('[data-orientation]').forEach(button=>button.addEventListener('click',()=>{
  $$('[data-orientation]').forEach(b=>{const current=b===button;b.classList.toggle('selected',current);b.setAttribute('aria-pressed',String(current))});
  if(orientation==='upright')cameraView([7.7,4.5,11.2],[2.28,-.1,0]);
  else if(orientation==='inverted')cameraView([7.6,4.4,10],[2.28,-1.50,0]);
- else cameraView([7.5,7.3,12.4],[-.35,-1.60,-.1]);
+ else cameraView([5.20,5.05,8.35],[-.50,-1.98,-.10]);
 }));
 function setMouseTool(kind){
  const pan=kind==='pan';
@@ -846,7 +875,7 @@ $('#hints').addEventListener('change',e=>{state.hints=e.target.checked;highlight
 $('#glass').addEventListener('change',e=>panelGlass.visible=e.target.checked);
 $('#rgb').addEventListener('change',e=>{glow.visible=e.target.checked});
 function cameraView(pos,target){camera.position.set(...pos);controls.target.set(...target);controls.update()}
-$('#resetCamera').addEventListener('click',()=>cameraView([7.5,7.3,12.4],[-.35,-1.6,-.1]));
+$('#resetCamera').addEventListener('click',()=>cameraView([5.20,5.05,8.35],[-.50,-1.98,-.10]));
 const refButton=$('#caseRefToggle'),reference=$('#caseReference'),refModel=$('#completeCase3D'),refText=$('#referenceStatus');
 let referenceLoaded=false,detailedAttempt=false;
 function setReferenceVisible(open){
