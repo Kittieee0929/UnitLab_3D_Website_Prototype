@@ -185,88 +185,78 @@ const stick=new THREE.Group();stick.position.x=(i-(n-1)/2)*.21;holder.add(stick)
 stick.add(placeholder(p));
 Promise.resolve(fetchModel(p)).then(original=>{
 if(!stick.parent)return;
-const m=normalize(original,[.10,1.27,.11],'ram');stick.clear();stick.add(m);
+const m=normalize(original,[.11,1.15,.22],'ram');stick.clear();stick.add(m);
 }).catch(()=>{});
 }
 }
 function ensureMesh(id){
 if(meshes.has(id))return meshes.get(id);
-const p=byId[id],group=new THREE.Group();group.userData.partId=id;group.position.set(...p.pos);group.add(placeholder(p));scene.add(group);meshes.set(id,group);
+const p=byId[id],group=new THREE.Group();group.userData.partId=id;group.position.set(0,-20,0);group.visible=false;group.add(placeholder(p));scene.add(group);meshes.set(id,group);
 active.loading++;status();
 fetchModel(p).then(model=>{
 const child=normalize(model,p.dims,id);group.clear();group.add(child);active.loaded++;if(id==='ram')updateRam();
 }).catch(error=>{console.warn('GLB unavailable: '+id,error);active.failed++;failure.add(id)}).finally(()=>{active.loading--;status()});
 return group;
 }
-/* Guided assembly now starts on the antistatic mat and moves the populated
-   motherboard into the case after the first five hardware operations.
-   Mount points are educational approximations, not dimensionally exact CAD. */
-const preassemblyIds=new Set(['motherboard','cpu','ram','storage','cooler']);
+/* Bench-first assembly. Parts start in the HTML tray—not on an artificial
+   3D rack—and retain hardware-relative size in the scene. */
+const preassemblyIds=['motherboard','cpu','ram','storage','cooler'];
 const benchZones={
- motherboard:[-4.25,-2.46,.12],cpu:[-4.54,-2.30,-.38],
- ram:[-3.62,-2.22,-.08],storage:[-4.95,-2.27,.55],cooler:[-4.54,-2.09,-.38]
+ motherboard:[-3.65,-2.51,-.15],
+ cpu:[-4.40,-2.36,-.48],
+ ram:[-2.72,-2.29,-.28],
+ storage:[-3.68,-2.36,.73],
+ cooler:[-4.40,-2.17,-.48]
 };
-function inPreassembly(id){return state.mode==='tutorial'&&!state.boardMounted&&preassemblyIds.has(id)}
-function activeZone(p){return inPreassembly(p.id)?benchZones[p.id]:p.zone}
+function inPreassembly(id){return state.mode!=='disassembly'&&!state.boardMounted&&preassemblyIds.includes(id)}
+function boardIsPrepared(){return preassemblyIds.every(id=>state.placed[id]===id)}
+function activeZone(p){
+ if(inPreassembly(p.id))return benchZones[p.id];
+ rig.updateMatrixWorld(true);
+ return rig.localToWorld(new THREE.Vector3(...p.pos)).toArray();
+}
 function markInstalled(id,where){
- const obj=ensureMesh(id),target=byId[where]?.pos||[3.02,-1.32,1.42];
+ const p=byId[id],obj=ensureMesh(id);
  if(inPreassembly(id)){
-   obj.position.set(...benchZones[id]);obj.scale.setScalar(id==='motherboard' ? 0.78 : id==='cooler' ? 0.48 : id==='ram' ? 0.55 : 0.66);
-   obj.rotation.set(id==='motherboard'?-Math.PI/2:0,0,0);
+   scene.add(obj);obj.position.set(...benchZones[id]);
+   obj.rotation.set(id==='ram'?0:-Math.PI/2,0,0);
+   obj.scale.setScalar(1);
  }else{
-   obj.position.set(...target);obj.scale.setScalar(1);obj.rotation.set(0,0,0);
+   rig.add(obj);obj.position.set(...p.pos);obj.rotation.set(0,0,0);obj.scale.setScalar(1);
  }
- obj.visible=true;if(id==='ram')updateRam();
+ obj.visible=true;
+ if(id==='ram')updateRam();
 }
 function mountPreassembledBoard(){
- if(state.mode!=='tutorial'||state.boardMounted||state.step<5)return;
+ if(state.mode==='disassembly'||state.boardMounted)return;
+ if(!boardIsPrepared()){
+  $('#stepInstruction').textContent='Before mounting the board, install the motherboard, CPU, RAM, NVMe SSD and cooler on the anti-static mat.';
+  return;
+ }
  state.boardMounted=true;
  for(const id of preassemblyIds){
-  if(state.placed[id]!==id)continue;
-  const mesh=ensureMesh(id);
-  mesh.position.set(...byId[id].pos);mesh.rotation.set(0,0,0);mesh.scale.setScalar(1);
-  if(id==='ram')updateRam();
+  const mesh=ensureMesh(id);rig.add(mesh);mesh.position.set(...byId[id].pos);
+  mesh.rotation.set(0,0,0);mesh.scale.setScalar(1);mesh.visible=true;
  }
- cameraView([6.6,3.6,9.6],[0,0,0]);
+ cameraView([7.7,7.6,9.2],[1.6,-1.45,0]);
  drawStatus();highlights();
 }
-
-
-/* The 3D parts are real separate mesh objects on the LEFT rack inside the same Three.js scene.
-   Each is the exact object students drag from shelf to the open chassis. */
-const rackPositions=Object.fromEntries(parts.map((p,i)=>[p.id,new THREE.Vector3(-3.60,2.04-i*.68,.48)]));
-const rack=new THREE.Group();scene.add(rack);
-for(const p of parts){
- const here=rackPositions[p.id];
- box(rack,[1.18,.055,.72],[here.x,here.y-.34,.18],steel);
- box(rack,[1.10,.56,.045],[here.x,here.y,.00],dark);
- const led=new THREE.Mesh(new THREE.PlaneGeometry(1.10,.04),new THREE.MeshBasicMaterial({color:0x55dfce,transparent:true,opacity:.37}));
- led.position.set(here.x,here.y-.31,.46);rack.add(led);
-}
-function modelRackScale(id){const p=byId[id];return .72/Math.max(...p.dims)}
 function returnToRack(id){
+ // The tray contains selectable GLB thumbnails; no scale-distorting 3D rack.
  const obj=ensureMesh(id);
- obj.position.copy(rackPositions[id]);obj.scale.setScalar(modelRackScale(id));obj.rotation.set(0,0,0);obj.visible=true;
+ scene.add(obj);obj.position.set(0,-20,0);
+ obj.rotation.set(0,0,0);obj.scale.setScalar(1);obj.visible=false;
 }
-function rackDrop(clientX,clientY){
- const rect=canvas.getBoundingClientRect();
- const x=clientX-rect.left,y=clientY-rect.top;
- for(const p of parts){
-  const center=rackPositions[p.id].clone().project(camera);
-  const xx=(center.x+1)*.5*rect.width,yy=(1-center.y)*.5*rect.height;
-  if(Math.hypot(x-xx,y-yy)<Math.max(48,Math.min(105,rect.height*.14)))return true;
- }
- return false;
-}
+function rackDrop(){return false}
 function worldAtPointer(event){
  const rect=canvas.getBoundingClientRect();
- const mouseX=(event.clientX-rect.left)/rect.width*2-1;
- const mouseY=-(event.clientY-rect.top)/rect.height*2+1;
- ray.setFromCamera(new THREE.Vector2(mouseX,mouseY),camera);
- const plane=new THREE.Plane(new THREE.Vector3(0,0,1),-1.15);
+ const x=(event.clientX-rect.left)/rect.width*2-1;
+ const y=-(event.clientY-rect.top)/rect.height*2+1;
+ ray.setFromCamera(new THREE.Vector2(x,y),camera);
+ const level=state.mode==='tutorial'&&!state.boardMounted?-2.30:-1.65;
+ const plane=new THREE.Plane(new THREE.Vector3(0,1,0),-level);
  return ray.ray.intersectPlane(plane,new THREE.Vector3());
 }
-
 function renderShelf(){
 const shelves=$('#shelves');shelves.replaceChildren();const groups=new Map();
 for(const p of parts){if(!groups.has(p.category))groups.set(p.category,[]);groups.get(p.category).push(p)}
