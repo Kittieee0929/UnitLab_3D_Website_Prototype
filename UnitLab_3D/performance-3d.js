@@ -153,10 +153,30 @@ const state={mode:'tutorial',step:0,selected:null,placed:{},boardMounted:false,r
 const active={loading:0,loaded:0,failed:0,canvasPart:null,down:null,dragged:null};
 function snapshot(){try{return JSON.parse(localStorage.getItem('unitlab3d_livebuild_v4')||'null')}catch{return null}}
 function numRam(){return Math.max(2,Math.min(4,snapshot()?.parts?.ram?.dimms||2))}
-function status(){$('#assetsStatus').textContent=active.loading?'Loading real meshes · '+active.loading:active.loaded+' real meshes'+(active.failed?' · '+active.failed+' backups':'')}
+function status(){
+ const el=$('#assetsStatus');if(!el)return;
+ el.textContent=active.loading
+ ?'Loading selected 3D parts · '+active.loading+' pending'
+ :active.failed
+  ?active.loaded+' loaded · '+active.failed+' unavailable'
+  :active.loaded+' detailed parts ready';
+ el.title='Meshes are downloaded only when required. Assembly desk stays usable while parts load.';
+}
 function fetchModel(p){
 if(assetCache.has(p.id))return assetCache.get(p.id);
-const promise=new Promise((resolve,reject)=>loader.load(p.url,glb=>resolve(glb.scene),undefined,reject));
+const urls=[p.url];
+ if(p.url.includes('raw.githubusercontent.com/brickshow/pc-anatomy/main/public/models/')){
+  urls.push('https://cdn.jsdelivr.net/gh/brickshow/pc-anatomy@main/public/models/'+p.filename);
+ }
+ const attempt=(url)=>new Promise((resolve,reject)=>{
+   let settled=false;
+   const timeout=setTimeout(()=>{if(!settled){settled=true;reject(new Error('Asset request timed out'))}},14000);
+   loader.load(url,glb=>{if(!settled){settled=true;clearTimeout(timeout);resolve(glb.scene)}},
+     undefined,error=>{if(!settled){settled=true;clearTimeout(timeout);reject(error)}});
+ });
+ const promise=(async()=>{let last;for(const url of urls){
+    try{return await attempt(url)}catch(e){last=e;console.warn('Trying alternate GLB source',p.id,url,e)}
+  }throw last||new Error('Asset unavailable')})();
 assetCache.set(p.id,promise);return promise;
 }
 function placeholder(p){
@@ -200,7 +220,14 @@ const p=byId[id],group=new THREE.Group();group.userData.partId=id;group.position
 active.loading++;status();
 fetchModel(p).then(model=>{
 const child=normalize(model,p.dims,id);group.clear();group.add(child);active.loaded++;if(id==='ram')updateRam();
-}).catch(error=>{console.warn('GLB unavailable: '+id,error);active.failed++;failure.add(id)}).finally(()=>{active.loading--;status()});
+}).catch(error=>{
+ console.warn('GLB unavailable: '+id,error);
+ active.failed++;failure.add(id);
+ const msg=$('#meshNotice');
+ if(msg){
+   msg.hidden=false;msg.textContent=p.name+' could not be downloaded. The assembly desk remains available, but this part has a simplified wireframe placeholder. Check your connection and reload to retry.';
+ }
+}).finally(()=>{active.loading--;status()});
 return group;
 }
 /* Bench-first assembly. Parts start in the HTML tray—not on an artificial
@@ -262,35 +289,33 @@ function worldAtPointer(event){
  const plane=new THREE.Plane(new THREE.Vector3(0,1,0),-level);
  return ray.ray.intersectPlane(plane,new THREE.Vector3());
 }
+/* Hardware tray: lightweight accessible card previews. Importing eight more
+   model-viewer instances previously doubled the large GLB downloads on startup.
+   The REAL GLB is loaded in the assembly scene on part selection. */
 function renderShelf(){
-const shelves=$('#shelves');shelves.replaceChildren();const groups=new Map();
-for(const p of parts){if(!groups.has(p.category))groups.set(p.category,[]);groups.get(p.category).push(p)}
-for(const [cat,members] of groups){const container=document.createElement('div');container.className='shelf';const head=document.createElement('div');head.className='shelf-name';head.textContent=cat;container.appendChild(head);
-for(const p of members){
-const button=document.createElement('button');button.className='inventory';button.setAttribute('aria-label','Select '+p.name+' for assembly');button.dataset.part=p.id;button.type='button';button.draggable=true;
-const icon=document.createElement('span');icon.className='inventory-icon';
-const model=document.createElement('model-viewer');
-model.setAttribute('src',p.url);model.setAttribute('alt','Actual 3D model of '+p.name);
-model.setAttribute('camera-orbit','30deg 75deg auto');model.setAttribute('environment-image','neutral');
-model.setAttribute('auto-rotate','');model.setAttribute('rotation-per-second','18deg');
-model.setAttribute('interaction-prompt','none');model.setAttribute('loading','lazy');
-model.setAttribute('shadow-intensity','.65');model.setAttribute('exposure','1.3');
-model.setAttribute('aria-hidden','true');
-const loading=document.createElement('span');loading.className='model-loading';loading.textContent='3D '+p.short;
-icon.append(loading,model);
-model.addEventListener('load',()=>loading.hidden=true);
-model.addEventListener('error',()=>{loading.hidden=false;loading.textContent=p.short+' (preview unavailable)'});
-const wrapper=document.createElement('span');wrapper.className='inventory-text';
-const title=document.createElement('b'),subtitle=document.createElement('small');
-title.textContent=p.name;subtitle.textContent='Select • place on highlighted target';
-wrapper.append(title,subtitle);button.append(icon,wrapper);
-button.addEventListener('click',()=>selectPart(p.id));button.addEventListener('dragstart',e=>{
-state.selected=p.id;inspect(p.id);active.dragged=p.id;
-e.dataTransfer.setData('text/plain',p.id);e.dataTransfer.effectAllowed='move';renderShelfStyles();
-});
-container.appendChild(button);
-} shelves.appendChild(container)}
-renderShelfStyles();
+ const shelves=$('#shelves');shelves.replaceChildren();
+ for(const p of parts){
+  const button=document.createElement('button');
+  button.type='button';button.className='inventory';button.dataset.part=p.id;
+  button.setAttribute('aria-label','Select '+p.name+' for 3D installation');
+  button.draggable=true;
+  const icon=document.createElement('span');icon.className='inventory-icon';
+  icon.setAttribute('aria-hidden','true');
+  const glyph=document.createElement('span');glyph.className='hardware-glyph';
+  glyph.textContent=p.short;icon.appendChild(glyph);
+  const wrapper=document.createElement('span');wrapper.className='inventory-text';
+  const title=document.createElement('b'),subtitle=document.createElement('small');
+  title.textContent=p.name;subtitle.textContent='Select and place';
+  wrapper.append(title,subtitle);button.append(icon,wrapper);
+  button.addEventListener('click',()=>selectPart(p.id));
+  button.addEventListener('dragstart',e=>{
+    selectPart(p.id);active.dragged=p.id;
+    e.dataTransfer.setData('text/plain',p.id);e.dataTransfer.effectAllowed='move';
+  });
+  button.addEventListener('dragend',()=>{active.dragged=null});
+  shelves.appendChild(button);
+ }
+ renderShelfStyles();
 }
 function renderShelfStyles(){
 for(const el of $$('.inventory')){
@@ -308,7 +333,13 @@ $('#inspectedName').textContent=p.name;$('#inspectedInfo').textContent=p.desc;$(
 $('#inspectedChips').textContent='Textured GLB · '+(id==='ram'?numRam()+' DIMM modules':'360° preview');
 $('#previewPlaceholder').hidden=false;preview.style.display='none';preview.src=p.url;preview.alt='Realistic 3D '+p.name;
 }
-function selectPart(id){state.selected=id;inspect(id);renderShelfStyles();highlights()}
+function selectPart(id){
+ if(!byId[id])return;
+ state.selected=id;inspect(id);
+ // Loading happens on demand. A missing remote file must not block the lab.
+ if(!failure.has(id))ensureMesh(id);
+ renderShelfStyles();highlights();
+}
 const ray=new THREE.Raycaster(),mouse=new THREE.Vector2();
 function project(p){
 const v=new THREE.Vector3(...activeZone(p)).project(camera),r=canvas.getBoundingClientRect();
@@ -449,10 +480,9 @@ function reset(mode){
  $('#result').replaceChildren();
  $$('[data-mode]').forEach(b=>{const selected=b.dataset.mode===mode;b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected))});
  for(const p of parts){
-   const mesh=ensureMesh(p.id);
    if(mode==='disassembly'){
      state.placed[p.id]=p.id;markInstalled(p.id,p.id);
-   }else returnToRack(p.id);
+   }else if(meshes.has(p.id))returnToRack(p.id);
  }
  selectPart(mode==='disassembly'?'casefans':'motherboard');
  drawStatus();
@@ -586,11 +616,44 @@ $('#focusMotherboard').addEventListener('click',()=>state.mode!=='disassembly'&&
 $('#focusCase').addEventListener('click',()=>cameraView([7.7,7.2,8.5],[2.28,-1.50,-.1]));
 function resize(){const r=canvas.getBoundingClientRect(),w=Math.floor(r.width),h=Math.floor(r.height),pixel=renderer.getPixelRatio();
 if(w>0&&h>0&&(canvas.width!==Math.floor(w*pixel)||canvas.height!==Math.floor(h*pixel))){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}}
-function frame(){requestAnimationFrame(frame);resize();rig.rotation.x+=(orientationAngles[orientation]-rig.rotation.x)*.13;
-// Keep the entire case ABOVE the desk while rotating it to upright or inverted.
-rig.position.y=-2.69+Math.abs(Math.cos(rig.rotation.x))*2.55+Math.abs(Math.sin(rig.rotation.x))*1.2+.13;
-rig.updateMatrixWorld(true);for(const p of parts){const ring=slots.get(p.id);if(ring?.visible){ring.position.set(...activeZone(p));ring.rotation.x=inPreassembly(p.id)?-Math.PI/2:rig.rotation.x;}}controls.update();renderer.render(scene,camera)}
-renderShelf();reset('tutorial');requestAnimationFrame(frame);status();
-const assetMonitor=setInterval(()=>{if(active.loading!==0)return;clearInterval(assetMonitor);if(active.failed){$('#stageStatus').innerHTML='<strong>Some detailed 3D meshes failed to load</strong><p>Outlined forms are temporary fallbacks, not realistic hardware. Reconnect and restart to load licensed GLB models.</p>';}else{$('#stageStatus').hidden=true;}},450);
-window.dispatchEvent(new Event('unitlab3d:performance-ready'));
+let firstSuccessfulFrame=false;
+function frame(){
+ requestAnimationFrame(frame);
+ try{
+  resize();
+  rig.rotation.x+=(orientationAngles[orientation]-rig.rotation.x)*.13;
+  rig.position.y=-2.69+Math.abs(Math.cos(rig.rotation.x))*2.55+Math.abs(Math.sin(rig.rotation.x))*1.2+.13;
+  rig.updateMatrixWorld(true);
+  for(const p of parts){
+   const ring=slots.get(p.id);
+   if(ring?.visible){
+    ring.position.set(...activeZone(p));
+    ring.rotation.x=inPreassembly(p.id)?-Math.PI/2:rig.rotation.x;
+   }
+  }
+  controls.update();renderer.render(scene,camera);
+  if(!firstSuccessfulFrame){
+    firstSuccessfulFrame=true;
+    $('#stageStatus').hidden=true;
+    window.dispatchEvent(new Event('unitlab3d:performance-ready'));
+  }
+ }catch(e){
+  console.error('UnitLab 3D rendering error',e);
+  if(!firstSuccessfulFrame){
+    firstSuccessfulFrame=true;
+    const box=$('#stageStatus');box.hidden=false;
+    const label=document.createElement('strong');
+    label.textContent='3D graphics could not start';
+    const info=document.createElement('p');
+    info.textContent='Browser rendering error: '+String(e?.message||e);
+    const link=document.createElement('a');link.className='btn';link.href='worklab-pro.html?embedded=1';link.textContent='Open backup 3D workbench';
+    box.replaceChildren(label,info,link);
+    window.dispatchEvent(new Event('unitlab3d:performance-error'));
+  }
+ }
+}
+renderShelf();
+reset('tutorial');
+status();
+requestAnimationFrame(frame);
 // Real hardware meshes load asynchronously into the visible left-hand 3D rack at startup.
