@@ -12,14 +12,15 @@ const specs=[
 ['ram','RAM DIMM Kit','RAM','02 · MEMORY & STORAGE','ram.glb',[.11,1.25,.12],[.56,1.03,-.24],[.96,1.08,.45],'Memory kit: configure two or four DIMM sticks in the PC Builder.','Use the correct DDR generation and recommended slots.'],
 ['storage','M.2 NVMe SSD','SSD','02 · MEMORY & STORAGE','m.2.glb',[.73,.19,.11],[-.82,-.37,-.26],[-1.10,-.45,.50],'Nonvolatile storage for your operating system and files.','Insert the drive at the instructed angle and secure the retainer.'],
 ['psu','Power Supply','PSU','03 · POWER & GRAPHICS','psu.glb',[1.15,.73,1.03],[.54,-1.76,-.22],[.94,-1.79,.68],'The PSU converts mains electricity into DC power used by the computer.','Never open the PSU housing. Disconnect power before cabling.'],
-['gpu','Graphics Card','GPU','03 · POWER & GRAPHICS','gpu.glb',[2.16,.60,.63],[-.10,-.82,.38],[-.06,-1.01,.99],'The GPU provides graphics acceleration and may require dedicated power cables.','Support the card; release PCIe latch before removal.']
+['gpu','Graphics Card','GPU','03 · POWER & GRAPHICS','gpu.glb',[2.16,.60,.63],[-.10,-.82,.38],[-.06,-1.01,.99],'The GPU provides graphics acceleration and may require dedicated power cables.','Support the card; release PCIe latch before removal.'],
+['casefans','Case Cooling Fans','FANS','04 · COOLING & AIRFLOW','case_fans.glb',[.92,2.75,.38],[1.31,.02,.89],[1.37,.03,.98],'Real 3D case-fan assembly demonstrating airflow management and fan header planning.','Check airflow arrows and connect fan leads to the correct headers.']
 ];
 const parts=specs.map(([id,name,short,category,filename,dims,pos,zone,desc,safety])=>({
  id,name,short,category,filename,dims,pos,zone,desc,safety,
  url:['ram','storage','psu'].includes(id)?'models/'+(id==='storage'?'m2-ssd':id)+'.glb':upstream+filename
 }));
 const byId=Object.fromEntries(parts.map(p=>[p.id,p]));
-const sequence=['motherboard','cpu','ram','storage','cooler','psu','gpu'],reverse=[...sequence].reverse();
+const sequence=['motherboard','cpu','ram','storage','cooler','psu','gpu','casefans'],reverse=[...sequence].reverse();
 const user=sessionStorage.getItem('unitlab3d_local_auth')||sessionStorage.getItem('unitlab_student')||'GUEST';
 $('#student').textContent=user==='GUEST'?'Guest · local practice':'Learner code: '+user+' (local demo)';
 let renderer,scene,camera,controls,loader;
@@ -77,17 +78,11 @@ for(let i=0;i<9;i++){box(rig,[1.22,.023,.023],[.59,-2.28+i*.055,1.14],dark)}
 
 const panelGlass=box(rig,[3.55,4.68,.02],[0,0,1.25],new THREE.MeshPhysicalMaterial({color:0xc1edff,opacity:.11,transparent:true,roughness:.04,depthWrite:false,side:THREE.DoubleSide}));
 panelGlass.visible=false;panelGlass.castShadow=false;
+/* Real GLB case fans are installed as an eighth component. No artificial neon circles. */
 const fans=[];
-function makeFan(pos,r,i){const group=new THREE.Group();group.position.set(...pos);rig.add(group);
-const ring=new THREE.Mesh(new THREE.TorusGeometry(r,.028,12,56),new THREE.MeshStandardMaterial({color:0x8dd7c7,emissive:0x163f35,emissiveIntensity:.6,metalness:.22,roughness:.32}));group.add(ring);
-const rotor=new THREE.Group();group.add(rotor);
-for(let n=0;n<7;n++){const blade=box(rotor,[.14,r*.9,.05],[0,r*.27,0],steel);blade.rotation.z=n*2*Math.PI/7}
-fans.push({rotor,ring,i})}
-for(let i=0;i<3;i++)makeFan([1.36,1.35-i*1.35,.92],.39,i);
-makeFan([-1.44,1.48,.69],.34,3);
 const slots=new Map();
 for(const p of parts){
-const [w,h]=p.id==='motherboard'?[1.02,1.78]:p.id==='gpu'?[1.20,.42]:p.id==='ram'?[.35,.91]:p.id==='psu'?[.90,.45]:p.id==='storage'?[.56,.23]:p.id==='cooler'?[.81,.83]:[.45,.46];
+const [w,h]=p.id==='motherboard'?[1.02,1.78]:p.id==='gpu'?[1.20,.42]:p.id==='ram'?[.35,.91]:p.id==='psu'?[.90,.45]:p.id==='storage'?[.56,.23]:p.id==='cooler'?[.81,.83]:p.id==='casefans'?[1.05,2.2]:[.45,.46];
 const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:0x76aabb,opacity:.035,transparent:true,depthWrite:false,side:THREE.DoubleSide}));
 m.position.set(...p.zone);scene.add(m);slots.set(p.id,m);
 }
@@ -317,10 +312,10 @@ function drawStatus(){
 const done=state.mode==='disassembly'?state.removed.size:sequence.filter(id=>state.placed[id]===id).length;
 $('#modeLabel').textContent={tutorial:'◉ GUIDED ASSEMBLY',assembly:'◉ ASSEMBLY PERFORMANCE',disassembly:'◉ DISASSEMBLY PERFORMANCE'}[state.mode];
 $('#modeKicker').textContent=state.mode==='tutorial'?'GUIDED TRAINING':'INDEPENDENT PERFORMANCE';
-$('#progressFill').style.width=(done/7*100)+'%';
-$('#progressText').textContent=done+' / 7 '+(state.mode==='disassembly'?'components removed':'components correctly installed');
+$('#progressFill').style.width=(done/sequence.length*100)+'%';
+$('#progressText').textContent=done+' / '+sequence.length+' '+(state.mode==='disassembly'?'components removed':'components correctly installed');
 $('#hints').disabled=state.mode!=='tutorial';$('#hints').checked=state.mode==='tutorial'&&state.hints;
-$('#stepNumber').textContent=state.mode==='tutorial'&&state.step>=5&&!state.boardMounted?'BOARD INSTALLATION':'STEP '+Math.min(state.step+1,7)+' / 7';
+$('#stepNumber').textContent=state.mode==='tutorial'&&state.step>=5&&!state.boardMounted?'BOARD INSTALLATION':'STEP '+Math.min(state.step+1,sequence.length)+' / '+sequence.length;
 if(state.mode==='tutorial'){
 const next=byId[sequence[state.step]];$('#stepHeading').textContent=state.step>=5&&!state.boardMounted?'Mount your prepared motherboard':next?'Follow the placement guide':'Guided build finished';
 $('#stepInstruction').textContent=state.step>=5&&!state.boardMounted
@@ -419,7 +414,7 @@ $('#mountBoardBtn').addEventListener('click',mountPreassembledBoard);
 $('#resetScene').addEventListener('click',()=>reset(state.mode));$('#submitBtn').addEventListener('click',submit);$('#csvBtn').addEventListener('click',download);$('#againBtn').addEventListener('click',()=>reset(state.mode));
 $('#hints').addEventListener('change',e=>{state.hints=e.target.checked;highlights()});
 $('#glass').addEventListener('change',e=>panelGlass.visible=e.target.checked);
-$('#rgb').addEventListener('change',e=>fans.forEach(f=>f.ring.visible=e.target.checked));
+$('#rgb').addEventListener('change',e=>{glow.visible=e.target.checked});
 function cameraView(pos,target){camera.position.set(...pos);controls.target.set(...target);controls.update()}
 $('#resetCamera').addEventListener('click',()=>cameraView([7.0,3.8,11.7],[-.95,0,0]));
 const refButton=$('#caseRefToggle'),reference=$('#caseReference'),refModel=$('#completeCase3D'),refText=$('#referenceStatus');
@@ -447,7 +442,7 @@ $('#focusMotherboard').addEventListener('click',()=>state.mode==='tutorial'&&!st
 $('#focusCase').addEventListener('click',()=>cameraView([6.9,3.8,9.2],[.0,0,0]));
 function resize(){const r=canvas.getBoundingClientRect(),w=Math.floor(r.width),h=Math.floor(r.height),pixel=renderer.getPixelRatio();
 if(w>0&&h>0&&(canvas.width!==Math.floor(w*pixel)||canvas.height!==Math.floor(h*pixel))){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}}
-function frame(){requestAnimationFrame(frame);resize();controls.update();for(const f of fans)if($('#rgb').checked)f.rotor.rotation.z+=.016;renderer.render(scene,camera)}
+function frame(){requestAnimationFrame(frame);resize();controls.update();renderer.render(scene,camera)}
 renderShelf();reset('tutorial');requestAnimationFrame(frame);status();
 const assetMonitor=setInterval(()=>{if(active.loading!==0)return;clearInterval(assetMonitor);if(active.failed){$('#stageStatus').innerHTML='<strong>Some detailed 3D meshes failed to load</strong><p>Outlined forms are temporary fallbacks, not realistic hardware. Reconnect and restart to load licensed GLB models.</p>';}else{$('#stageStatus').hidden=true;}},450);
 window.dispatchEvent(new Event('unitlab3d:performance-ready'));
