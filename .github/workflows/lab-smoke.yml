@@ -148,6 +148,18 @@ jobs:
             if(!gpu)throw new Error('Hardware search not working');
             await page.locator('#labSearch').fill('');
             await page.locator('[data-mode="disassembly"]').click();
+
+            for(const id of ['casefans','gpu','psu','cooler','storage','ram','cpu','motherboard']){
+              const before=await page.evaluate(()=>window.__unitlabQA.snapshot());
+              await page.locator('#removeSelectedBtn').click();
+              await page.waitForTimeout(570);
+              const after=await page.evaluate(()=>window.__unitlabQA.snapshot());
+              console.log('REVERSE DISASSEMBLY',id,JSON.stringify(after));
+              if(!after.removed.includes(id)||after.step!==before.step+1)
+                throw new Error('Wrong reverse removal: '+id);
+            }
+            const allOut=await page.evaluate(()=>window.__unitlabQA.snapshot());
+            if(allOut.removed.length!==8)throw new Error('Disassembly not complete');
             const mode = await page.locator('#modeLabel').textContent();
             if(mode.trim()!=='DISASSEMBLY')throw new Error('Disassembly mode did not activate');
             await page.screenshot({path:'/tmp/unitlab-lab-tested.png',fullPage:true});
