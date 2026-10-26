@@ -170,6 +170,7 @@ html.embedded .stage{height:clamp(570px,75vh,830px)}
           <div class="scene-label scene-label-case">CASE INSTALLATION AREA</div>
           <div class="stage-status" id="stageStatus"><strong>Loading the 3D lab…</strong><p>Preparing genuine component meshes and the assembly workbench.</p></div>
           <div class="stage-hint" id="hoverName">Drag to orbit • Scroll to zoom • Select a part to install</div>
+          <div class="placement-feedback" id="placementFeedback" role="status" aria-live="polite">Align parts to the highlighted motherboard or chassis socket.</div>
 
           <div id="caseReference" class="case-reference" hidden aria-label="Rotatable complete computer reference model">
             <div class="reference-top"><div><strong>Complete PC · Real 3D Model</strong><small>Reference view only. Use the workbench to assemble individual components.</small></div><button type="button" class="btn" id="closeReference">Return to assembly ×</button></div>
@@ -221,6 +222,7 @@ html.embedded .stage{height:clamp(570px,75vh,830px)}
         <div class="guide-checks"><strong>What to look for</strong><ul id="stepChecklist"><li>CPU socket and alignment marker</li><li>Memory slots</li><li>M.2 SSD slot</li><li>Motherboard power connectors</li></ul></div>
         <button type="button" class="btn primary mount-board" id="mountBoardBtn" hidden>Move assembled motherboard into case →</button>
         <p class="guide-tip"><strong>Tip:</strong> Choose a part from the top tray and click the matching highlighted location on the desk. You can also drag parts onto the target.</p>
+        <button type="button" id="removeSelectedBtn" class="btn primary removal-action" hidden>Remove selected hardware ↗</button>
         <div class="guide-actions"><button type="button" class="btn" id="stepBackBtn" disabled>← Previous</button><button type="button" class="btn primary" id="stepNextBtn">Next Step →</button></div>
         <div class="performance-actions">
           <button class="btn primary" id="submitBtn" hidden>Submit practice performance</button>
