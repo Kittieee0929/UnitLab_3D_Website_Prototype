@@ -92,7 +92,7 @@ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial(
 m.position.set(...p.zone);scene.add(m);slots.set(p.id,m);
 }
 const assetCache=new Map(),meshes=new Map(),failure=new Set();
-const state={mode:'tutorial',step:0,selected:null,placed:{},removed:new Set(),attempts:[],submitted:false,hints:true,hover:null,visited:new Set(),report:null};
+const state={mode:'tutorial',step:0,selected:null,placed:{},boardMounted:false,removed:new Set(),attempts:[],submitted:false,hints:true,hover:null,visited:new Set(),report:null};
 const active={loading:0,loaded:0,failed:0,canvasPart:null,down:null,dragged:null};
 function snapshot(){try{return JSON.parse(localStorage.getItem('unitlab3d_livebuild_v4')||'null')}catch{return null}}
 function numRam(){return Math.max(2,Math.min(4,snapshot()?.parts?.ram?.dimms||2))}
@@ -146,10 +146,39 @@ const child=normalize(model,p.dims,id);group.clear();group.add(child);active.loa
 }).catch(error=>{console.warn('GLB unavailable: '+id,error);active.failed++;failure.add(id)}).finally(()=>{active.loading--;status()});
 return group;
 }
+/* Guided assembly now starts on the antistatic mat and moves the populated
+   motherboard into the case after the first five hardware operations.
+   Mount points are educational approximations, not dimensionally exact CAD. */
+const preassemblyIds=new Set(['motherboard','cpu','ram','storage','cooler']);
+const benchZones={
+ motherboard:[-4.25,-2.46,.12],cpu:[-4.54,-2.30,-.38],
+ ram:[-3.62,-2.22,-.08],storage:[-4.95,-2.27,.55],cooler:[-4.54,-2.09,-.38]
+};
+function inPreassembly(id){return state.mode==='tutorial'&&!state.boardMounted&&preassemblyIds.has(id)}
+function activeZone(p){return inPreassembly(p.id)?benchZones[p.id]:p.zone}
 function markInstalled(id,where){
-const obj=ensureMesh(id),target=byId[where]?.pos||[3.02,-1.32,1.42];obj.position.set(...target);obj.scale.setScalar(1);obj.visible=true;
-if(id==='ram')updateRam();
+ const obj=ensureMesh(id),target=byId[where]?.pos||[3.02,-1.32,1.42];
+ if(inPreassembly(id)){
+   obj.position.set(...benchZones[id]);obj.scale.setScalar(id==='motherboard'?.78:id==='cooler'?.48:id==='ram'?.55:.66);
+   obj.rotation.set(id==='motherboard'?-Math.PI/2:0,0,0);
+ }else{
+   obj.position.set(...target);obj.scale.setScalar(1);obj.rotation.set(0,0,0);
+ }
+ obj.visible=true;if(id==='ram')updateRam();
 }
+function mountPreassembledBoard(){
+ if(state.mode!=='tutorial'||state.boardMounted||state.step<5)return;
+ state.boardMounted=true;
+ for(const id of preassemblyIds){
+  if(state.placed[id]!==id)continue;
+  const mesh=ensureMesh(id);
+  mesh.position.set(...byId[id].pos);mesh.rotation.set(0,0,0);mesh.scale.setScalar(1);
+  if(id==='ram')updateRam();
+ }
+ cameraView([6.6,3.6,9.6],[0,0,0]);
+ drawStatus();highlights();
+}
+
 
 /* The 3D parts are real separate mesh objects on the LEFT rack inside the same Three.js scene.
    Each is the exact object students drag from shelf to the open chassis. */
@@ -235,7 +264,7 @@ $('#previewPlaceholder').hidden=false;preview.style.display='none';preview.src=p
 function selectPart(id){state.selected=id;inspect(id);renderShelfStyles();highlights()}
 const ray=new THREE.Raycaster(),mouse=new THREE.Vector2();
 function project(p){
-const v=new THREE.Vector3(...p.zone).project(camera),r=canvas.getBoundingClientRect();
+const v=new THREE.Vector3(...activeZone(p)).project(camera),r=canvas.getBoundingClientRect();
 return {x:(v.x+1)/2*r.width,y:(1-v.y)/2*r.height}
 }
 function nearestZone(e){
@@ -254,6 +283,7 @@ return null;
 function highlights(){
 for(const p of parts){
 const ghost=slots.get(p.id),isGuide=state.mode==='tutorial'&&state.hints&&sequence[state.step]===p.id;
+ghost.position.set(...activeZone(p));ghost.rotation.x=inPreassembly(p.id)?-Math.PI/2:0;
 ghost.material.opacity=isGuide?.48:state.mode==='tutorial'?.08:.012;ghost.material.color.set(isGuide?0x72f4c8:0x799cac);
 ghost.scale.setScalar(isGuide?1.18:1);
 }
@@ -262,6 +292,7 @@ $('#hoverName').textContent=state.mode==='tutorial'&&state.hover&&byId[state.hov
 function install(id,slot){
 if(!byId[id]||state.submitted||state.mode==='disassembly')return;
 if(state.mode==='tutorial'){
+if(state.step>=5&&!state.boardMounted){$('#stepInstruction').textContent='First move your populated motherboard from the antistatic mat into the case using the Mount motherboard button.';returnToRack(id);return}
 const expected=sequence[state.step];
 if(id!==expected||slot!==id){$('#stepInstruction').textContent='Follow the glowing part and its matching slot. The next item is '+byId[expected]?.name+'.';returnToRack(id);return}
 state.placed[id]=slot;state.step++;
@@ -292,12 +323,15 @@ $('#hints').disabled=state.mode!=='tutorial';$('#hints').checked=state.mode==='t
 $('#stepNumber').textContent=state.mode==='tutorial'?'STEP '+Math.min(state.step+1,7)+' / 7':'NO PLACEMENT HINTS';
 if(state.mode==='tutorial'){
 const next=byId[sequence[state.step]];$('#stepHeading').textContent=next?'Follow the placement guide':'Guided build finished';
-$('#stepInstruction').textContent=next?'Drag '+next.name+' from the cabinet to the glowing 3D mounting target.':'You completed the guided build. Choose an independent test to assess your performance.';
+$('#stepInstruction').textContent=state.step>=5&&!state.boardMounted
+ ?'The CPU, RAM, SSD and cooler are prepared on the anti-static mat. Mount the complete motherboard inside the case before installing the PSU and graphics card.'
+ :(next?'Drag '+next.name+' from the cabinet to the glowing '+(inPreassembly(next.id)?'anti-static mat':'case')+' target.':'You completed the guided build. Choose an independent test to assess your performance.');
 }else{
 $('#stepHeading').textContent=state.mode==='assembly'?'Build without a trail':'Disassemble without a trail';
 $('#stepInstruction').textContent=state.submitted?'See your assessment checklist below.':'Carry out the build on your own. Wrong slots and ordering errors are counted but NOT corrected or disclosed during the test.';
 }
 $('#removeTray').hidden=state.mode!=='disassembly';
+$('#mountBoardBtn').hidden=!(state.mode==='tutorial'&&state.step>=5&&!state.boardMounted);
 $('#submitBtn').hidden=state.mode==='tutorial'||state.submitted;
 $('#againBtn').hidden=!state.submitted;$('#csvBtn').hidden=!state.submitted;
 renderShelfStyles();
@@ -326,7 +360,7 @@ const text='\ufeff'+csvRows.map(row=>row.map(a=>'"'+String(a??'').replaceAll('"'
 const url=URL.createObjectURL(new Blob([text],{type:'text/csv'})),link=document.createElement('a');link.href=url;link.download='UnitLab3D_'+r.mode+'_performance.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function reset(mode){
-state.mode=mode;state.step=0;state.selected=null;state.placed={};state.removed.clear();state.attempts=[];state.submitted=false;state.report=null;$('#result').replaceChildren();
+state.mode=mode;state.step=0;state.selected=null;state.placed={};state.boardMounted=false;state.removed.clear();state.attempts=[];state.submitted=false;state.report=null;$('#result').replaceChildren();
 $$('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
 for(const p of parts){
  const mesh=ensureMesh(p.id);
@@ -381,6 +415,7 @@ tray.addEventListener('dragover',e=>{e.preventDefault();tray.classList.add('hove
 tray.addEventListener('dragleave',()=>tray.classList.remove('hover'));
 tray.addEventListener('drop',e=>{e.preventDefault();tray.classList.remove('hover');if(state.mode==='disassembly')remove(e.dataTransfer.getData('text/plain')||state.selected)});
 $$('[data-mode]').forEach(b=>b.addEventListener('click',()=>reset(b.dataset.mode)));
+$('#mountBoardBtn').addEventListener('click',mountPreassembledBoard);
 $('#resetScene').addEventListener('click',()=>reset(state.mode));$('#submitBtn').addEventListener('click',submit);$('#csvBtn').addEventListener('click',download);$('#againBtn').addEventListener('click',()=>reset(state.mode));
 $('#hints').addEventListener('change',e=>{state.hints=e.target.checked;highlights()});
 $('#glass').addEventListener('change',e=>panelGlass.visible=e.target.checked);
