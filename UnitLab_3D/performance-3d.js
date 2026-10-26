@@ -19,7 +19,7 @@ const parts=specs.map(([id,name,short,category,filename,dims,pos,zone,desc,safet
  url:['ram','storage','psu'].includes(id)?'models/'+(id==='storage'?'m2-ssd':id)+'.glb':upstream+filename
 }));
 const byId=Object.fromEntries(parts.map(p=>[p.id,p]));
-const sequence=parts.map(p=>p.id),reverse=[...sequence].reverse();
+const sequence=['motherboard','cpu','ram','storage','cooler','psu','gpu'],reverse=[...sequence].reverse();
 const user=sessionStorage.getItem('unitlab3d_local_auth')||sessionStorage.getItem('unitlab_student')||'GUEST';
 $('#student').textContent=user==='GUEST'?'Guest · local practice':'Learner code: '+user+' (local demo)';
 let renderer,scene,camera,controls,loader;
@@ -64,6 +64,17 @@ box(rig,[3.74,.19,2.50],[0,-2.48,-.03],dark);
 box(rig,[3.60,.69,2.31],[0,-2.10,-.04],steel);
 box(rig,[2.64,3.12,.05],[-.37,.30,-.80],circuit).castShadow=false;
 for(let i=0;i<4;i++)box(rig,[.28,.08,.06],[-1.26+i*.81,2.50,.92],steel);
+/* Chassis service details: mounting standoffs, vent slots and metal trim.
+   These represent case hardware; interactive parts are still the licensed GLB meshes. */
+const screwMaterial=new THREE.MeshStandardMaterial({color:0xc5cacb,metalness:.93,roughness:.26});
+for(const x of [-1.45,-.35,.73])for(const y of [-1.25,.16,1.57]){
+ const standoff=new THREE.Mesh(new THREE.CylinderGeometry(.064,.064,.05,16),screwMaterial);
+ standoff.rotation.x=Math.PI/2;standoff.position.set(x,y,-.69);
+ standoff.castShadow=true;rig.add(standoff);
+}
+for(let i=0;i<18;i++){const slit=box(rig,[.018,.42,.017],[1.70,1.95-i*.235,-1.1],dark);slit.castShadow=false}
+for(let i=0;i<9;i++){box(rig,[1.22,.023,.023],[.59,-2.28+i*.055,1.14],dark)}
+
 const panelGlass=box(rig,[3.55,4.68,.02],[0,0,1.25],new THREE.MeshPhysicalMaterial({color:0xc1edff,opacity:.11,transparent:true,roughness:.04,depthWrite:false,side:THREE.DoubleSide}));
 panelGlass.visible=false;panelGlass.castShadow=false;
 const fans=[];
@@ -261,6 +272,8 @@ state.attempts.push({id,slot,kind,time:Date.now()});
 state.placed[id]=slot;state.step=sequence.filter(p=>state.placed[p]===p).length;
 }
 markInstalled(id,slot);selectPart(id);drawStatus();highlights();
+if(state.mode==='tutorial'&&state.step===1)cameraView([-1.2,1.4,5.4],[-.5,.35,-.40]);
+if(state.mode==='tutorial'&&state.step===5)cameraView([7.0,3.8,11.7],[-.95,0,0]);
 }
 function remove(id){
 if(state.mode!=='disassembly'||state.submitted||!byId[id]||state.removed.has(id))return;
@@ -374,6 +387,27 @@ $('#glass').addEventListener('change',e=>panelGlass.visible=e.target.checked);
 $('#rgb').addEventListener('change',e=>fans.forEach(f=>f.ring.visible=e.target.checked));
 function cameraView(pos,target){camera.position.set(...pos);controls.target.set(...target);controls.update()}
 $('#resetCamera').addEventListener('click',()=>cameraView([7.0,3.8,11.7],[-.95,0,0]));
+const refButton=$('#caseRefToggle'),reference=$('#caseReference'),refModel=$('#completeCase3D'),refText=$('#referenceStatus');
+let referenceLoaded=false,detailedAttempt=false;
+function setReferenceVisible(open){
+ reference.hidden=!open;refButton.setAttribute('aria-expanded',String(open));
+ refButton.textContent=open?'Return to assembly':'View real assembled PC';
+ if(open&&!referenceLoaded){referenceLoaded=true;refText.textContent='Loading real system-unit GLB…';refModel.src=upstream+'system_unit.glb'}
+ if(open)$('#closeReference').focus();else refButton.focus();
+}
+refButton.addEventListener('click',()=>setReferenceVisible(reference.hidden));
+$('#closeReference').addEventListener('click',()=>setReferenceVisible(false));
+$('#loadDetailedCase').addEventListener('click',()=>{
+ if(detailedAttempt)return;
+ detailedAttempt=true;refText.textContent='Loading high-detail original mesh (about 23 MB)…';
+ refModel.src=upstream+'system_unit_update.glb';
+});
+refModel.addEventListener('load',()=>{refText.textContent=detailedAttempt?'High-detail 3D model ready · 360° inspection':'Real 3D model loaded · 360° inspection'});
+refModel.addEventListener('error',()=>{
+ if(detailedAttempt){detailedAttempt=false;refModel.src=upstream+'system_unit.glb';refText.textContent='High-detail model unavailable; loading lightweight reference';}
+ else refText.textContent='Model unavailable from publisher. Reconnect to view; guided assembly is still accessible.';
+});
+
 $('#focusMotherboard').addEventListener('click',()=>cameraView([-1.2,1.4,5.4],[-.5,.35,-.40]));
 $('#focusCase').addEventListener('click',()=>cameraView([6.9,3.8,9.2],[.0,0,0]));
 function resize(){const r=canvas.getBoundingClientRect(),w=Math.floor(r.width),h=Math.floor(r.height),pixel=renderer.getPixelRatio();
