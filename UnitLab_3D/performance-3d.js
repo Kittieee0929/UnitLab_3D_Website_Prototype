@@ -542,14 +542,14 @@ $$('[data-mode]').forEach(b=>b.addEventListener('click',()=>reset(b.dataset.mode
 $('#mountBoardBtn').addEventListener('click',mountPreassembledBoard);
 /* Working workspace controls: tray filters, case orientation, camera and guided hints. */
 const trayFilters={all:parts.map(p=>p.id),core:['motherboard','cpu'],storage:['ram','storage'],cooling:['cooler','casefans'],power:['psu','gpu']};
-$('[data-filter]').forEach(button=>button.addEventListener('click',()=>{
+$$('[data-filter]').forEach(button=>button.addEventListener('click',()=>{
  const filter=button.dataset.filter;
- $('[data-filter]').forEach(b=>{const active=b.dataset.filter===filter;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))});
- $('.inventory').forEach(item=>{item.hidden=!(trayFilters[filter]||trayFilters.all).includes(item.dataset.part)});
+ $$('[data-filter]').forEach(b=>{const active=b.dataset.filter===filter;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))});
+ $$('.inventory').forEach(item=>{item.hidden=!(trayFilters[filter]||trayFilters.all).includes(item.dataset.part)});
 }));
-$('[data-orientation]').forEach(button=>button.addEventListener('click',()=>{
+$$('[data-orientation]').forEach(button=>button.addEventListener('click',()=>{
  orientation=button.dataset.orientation;
- $('[data-orientation]').forEach(b=>{const current=b===button;b.classList.toggle('selected',current);b.setAttribute('aria-pressed',String(current))});
+ $$('[data-orientation]').forEach(b=>{const current=b===button;b.classList.toggle('selected',current);b.setAttribute('aria-pressed',String(current))});
  if(orientation==='upright')cameraView([7.7,4.5,11.2],[2.28,-.1,0]);
  else if(orientation==='inverted')cameraView([7.6,4.4,10],[2.28,-1.50,0]);
  else cameraView([7.5,7.3,12.4],[-.35,-1.60,-.1]);
