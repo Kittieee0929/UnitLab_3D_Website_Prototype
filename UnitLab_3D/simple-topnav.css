@@ -1,0 +1,110 @@
+/* Simple UnitLab 3D navigation for existing academy + 3D model gallery.
+   Matches hub-v2.html: one horizontal site header, mobile dropdown,
+   no full-height sidebar, existing learning panels unchanged. */
+html{scroll-padding-top:90px}
+body.unitlab-unified{background:#090f19;color:#eef8fb}
+.unitlab-unified .app-shell{display:block;min-height:100vh;position:relative}
+.unitlab-unified .rail{
+  display:flex;align-items:center;flex-direction:row;justify-content:space-between;
+  width:100%;height:74px;min-height:74px;max-height:none;
+  padding:0 max(30px,calc((100vw - 1236px) / 2));
+  position:sticky;top:0;left:0;z-index:95;flex:0 0 auto;
+  overflow:visible;background:rgba(10,19,29,.96);
+  border-right:0;border-bottom:1px solid #203344;box-shadow:none;
+  backdrop-filter:blur(16px);
+}
+.unitlab-unified .rail .brand{display:flex;align-items:center;flex:none;gap:10px;margin:0;padding:0;min-width:184px}
+.unitlab-unified .rail .brand .stamp{
+  min-width:41px;width:41px;height:41px;font:700 24px/1 "Space Grotesk",system-ui,sans-serif;
+  border-radius:11px;background:linear-gradient(150deg,#245b58,#0e2e37);border:1px solid #6acfb3;box-shadow:none;color:#e6fff3
+}
+.unitlab-unified .rail .brand .stamp span{font-size:8px;color:#95f6d6}
+.unitlab-unified .rail .brand strong{font:700 19px/1.1 "Space Grotesk",system-ui,sans-serif;letter-spacing:-.7px}
+.unitlab-unified .rail .brand small{font:700 8px/1.3 "DM Sans",system-ui,sans-serif;letter-spacing:1.15px;color:#829ba9;margin-top:5px}
+.unitlab-unified .rail #mainNav{display:flex;flex-direction:row;align-items:center;gap:3px;margin-left:auto;margin-right:205px;width:auto}
+.unitlab-unified .rail #mainNav .nav-button{
+  position:relative;display:inline-flex;justify-content:center;align-items:center;
+  flex:none;white-space:nowrap;text-align:center;width:auto;min-height:42px;
+  border:1px solid transparent;border-radius:8px;padding:10px 11px;margin:0;
+  color:#a8bcc9;background:transparent;box-shadow:none;
+  font:700 12px/1.4 "DM Sans",system-ui,sans-serif;text-decoration:none;
+  transition:background .16s,color .16s
+}
+.unitlab-unified .rail #mainNav .nav-button:hover{background:#182b3a;color:#eafaf5}
+.unitlab-unified .rail #mainNav .nav-button.active,
+.unitlab-unified .rail #mainNav .nav-button[aria-current="page"]{
+  color:#90f3d2;background:#173b3d;border-color:transparent;box-shadow:none
+}
+.unitlab-unified .rail #mainNav .nav-button.mobile-only{display:none}
+.unitlab-unified .main-column{display:flex;flex-direction:column;position:static;min-width:0;width:100%}
+.unitlab-unified .topbar{
+  display:flex;align-items:center;position:absolute;
+  right:max(30px,calc((100vw - 1236px) / 2));top:0;
+  height:74px;width:auto;padding:0;background:transparent;border:none;
+  box-shadow:none;backdrop-filter:none;z-index:101;pointer-events:none
+}
+.unitlab-unified .topbar .breadcrumb{display:none}
+.unitlab-unified .topbar .top-right{display:flex;align-items:center;gap:9px;pointer-events:auto}
+.unitlab-unified .topbar .label-pill{display:none}
+.unitlab-unified .topbar .user-badge{
+  display:grid;place-items:center;width:35px;min-width:35px;height:35px;max-width:70px;
+  border-radius:100px;border:1px solid #458777;background:#17413e;color:#b6ffdf;
+  padding:3px 6px;font:700 11px "Space Grotesk",system-ui,sans-serif
+}
+.unitlab-unified .topbar .btn{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:8px 12px;font:700 11px "DM Sans",system-ui,sans-serif;background:#173238;border:1px solid #355b60;border-radius:8px;color:#c8f7e6;text-decoration:none}
+.unitlab-unified .topbar .btn:hover{background:#24504c;border-color:#5c9888}
+.unitlab-unified .topbar .gallery-progress{display:inline-flex;align-items:center;min-height:37px;padding:8px 14px;border:1px solid #365e62;border-radius:8px;background:#163238;color:#bff8dd;text-decoration:none;font:700 12px "DM Sans",system-ui,sans-serif}
+.unitlab-unified .topbar .gallery-progress:hover{background:#26504b}
+.unitlab-unified .topbar .menu-toggle{display:none;justify-content:center;flex-direction:column;gap:5px;align-items:center;width:42px;min-width:42px;height:42px;padding:10px;border-radius:9px;background:#142b3b;border:1px solid #35566a;color:#d9f9f1}
+.unitlab-unified .topbar .menu-toggle span{display:block;width:20px;height:2px;background:#def9ee;border-radius:2px}
+.unitlab-unified .rail-scrim{display:none}
+.unitlab-unified .main{max-width:1236px;padding:36px 30px 68px}
+.unitlab-unified .main .view-heading{margin-top:0}
+.unitlab-unified.gallery-page .page{max-width:1236px;padding:36px 30px 68px}
+.unitlab-unified .footer{padding:22px 30px}
+.unitlab-unified.gallery-page .resource-return-nav{display:none!important}
+@media(max-width:1180px){
+  .unitlab-unified .rail{padding:0 22px}
+  .unitlab-unified .rail #mainNav{margin-right:180px}
+  .unitlab-unified .rail #mainNav .nav-button{padding:10px 8px;font-size:11px}
+  .unitlab-unified .topbar{right:22px}
+  .unitlab-unified .rail .brand{min-width:175px}
+}
+@media(max-width:1060px){
+  .unitlab-unified .rail{height:68px;min-height:68px;padding:0 17px}
+  .unitlab-unified .rail #mainNav{
+    display:none;position:fixed;left:auto;right:16px;top:66px;
+    width:min(310px,calc(100vw - 32px));max-height:calc(100dvh - 84px);
+    padding:12px;overflow-y:auto;z-index:130;
+    border:1px solid #406774;border-radius:14px;background:#101e2c;
+    box-shadow:0 25px 70px #000a;flex-direction:column;align-items:stretch;gap:3px;
+    margin:0;
+  }
+  .unitlab-unified .rail.open #mainNav{display:flex}
+  .unitlab-unified .rail #mainNav .nav-button{
+    display:flex;justify-content:flex-start;width:100%;text-align:left;
+    min-height:44px;padding:11px 15px;border-radius:8px;font-size:13px;
+  }
+  .unitlab-unified .rail #mainNav .nav-button.mobile-only{display:flex}
+  .unitlab-unified .topbar{right:16px;height:68px;z-index:140}
+  .unitlab-unified .topbar .menu-toggle{display:flex}
+  .unitlab-unified .rail-scrim:not([hidden]){display:block;position:fixed;inset:0;z-index:86;background:#050b12c9;border:0}
+  .unitlab-unified .main{padding:30px 20px 58px}
+  .unitlab-unified.gallery-page .page{padding:30px 20px 58px}
+}
+@media(max-width:610px){
+  .unitlab-unified .rail{padding:0 14px}
+  .unitlab-unified .rail .brand{min-width:0}
+  .unitlab-unified .rail .brand .stamp{width:38px;min-width:38px;height:38px}
+  .unitlab-unified .rail .brand strong{font-size:17px}
+  .unitlab-unified .rail .brand small{font-size:7px;letter-spacing:.65px}
+  .unitlab-unified .topbar{right:14px}
+  .unitlab-unified .topbar .user-badge{display:none}
+  .unitlab-unified .topbar .btn{font-size:10px;min-height:34px;padding:7px 9px}
+  .unitlab-unified .topbar .gallery-progress{display:none}
+  .unitlab-unified .main{padding:23px 15px 45px}
+  .unitlab-unified.gallery-page .page{padding:23px 15px 45px}
+}
+@media(prefers-reduced-motion:reduce){
+  .unitlab-unified .rail #mainNav .nav-button{transition:none}
+}
