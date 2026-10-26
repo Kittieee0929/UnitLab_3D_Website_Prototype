@@ -219,18 +219,42 @@ $('#viewLivePc').addEventListener('click',()=>{sync();navigate('workbench')});
 $('#downloadQuote').addEventListener('click',()=>{const lines=[['UnitLab PC Build · '+priceDate],['Category','Product','Price PHP','Basis','Source URL'],...CAT.map(c=>{const x=get(c.key);return [c.title,x.name,x.price,x.sourceDate||'illustrative',x.url||EASY]}),['TOTAL','',t,'Excludes shipping / extra service','']];const csv=lines.map(a=>a.map(s=>'"'+String(s??'').replaceAll('"','""')+'"').join(',')).join('\r\n');const a=document.createElement('a'),url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv'}));a.href=url;a.download='UnitLab3D_Build_PHP_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)});
 sync();renderPC();renderPreviewModel(p);
 }
-function renderPreviewModel(p){ // Existing illustration is retained but now displays the selected named hardware.
- const root=$('#pcVisualizer');if(!root)return;
- const ram=get('ram'),gpu=get('gpu'),cpu=get('cpu');
- const name=root.querySelector('.build-overlay');
- if(name)name.remove();
- const d=document.createElement('div');d.className='build-overlay';d.style.cssText='position:absolute;bottom:14px;left:8px;right:8px;border:1px solid #37737a;background:#071824d9;padding:10px 12px;border-radius:11px;font-size:11px;line-height:1.65;color:#b9eafa;z-index:2;';
- d.textContent=cpu.name+'  •  '+gpu.name+'  •  '+(ram.dimms||2)+' RAM sticks';
- root.appendChild(d);
- const visual=root.querySelector('.ram-visual');
- if(visual)visual.innerHTML=Array.from({length:ram.dimms||2},()=>'<i></i>').join('');
- const g=root.querySelector('.gpu-visual');
- if(g){g.textContent=gpu.id==='none'?'ONBOARD GRAPHICS':gpu.model==='5070'?'GEFORCE RTX 5070':gpu.name.replace(/.*(RTX \d+).*/,'$1');g.style.opacity=gpu.id==='none'?'.12':'1'}
+function renderPreviewModel(p){
+ const root=$('#pcVisualizer');
+ if(!root)return;
+ /* Use a licensed, actual GLB computer mesh rather than a CSS block drawing.
+    Mesh is a generic hardware learning example, NOT the selected product SKU. */
+ const m='https://raw.githubusercontent.com/brickshow/pc-anatomy/main/public/models/system_unit_update.glb';
+ const fallback='https://raw.githubusercontent.com/brickshow/pc-anatomy/main/public/models/system_unit.glb';
+ const cpu=get('cpu'),gpu=get('gpu'),ram=get('ram');
+ root.replaceChildren();
+ const viewer=document.createElement('model-viewer');
+ viewer.setAttribute('src',m);
+ viewer.setAttribute('camera-controls','');
+ viewer.setAttribute('auto-rotate','');
+ viewer.setAttribute('rotation-per-second','10deg');
+ viewer.setAttribute('interaction-prompt','none');
+ viewer.setAttribute('environment-image','neutral');
+ viewer.setAttribute('shadow-intensity','1');
+ viewer.setAttribute('exposure','1.08');
+ viewer.setAttribute('loading','lazy');
+ viewer.setAttribute('alt','Interactive generic PC chassis 3D model. This is a reference computer, not the exact selected CPU, GPU, memory or case.');
+ viewer.className='real-build-model';
+ let triedBackup=false;
+ viewer.addEventListener('error',()=>{
+  if(!triedBackup){triedBackup=true;viewer.src=fallback;return;}
+  root.querySelector('.build-loading')?.replaceChildren(document.createTextNode('3D reference unavailable. Your parts and compatibility checks still work.'));
+ });
+ viewer.addEventListener('load',()=>{
+  const status=root.querySelector('.build-loading');if(status)status.hidden=true;
+ });
+ const loading=document.createElement('div');
+ loading.className='build-loading';
+ loading.textContent='Loading licensed real 3D case reference…';
+ const overlay=document.createElement('div');
+ overlay.className='build-overlay';
+ overlay.textContent=cpu.name+' • '+gpu.name+' • '+(ram.dimms||2)+' RAM sticks';
+ root.append(viewer,loading,overlay);
 }
 renderBuilder=renderBuilderPro;
 window.addEventListener('message',event=>{if(event.origin!==location.origin||event.data?.type!=='unitlab3d:choose')return;const {key,id}=event.data;if(!['cpu','gpu','ram'].includes(key)||!catalog(key).options.some(p=>p.id===id))return;build[key]=id;window.unitlabFocus=key;sync();renderBuilder()});
