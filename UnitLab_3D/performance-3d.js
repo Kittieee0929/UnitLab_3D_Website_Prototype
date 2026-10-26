@@ -461,6 +461,13 @@ const child=normalize(model,p.dims,id);
     group.add(pin);
   }
  }
+ if(id==='motherboard'){
+  // The source's board chips sit on the reverse side of its default axis.
+  // Flatten the imported height and lift connectors above our dark PCB,
+  // keeping the motherboard's real visible surface and proportions.
+  child.scale.z=.52;
+  child.position.z=.28;
+ }
  group.add(child);active.loaded++;if(id==='ram')updateRam();
 }).catch(error=>{
  console.warn('GLB unavailable: '+id,error);
