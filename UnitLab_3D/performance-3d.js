@@ -41,8 +41,8 @@ const pink=new THREE.PointLight(0xaec3f3,10,10);pink.position.set(3,1,-2);scene.
 scene.background=new THREE.Color(0x17212c);
 scene.fog=new THREE.FogExp2(0x17212c,.012);
 renderer.toneMappingExposure=1.36;
-camera.position.set(5.20,5.05,8.35);
-controls.target.set(-.50,-1.98,-.10);
+camera.position.set(3.8,6.5,8.7);
+controls.target.set(-.45,-2.02,-.10);
 controls.minDistance=4;
 controls.maxDistance=27;
 controls.maxPolarAngle=Math.PI*.88;
@@ -177,11 +177,11 @@ const caseSideGlassMaterial=new THREE.MeshPhysicalMaterial({color:0xa1c2cf,metal
 const panelGlass=box(rig,[3.5,4.78,.022],[0,0,1.19],caseSideGlassMaterial);
 panelGlass.visible=false;panelGlass.castShadow=false;
 box(rig,[3.68,4.95,.12],[0,0,-1.17],steel);                 // baseplate
-box(rig,[.12,4.95,2.4],[-1.86,0,0],dark);                    // back edge
-box(rig,[.12,4.95,2.4],[1.86,0,0],dark);                     // front edge
-box(rig,[3.72,.14,2.40],[0,2.51,0],trim);                    // top
-box(rig,[3.72,.14,2.40],[0,-2.51,0],trim);                   // bottom
-box(rig,[2.87,3.54,.065],[-.28,.34,-1.02],circuit);        // mounting tray
+box(rig,[.12,4.95,1.35],[-1.86,0,-.48],dark);                    // back edge
+box(rig,[.12,4.95,1.35],[1.86,0,-.48],dark);                     // front edge
+box(rig,[3.72,.14,1.35],[0,2.51,-.48],trim);                    // top
+box(rig,[3.72,.14,1.35],[0,-2.51,-.48],trim);                   // bottom
+box(rig,[2.87,3.54,.065],[-.28,.34,-1.02],new THREE.MeshStandardMaterial({color:0x354349,metalness:.69,roughness:.46}));        // mounting tray
 for(const x of [-1.35,-.27,.82])for(const y of [-1.02,.20,1.40]){
  const s=new THREE.Mesh(new THREE.CylinderGeometry(.058,.058,.080,14),screwMat);
  s.rotation.x=Math.PI/2;s.position.set(x,y,-.92);rig.add(s);
@@ -195,6 +195,20 @@ const ventMaterial=new THREE.MeshStandardMaterial({color:0x11171b,roughness:.6,m
 for(let i=0;i<17;i++)box(rig,[.020,.18,.030],[1.92,-2.08+i*.24,-.88],ventMaterial);
 for(let i=0;i<7;i++)box(rig,[1.45,.026,.025],[-.62,2.55,-.95+i*.18],ventMaterial);
 const caseFeet=box(rig,[.55,.08,.55],[-1.15,-2.56,-.95],rubber);
+// Rear exhaust frame is part of the example chassis, not an installable kit.
+// It shows the real fan mount geometry in the open-case demonstration.
+const rearRing=new THREE.Mesh(new THREE.TorusGeometry(.37,.038,10,44),accentMetal);
+rearRing.position.set(0,2.35,-.29);rearRing.rotation.x=Math.PI/2;rig.add(rearRing);
+const fanHub=new THREE.Mesh(new THREE.CylinderGeometry(.10,.10,.07,24),black);
+fanHub.position.set(0,2.32,-.29);rig.add(fanHub);
+for(let i=0;i<7;i++){
+ const a=i*Math.PI*2/7;
+ const blade=new THREE.Mesh(new THREE.SphereGeometry(.23,12,8),steel);
+ blade.position.set(Math.cos(a)*.19,2.33,-.29+Math.sin(a)*.19);
+ blade.scale.set(.36,.20,1.20);blade.rotation.y=a;rig.add(blade);
+}
+for(let i=0;i<7;i++)box(rig,[1.46,.025,.03],[-.11,2.46,-1.02+i*.24],trim);
+
 for(const x of [-1.15,1.15])for(const y of [-2.55,2.55]){
  const foot=box(rig,[.42,.06,.42],[x,y,-1.06],rubber);
  foot.castShadow=false;
@@ -430,7 +444,24 @@ if(meshes.has(id))return meshes.get(id);
 const p=byId[id],group=new THREE.Group();group.userData.partId=id;group.position.set(0,-20,0);group.visible=false;group.add(placeholder(p));scene.add(group);meshes.set(id,group);
 active.loading++;status();
 fetchModel(p).then(model=>{
-const child=normalize(model,p.dims,id);group.clear();group.add(child);active.loaded++;if(id==='ram')updateRam();
+const child=normalize(model,p.dims,id);
+ group.clear();
+ if(id==='motherboard'){
+  // A visible PCB plate anchors the real imported chips/connectors.
+  // Generic pedagogical outline; not a specific manufacturer's board model.
+  const baseMaterial=new THREE.MeshStandardMaterial({color:0x14312f,metalness:.20,roughness:.72});
+  box(group,[2.58,2.80,.045],[0,0,-.035],baseMaterial);
+  const edgeMaterial=new THREE.MeshStandardMaterial({color:0x698f82,metalness:.65,roughness:.55});
+  const edge=box(group,[2.59,.025,.070],[0,1.38,-.02],edgeMaterial);
+  edge.castShadow=false;
+  for(let i=0;i<4;i++){
+    const pin=new THREE.Mesh(new THREE.CylinderGeometry(.028,.028,.012,12),edgeMaterial);
+    pin.rotation.x=Math.PI/2;
+    pin.position.set(i%2?1.19:-1.19,i<2?1.30:-1.30,.015);
+    group.add(pin);
+  }
+ }
+ group.add(child);active.loaded++;if(id==='ram')updateRam();
 }).catch(error=>{
  console.warn('GLB unavailable: '+id,error);
  active.failed++;failure.add(id);
@@ -745,7 +776,7 @@ function reset(mode){
  }
 
  drawStatus();
- cameraView([5.20,5.05,8.35],[-.50,-1.98,-.10]);
+ cameraView([3.8,6.5,8.7],[-.45,-2.02,-.10]);
 }
 const stage=$('#stage'),tray=$('#removeTray');
 stage.addEventListener('dragover',e=>{e.preventDefault();if(state.mode==='disassembly')return;state.hover=nearestZone(e);highlights()});
@@ -812,7 +843,7 @@ $$('[data-orientation]').forEach(button=>button.addEventListener('click',()=>{
  $$('[data-orientation]').forEach(b=>{const current=b===button;b.classList.toggle('selected',current);b.setAttribute('aria-pressed',String(current))});
  if(orientation==='upright')cameraView([7.7,4.5,11.2],[2.28,-.1,0]);
  else if(orientation==='inverted')cameraView([7.6,4.4,10],[2.28,-1.50,0]);
- else cameraView([5.20,5.05,8.35],[-.50,-1.98,-.10]);
+ else cameraView([3.8,6.5,8.7],[-.45,-2.02,-.10]);
 }));
 function setMouseTool(kind){
  const pan=kind==='pan';
@@ -875,7 +906,7 @@ $('#hints').addEventListener('change',e=>{state.hints=e.target.checked;highlight
 $('#glass').addEventListener('change',e=>panelGlass.visible=e.target.checked);
 $('#rgb').addEventListener('change',e=>{glow.visible=e.target.checked});
 function cameraView(pos,target){camera.position.set(...pos);controls.target.set(...target);controls.update()}
-$('#resetCamera').addEventListener('click',()=>cameraView([5.20,5.05,8.35],[-.50,-1.98,-.10]));
+$('#resetCamera').addEventListener('click',()=>cameraView([3.8,6.5,8.7],[-.45,-2.02,-.10]));
 const refButton=$('#caseRefToggle'),reference=$('#caseReference'),refModel=$('#completeCase3D'),refText=$('#referenceStatus');
 let referenceLoaded=false,detailedAttempt=false;
 function setReferenceVisible(open){
