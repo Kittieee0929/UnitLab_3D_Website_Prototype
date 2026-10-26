@@ -367,7 +367,7 @@ function placeholder(p){
    box(g,[1.64,.125,.115],[-.37,y,.112],i?alloy:black);
    box(g,[.03,.16,.14],[-1.14,y,.12],pale);
   }
-  box(g,[.47,.13,.09],[-.90,-1.20,.106],slotMat);
+  box(g,[.81,.15,.045],[-.56,-.265,.094],slotMat);
   // Power / chipset heatsink fins.
   box(g,[.40,1.16,.14],[-.99,.53,.112],alloy);
   box(g,[.93,.30,.18],[-.49,1.13,.13],alloy);
@@ -479,8 +479,12 @@ function normalize(model,dim,id){
 function updateRam(){
 const holder=meshes.get('ram');if(!holder)return;
 const n=numRam(),p=byId.ram;
-holder.clear();for(let i=0;i<n;i++){
-const stick=new THREE.Group();stick.position.x=(i-(n-1)/2)*.21;holder.add(stick);
+const slots=n===4?[.45,.625,.80,.975]:[.625,.975];
+const mid=slots.reduce((a,b)=>a+b,0)/slots.length;
+holder.position.x=mid;
+holder.clear();
+for(const [i,x] of slots.entries()){
+const stick=new THREE.Group();stick.position.x=x-mid;holder.add(stick);
 stick.add(placeholder(p));
 Promise.resolve(fetchModel(p)).then(original=>{
 if(!stick.parent)return;
@@ -809,27 +813,43 @@ const text='\ufeff'+csvRows.map(row=>row.map(a=>'"'+String(a??'').replaceAll('"'
 const url=URL.createObjectURL(new Blob([text],{type:'text/csv'})),link=document.createElement('a');link.href=url;link.download='UnitLab3D_'+r.mode+'_performance.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function reset(mode){
- state.mode=mode;state.step=0;state.selected=null;state.placed={};state.boardMounted=mode==='disassembly';state.removed.clear();
+ snapTweens.clear();
+ state.mode=mode;state.step=0;state.selected=null;state.placed={};
+ state.boardMounted=mode==='disassembly';state.removed.clear();
  state.attempts=[];state.submitted=false;state.report=null;state.hover=null;
- if(typeof exploded!=='undefined'){$('#explodeViewBtn').setAttribute('aria-pressed','false');$('#explodeViewBtn').classList.remove('selected');exploded=false;}
+ if(typeof exploded!=='undefined'){
+  $('#explodeViewBtn').setAttribute('aria-pressed','false');
+  $('#explodeViewBtn').classList.remove('selected');exploded=false;
+ }
  $('#result').replaceChildren();
- $$('[data-mode]').forEach(b=>{const selected=b.dataset.mode===mode;b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected))});
+ $$('[data-mode]').forEach(b=>{
+  const selected=b.dataset.mode===mode;b.classList.toggle('active',selected);
+  b.setAttribute('aria-pressed',String(selected));
+ });
+ if(mode==='disassembly'){
+  rig.add(boardAssembly);boardAssembly.position.set(...CASE_BOARD_LOCATION);
+  boardAssembly.rotation.set(0,0,0);
+ }else{
+  scene.add(boardAssembly);boardAssembly.position.set(...MAT_BOARD_LOCATION);
+  boardAssembly.rotation.set(-Math.PI/2,0,0);
+ }
  for(const p of parts){
-   if(mode==='disassembly'){
-     state.placed[p.id]=p.id;markInstalled(p.id,p.id);
-   }else if(meshes.has(p.id))returnToRack(p.id);
+  if(mode==='disassembly'){
+   state.placed[p.id]=p.id;markInstalled(p.id,p.id,{animate:false});
+  }else if(meshes.has(p.id))returnToRack(p.id);
  }
  selectPart(mode==='disassembly'?'casefans':'motherboard');
  if(mode!=='disassembly'){
-  // Real-scale motherboard is visible on the antistatic mat before installation.
-  // Clicking its highlighted target confirms the first guided placement.
-  const loose=ensureMesh('motherboard');
-  scene.add(loose);loose.position.set(-3.78,-2.48,.10);
-  loose.rotation.set(-Math.PI/2,0,0);loose.scale.setScalar(1);loose.visible=true;
+  // Present the board visibly on the anti-static mat, then ask students
+  // to confirm its position before installing CPU, DIMMs and SSD.
+  const model=ensureMesh('motherboard');
+  boardAssembly.add(model);model.position.set(0,0,0);
+  model.rotation.set(0,0,0);model.scale.setScalar(1);model.visible=true;
  }
-
- drawStatus();
- cameraView([3.8,6.5,8.7],[-.45,-2.02,-.10]);
+ $('#placementFeedback').textContent=mode==='disassembly'
+  ?'Disassembly: select the outermost component and remove it in reverse order.'
+  :'Prepare the motherboard on the ESD mat; align each part to its highlighted connector.';
+ drawStatus();cameraView([3.8,6.5,8.7],[-.45,-2.02,-.10]);
 }
 const stage=$('#stage'),tray=$('#removeTray');
 stage.addEventListener('dragover',e=>{e.preventDefault();if(state.mode==='disassembly')return;state.hover=nearestZone(e);highlights()});
