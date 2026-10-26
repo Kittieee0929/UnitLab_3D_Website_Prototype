@@ -1,0 +1,94 @@
+name: UnitLab 3D browser smoke test
+
+on:
+  push:
+    branches:
+      - design/unitlab-learning-hub-v1
+    paths:
+      - 'UnitLab_3D/**'
+      - '.github/workflows/lab-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  webgl-lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser automation
+        run: npm install --no-save --ignore-scripts playwright-core@1.56.1
+      - name: Start local UnitLab static server
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/unitlab-server.log 2>&1 &
+          echo $! > /tmp/unitlab-server.pid
+      - name: Validate lab layout, controls and WebGL startup
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright-core');
+          (async () => {
+            const browser = await chromium.launch({
+              headless: true,
+              executablePath: process.env.CHROME_PATH || '/usr/bin/google-chrome',
+              args: ['--no-sandbox', '--enable-webgl', '--enable-unsafe-swiftshader', '--use-gl=angle', '--use-angle=swiftshader']
+            });
+            const page = await browser.newPage({ viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 });
+            const errors = [];
+            page.on('pageerror', err => errors.push(err.message));
+            page.on('console', msg => { if(msg.type()==='error') console.log('BROWSER ERROR:', msg.text().slice(0,500)); });
+            await page.goto('http://127.0.0.1:8765/UnitLab_3D/performance-3d.html', { waitUntil:'domcontentloaded', timeout:30000 });
+            await page.waitForTimeout(25000);
+            const initial = await page.evaluate(() => ({
+              loaded: document.querySelector('#stageStatus')?.hidden === true,
+              status: document.querySelector('#stageStatus')?.innerText?.slice(0,600),
+              width: document.querySelector('#assemblyCanvas')?.width,
+              height: document.querySelector('#assemblyCanvas')?.height,
+              tray: document.querySelectorAll('.inventory').length,
+              title: document.querySelector('.lab-heading h1')?.textContent,
+              initialMode: document.querySelector('#modeLabel')?.textContent,
+              guide: document.querySelector('#stepHeading')?.textContent,
+              viewport: document.querySelector('.stage')?.getBoundingClientRect().width
+            }));
+            console.log('INITIAL:', JSON.stringify(initial));
+            await page.screenshot({path:'/tmp/unitlab-lab-1600.png',fullPage:true});
+            if(!initial.loaded)throw new Error('3D Lab did not render: '+initial.status);
+            if(initial.tray < 8)throw new Error('Parts tray incomplete');
+            if(initial.width < 500)throw new Error('3D canvas unexpectedly small');
+            await page.locator('[data-filter="storage"]').click();
+            const visibleParts = await page.locator('.inventory:visible').count();
+            console.log('STORAGE FILTER:',visibleParts);
+            if(visibleParts!==2)throw new Error('Storage filter returned '+visibleParts+' parts instead of 2');
+            await page.locator('[data-filter="all"]').click();
+            await page.locator('[data-orientation="upright"]').click();
+            const pressed = await page.locator('[data-orientation="upright"]').getAttribute('aria-pressed');
+            if(pressed!=='true')throw new Error('Orientation toggle not working');
+            await page.locator('#explodeViewBtn').click();
+            if((await page.locator('#explodeViewBtn').getAttribute('aria-pressed'))!=='true')throw new Error('Explode toggle not working');
+            await page.locator('#labHelpBtn').click();
+            if(await page.locator('#labHelpPanel').isHidden())throw new Error('Help did not open');
+            await page.locator('#labSearch').fill('graphics');
+            const gpu = await page.locator('.inventory[data-part="gpu"]').isVisible();
+            if(!gpu)throw new Error('Hardware search not working');
+            await page.locator('#labSearch').fill('');
+            await page.locator('[data-mode="disassembly"]').click();
+            const mode = await page.locator('#modeLabel').textContent();
+            if(mode.trim()!=='DISASSEMBLY')throw new Error('Disassembly mode did not activate');
+            await page.screenshot({path:'/tmp/unitlab-lab-tested.png',fullPage:true});
+            if(errors.length)throw new Error('JavaScript page errors: '+errors.join(' | '));
+            console.log('SMOKE TEST PASSED');
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unitlab-browser-screenshots
+          path: |
+            /tmp/unitlab-lab-1600.png
+            /tmp/unitlab-lab-tested.png
+          if-no-files-found: ignore
