@@ -197,3 +197,20 @@ html.embedded .lab-v3 .stage{height:660px}
 .lab-v3 .inventory .inventory-text small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 html.embedded .lab-v3 .lab-workflowbar{padding:10px 12px}
 @media(max-width:760px){.lab-v3 .inventory .inventory-icon .hardware-glyph svg{max-height:85px}}
+
+
+/* Screen-tested legibility and hardware-inspection refinements */
+.lab-v3 .guide-illustration .placeholder{background:radial-gradient(circle at 52% 45%,#305568,#102739);color:#caebf3}
+.lab-v3 .guide-illustration .placeholder svg{
+  display:block;width:87%;height:93%;max-height:200px;
+  filter:drop-shadow(0 13px 13px #061521b8);
+}
+.lab-v3 .inventory .inventory-text b{font-size:13px;letter-spacing:-.1px}
+.lab-v3 .inventory .inventory-text small{font-size:11px}
+.lab-v3 .guide-step p{font-size:14px;line-height:1.68}
+.lab-v3 .guide-checks li{font-size:13px;line-height:1.53}
+.lab-v3 .guide-main .guide-tip{font-size:13px;line-height:1.55}
+.lab-v3 .tray-title p{font-size:13px}
+.lab-v3 .guide-illustration{background:radial-gradient(ellipse at center,#26455a,#091a29)}
+.lab-v3 .scene-label{bottom:118px}
+@media(max-width:760px){.lab-v3 .guide-illustration .placeholder svg{max-height:210px}}
