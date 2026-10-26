@@ -463,7 +463,7 @@ canvas.addEventListener('pointerdown',e=>{
 canvas.addEventListener('pointermove',e=>{
  if(!gesture)return;
  if(Math.hypot(e.clientX-gesture.startX,e.clientY-gesture.startY)>7)gesture.dragged=true;
- if(gesture.dragged){const v=worldAtPointer(e);if(v)meshes.get(gesture.id).position.copy(v)}
+ if(gesture.dragged){const v=worldAtPointer(e);if(v){const obj=meshes.get(gesture.id);const p=obj.parent===rig?rig.worldToLocal(v.clone()):v;obj.position.copy(p)}}
  if(state.mode==='disassembly'){const r=tray.getBoundingClientRect();
  tray.classList.toggle('hover',e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom)}
 });
@@ -492,17 +492,61 @@ tray.addEventListener('dragleave',()=>tray.classList.remove('hover'));
 tray.addEventListener('drop',e=>{e.preventDefault();tray.classList.remove('hover');if(state.mode==='disassembly')remove(e.dataTransfer.getData('text/plain')||state.selected)});
 $$('[data-mode]').forEach(b=>b.addEventListener('click',()=>reset(b.dataset.mode)));
 $('#mountBoardBtn').addEventListener('click',mountPreassembledBoard);
+/* Working workspace controls: tray filters, case orientation, camera and guided hints. */
+const trayFilters={all:parts.map(p=>p.id),core:['motherboard','cpu'],storage:['ram','storage'],cooling:['cooler','casefans'],power:['psu','gpu']};
+$('[data-filter]').forEach(button=>button.addEventListener('click',()=>{
+ const filter=button.dataset.filter;
+ $('[data-filter]').forEach(b=>{const active=b.dataset.filter===filter;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))});
+ $('.inventory').forEach(item=>{item.hidden=!(trayFilters[filter]||trayFilters.all).includes(item.dataset.part)});
+}));
+$('[data-orientation]').forEach(button=>button.addEventListener('click',()=>{
+ orientation=button.dataset.orientation;
+ $('[data-orientation]').forEach(b=>{const current=b===button;b.classList.toggle('selected',current);b.setAttribute('aria-pressed',String(current))});
+ if(orientation==='upright')cameraView([7.7,2.7,11.2],[2.28,-1.50,0]);
+ else if(orientation==='inverted')cameraView([7.6,4.4,10],[2.28,-1.50,0]);
+ else cameraView([7.5,7.3,12.4],[-.35,-1.60,-.1]);
+}));
+function setMouseTool(kind){
+ const pan=kind==='pan';
+ controls.mouseButtons.LEFT=pan?THREE.MOUSE.PAN:THREE.MOUSE.ROTATE;
+ $('#panTool').setAttribute('aria-pressed',String(pan));
+ $('#rotateTool').setAttribute('aria-pressed',String(!pan));
+ $('#panTool').classList.toggle('selected',pan);$('#rotateTool').classList.toggle('selected',!pan);
+}
+$('#rotateTool').addEventListener('click',()=>setMouseTool('rotate'));
+$('#panTool').addEventListener('click',()=>setMouseTool('pan'));
+function zoomBy(scale){camera.position.sub(controls.target).multiplyScalar(scale).add(controls.target);camera.updateProjectionMatrix();controls.update()}
+$('#zoomInTool').addEventListener('click',()=>zoomBy(.80));
+$('#zoomOutTool').addEventListener('click',()=>zoomBy(1.25));
+$('#stepNextBtn').addEventListener('click',()=>{
+ if(state.mode!=='disassembly'&&!state.boardMounted&&boardIsPrepared()){
+  $('#mountBoardBtn').focus();$('#mountBoardBtn').classList.add('guide-attention');
+  setTimeout(()=>$('#mountBoardBtn')?.classList.remove('guide-attention'),1200);return;
+ }
+ const id=state.mode==='disassembly'?reverse.find(p=>!state.removed.has(p)):sequence.find(p=>state.placed[p]!==p);
+ if(id){
+  selectPart(id);const p=byId[id];
+  if(inPreassembly(id))cameraView([1.4,7.1,6.2],[-3.65,-2.3,-.15]);
+  else cameraView([7.4,7.2,8.7],[2.28,-1.5,-.1]);
+  $('#stepInstruction').textContent='Now inspect '+p.name+'. '+p.desc+' Select it from the tray and click its highlighted target to continue.';
+ }
+});
+$('#stepBackBtn').addEventListener('click',()=>{
+ const previous=state.mode==='disassembly'?reverse[Math.max(0,state.step-1)]:sequence[Math.max(0,state.step-1)];
+ if(previous)selectPart(previous);
+});
+setMouseTool('rotate');
 $('#resetScene').addEventListener('click',()=>reset(state.mode));$('#submitBtn').addEventListener('click',submit);$('#csvBtn').addEventListener('click',download);$('#againBtn').addEventListener('click',()=>reset(state.mode));
 $('#hints').addEventListener('change',e=>{state.hints=e.target.checked;highlights()});
 $('#glass').addEventListener('change',e=>panelGlass.visible=e.target.checked);
 $('#rgb').addEventListener('change',e=>{glow.visible=e.target.checked});
 function cameraView(pos,target){camera.position.set(...pos);controls.target.set(...target);controls.update()}
-$('#resetCamera').addEventListener('click',()=>cameraView([7.0,3.8,11.7],[-.95,0,0]));
+$('#resetCamera').addEventListener('click',()=>cameraView([7.5,7.3,12.4],[-.35,-1.6,-.1]));
 const refButton=$('#caseRefToggle'),reference=$('#caseReference'),refModel=$('#completeCase3D'),refText=$('#referenceStatus');
 let referenceLoaded=false,detailedAttempt=false;
 function setReferenceVisible(open){
  reference.hidden=!open;refButton.setAttribute('aria-expanded',String(open));
- refButton.textContent=open?'Return to assembly':'View real assembled PC';
+ const text=refButton.querySelector('span');if(text)text.textContent=open?'Return':'Full PC';
  if(open&&!referenceLoaded){referenceLoaded=true;refText.textContent='Loading real system-unit GLB…';refModel.src=upstream+'system_unit.glb'}
  if(open)$('#closeReference').focus();else refButton.focus();
 }
@@ -519,11 +563,11 @@ refModel.addEventListener('error',()=>{
  else refText.textContent='Model unavailable from publisher. Reconnect to view; guided assembly is still accessible.';
 });
 
-$('#focusMotherboard').addEventListener('click',()=>state.mode==='tutorial'&&!state.boardMounted?cameraView([-3.55,1.4,6.5],[-4.25,-2.26,.10]):cameraView([-1.2,1.4,5.4],[-.5,.35,-.40]));
-$('#focusCase').addEventListener('click',()=>cameraView([6.9,3.8,9.2],[.0,0,0]));
+$('#focusMotherboard').addEventListener('click',()=>state.mode!=='disassembly'&&!state.boardMounted?cameraView([1.4,7.1,6.2],[-3.65,-2.3,-.15]):cameraView([5.7,6.1,7.0],[2.28,-1.50,0]));
+$('#focusCase').addEventListener('click',()=>cameraView([7.7,7.2,8.5],[2.28,-1.50,-.1]));
 function resize(){const r=canvas.getBoundingClientRect(),w=Math.floor(r.width),h=Math.floor(r.height),pixel=renderer.getPixelRatio();
 if(w>0&&h>0&&(canvas.width!==Math.floor(w*pixel)||canvas.height!==Math.floor(h*pixel))){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}}
-function frame(){requestAnimationFrame(frame);resize();controls.update();renderer.render(scene,camera)}
+function frame(){requestAnimationFrame(frame);resize();rig.rotation.x+=(orientationAngles[orientation]-rig.rotation.x)*.13;rig.updateMatrixWorld(true);for(const p of parts){const ring=slots.get(p.id);if(ring?.visible){ring.position.set(...activeZone(p));ring.rotation.x=inPreassembly(p.id)?-Math.PI/2:rig.rotation.x;}}controls.update();renderer.render(scene,camera)}
 renderShelf();reset('tutorial');requestAnimationFrame(frame);status();
 const assetMonitor=setInterval(()=>{if(active.loading!==0)return;clearInterval(assetMonitor);if(active.failed){$('#stageStatus').innerHTML='<strong>Some detailed 3D meshes failed to load</strong><p>Outlined forms are temporary fallbacks, not realistic hardware. Reconnect and restart to load licensed GLB models.</p>';}else{$('#stageStatus').hidden=true;}},450);
 window.dispatchEvent(new Event('unitlab3d:performance-ready'));
