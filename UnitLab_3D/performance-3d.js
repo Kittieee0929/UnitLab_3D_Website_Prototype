@@ -528,63 +528,60 @@ const child=normalize(model,p.dims,id);
 }).finally(()=>{active.loading--;status()});
 return group;
 }
-/* Bench-first assembly. Parts start in the HTML tray—not on an artificial
-   3D rack—and retain hardware-relative size in the scene. */
+/* Attach hardware to real socket anchors on ONE motherboard assembly.
+   This prevents CPU/RAM/SSD hovering near a board when it is moved or flipped. */
 const preassemblyIds=['motherboard','cpu','ram','storage','cooler'];
-const benchZones={
- motherboard:[-3.65,-2.51,-.15],
- cpu:[-4.40,-2.36,-.48],
- ram:[-2.72,-2.29,-.28],
- storage:[-3.68,-2.36,.73],
- cooler:[-4.40,-2.17,-.48]
-};
-function inPreassembly(id){return state.mode!=='disassembly'&&!state.boardMounted&&preassemblyIds.includes(id)}
-function boardIsPrepared(){return preassemblyIds.every(id=>state.placed[id]===id)}
-function activeZone(p){
- if(inPreassembly(p.id))return benchZones[p.id];
- rig.updateMatrixWorld(true);
- return rig.localToWorld(new THREE.Vector3(...p.pos)).toArray();
+function inPreassembly(id){
+ return state.mode!=='disassembly'&&!state.boardMounted&&preassemblyIds.includes(id);
 }
-function markInstalled(id,where){
- const p=byId[id],obj=ensureMesh(id);
- if(inPreassembly(id)){
-   scene.add(obj);obj.position.set(...benchZones[id]);
-   obj.rotation.set(id==='ram'?0:-Math.PI/2,0,0);
-   obj.scale.setScalar(1);
+function boardIsPrepared(){return preassemblyIds.every(id=>state.placed[id]===id)}
+function activeZone(p){return socketWorld(p.id).toArray()}
+function markInstalled(id,where,{animate=false}={}){
+ const obj=ensureMesh(id),target=socketPose(id);
+ const parent=socketParent(id);
+ if(obj.parent!==parent)parent.add(obj);
+ obj.visible=true;obj.scale.setScalar(1);
+ if(id==='motherboard'){
+  obj.position.set(0,0,0);obj.rotation.set(0,0,0);
+  // The board itself is the anchor for every connected component.
+ }else if(animate){
+  startSnapTween(obj,id,target.position,target.rotation,id==='gpu'?.80:id==='cooler'?.67:id==='psu'?.64:.52);
  }else{
-   rig.add(obj);obj.position.set(...p.pos);obj.rotation.set(0,0,0);obj.scale.setScalar(1);
+  obj.position.set(...target.position);
+  obj.rotation.set(...target.rotation);
  }
- obj.visible=true;
  if(id==='ram')updateRam();
 }
 function mountPreassembledBoard(){
  if(state.mode==='disassembly'||state.boardMounted)return;
  if(!boardIsPrepared()){
-  $('#stepInstruction').textContent='Before mounting the board, install the motherboard, CPU, RAM, NVMe SSD and cooler on the anti-static mat.';
+  $('#stepInstruction').textContent='First install the CPU, memory, M.2 SSD and cooler on the ESD mat. Then mount the populated board into the case.';
   return;
  }
  state.boardMounted=true;
- for(const id of preassemblyIds){
-  const mesh=ensureMesh(id);rig.add(mesh);mesh.position.set(...byId[id].pos);
-  mesh.rotation.set(0,0,0);mesh.scale.setScalar(1);mesh.visible=true;
- }
- cameraView([7.7,7.6,9.2],[1.6,-1.45,0]);
+ // The populated motherboard remains a single parent hierarchy during movement.
+ beginBoardMount();
+ const message=$('#placementFeedback');
+ if(message)message.textContent='Moving the complete motherboard assembly onto the case standoffs…';
+ cameraView([6.7,6.8,9.0],[1.4,-1.3,-.1]);
  selectPart(sequence[state.step]||'psu');drawStatus();highlights();
 }
 function returnToRack(id){
- // The tray contains selectable GLB thumbnails; no scale-distorting 3D rack.
- const obj=ensureMesh(id);
+ const obj=ensureMesh(id);snapTweens.delete(id);
  scene.add(obj);obj.position.set(0,-20,0);
  obj.rotation.set(0,0,0);obj.scale.setScalar(1);obj.visible=false;
 }
 function rackDrop(){return false}
-function worldAtPointer(event){
+function worldAtPointer(event,id=state.selected){
  const rect=canvas.getBoundingClientRect();
  const x=(event.clientX-rect.left)/rect.width*2-1;
  const y=-(event.clientY-rect.top)/rect.height*2+1;
  ray.setFromCamera(new THREE.Vector2(x,y),camera);
- const level=state.mode==='tutorial'&&!state.boardMounted?-2.30:-1.65;
- const plane=new THREE.Plane(new THREE.Vector3(0,1,0),-level);
+ const socket=id&&socketPose(id)?socketWorld(id):new THREE.Vector3(-3.65,-2.4,0);
+ const parent=id?socketParent(id):boardAssembly;
+ parent.updateWorldMatrix(true,false);
+ const normal=new THREE.Vector3(0,0,1).applyQuaternion(parent.getWorldQuaternion(new THREE.Quaternion())).normalize();
+ const plane=new THREE.Plane().setFromNormalAndCoplanarPoint(normal,socket);
  return ray.ray.intersectPlane(plane,new THREE.Vector3());
 }
 /* Hardware tray: lightweight accessible card previews. Importing eight more
