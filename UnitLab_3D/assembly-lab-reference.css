@@ -181,3 +181,19 @@ html.embedded .lab-v3 .stage{height:660px}
  .lab-v3 .guide-step p{font-size:14px}
  .lab-v3 .guide-checks li{font-size:13px}
 }
+
+/* Render the fast, detailed hardware SVG as the full card thumbnail, not as a
+   60px-letter badge. Actual installation objects are GLB/procedural 3D. */
+.lab-v3 .inventory .inventory-icon .hardware-glyph{
+ width:100%;height:100%;min-height:0;display:grid;place-items:center;
+ border:0;border-radius:0;background:transparent;box-shadow:none;
+}
+.lab-v3 .inventory .inventory-icon .hardware-glyph svg{
+ width:min(100%,142px);height:100%;max-height:111px;
+ filter:drop-shadow(1px 8px 7px #00131f9c);
+}
+.lab-v3 .inventory:hover .hardware-glyph svg{filter:drop-shadow(0 7px 9px #0d8a8a76)}
+.lab-v3 .inventory.active{border-color:#26e9e4;background:#0f3d49}
+.lab-v3 .inventory .inventory-text small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.embedded .lab-v3 .lab-workflowbar{padding:10px 12px}
+@media(max-width:760px){.lab-v3 .inventory .inventory-icon .hardware-glyph svg{max-height:85px}}
