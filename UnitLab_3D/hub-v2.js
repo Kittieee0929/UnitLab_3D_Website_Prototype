@@ -15,6 +15,7 @@
   var sidebar = document.getElementById("sidebar");
   var scrim = document.getElementById("mobileScrim");
   var timers = [];
+  var animationFrame = null;
   var introComplete = false;
   var started = false;
   var INTRO_KEY = "unitlab3d_hub_intro_seen_v1";
@@ -31,8 +32,9 @@
     return id;
   }
   function stopTimers() {
-    timers.forEach(function (id) { window.clearTimeout(id); window.clearInterval(id); });
+    timers.forEach(function (id) { window.clearTimeout(id); });
     timers = [];
+    if (animationFrame !== null) { window.cancelAnimationFrame(animationFrame); animationFrame = null; }
   }
   function showHub(focusMain) {
     if (introComplete) {
@@ -83,29 +85,17 @@
       if (p >= 100) {
         queue(runZoom, 320);
       } else {
-        var id = window.requestAnimationFrame(frame);
-        timers.push(id);
+        animationFrame = window.requestAnimationFrame(frame);
       }
     }
     /* One RAF at a time, so interrupted/replayed intros remain safe. */
-    var id = window.requestAnimationFrame(frame);
-    timers.push(id);
+    animationFrame = window.requestAnimationFrame(frame);
   }
-  /* requestAnimationFrame IDs have their own cancel API. */
-  var originalStopTimers = stopTimers;
-  stopTimers = function () {
-    timers.forEach(function (id) {
-      window.clearTimeout(id);
-      window.clearInterval(id);
-      window.cancelAnimationFrame(id);
-    });
-    timers = [];
-  };
   function replayIntro() {
     started = false;
     introComplete = false;
     stopTimers();
-    window.scrollTo({ top: 0, behavior: "instant" });
+    window.scrollTo(0, 0);
     runIntro();
     skip.focus();
   }
