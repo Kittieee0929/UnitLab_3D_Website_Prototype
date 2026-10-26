@@ -1,7 +1,6 @@
-import * as THREE from 'three';
-import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
-import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
-
+/* Three.js dependencies are provided by performance-3d-boot.js.
+   This file contains the complete interactive lab. */
+export function startUnitLab(THREE, OrbitControls, GLTFLoader){
 const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
 const canvas=$('#assemblyCanvas');
 const upstream='https://raw.githubusercontent.com/brickshow/pc-anatomy/main/public/models/';
@@ -657,3 +656,5 @@ reset('tutorial');
 status();
 requestAnimationFrame(frame);
 // Real hardware meshes load asynchronously into the visible left-hand 3D rack at startup.
+
+}
