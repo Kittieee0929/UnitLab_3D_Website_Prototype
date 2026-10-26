@@ -100,6 +100,72 @@ for(let row=0;row<12;row++)for(let col=0;col<32;col++){
 }
 pegboardHoles.instanceMatrix.needsUpdate=true;bench.add(pegboardHoles);
 const storageMat=new THREE.MeshStandardMaterial({color:0x303e49,metalness:.6,roughness:.54});
+/* Workshop details - physical Three.js geometry, never a background screenshot.
+   Neutral PBR materials and task lighting make the assembly area legible. */
+const accentMetal=new THREE.MeshStandardMaterial({color:0x8c989f,metalness:.90,roughness:.29});
+const paintBlack=new THREE.MeshStandardMaterial({color:0x0b1016,roughness:.55,metalness:.36});
+const coloredRubber=[
+ new THREE.MeshStandardMaterial({color:0xc7442d,roughness:.59}),
+ new THREE.MeshStandardMaterial({color:0x2662a8,roughness:.62}),
+ new THREE.MeshStandardMaterial({color:0xf0b63b,roughness:.61}),
+ new THREE.MeshStandardMaterial({color:0x24323b,roughness:.71})
+];
+const ledMaterial=new THREE.MeshBasicMaterial({color:0xffc075});
+box(bench,[8.6,.095,.13],[-.8,-1.98,-3.95],ledMaterial);
+box(bench,[8.8,.1,.24],[-.8,-2.035,-4.09],steel);
+// Wall-mounted service tools: handles, shafts, hooks and a tool rail.
+function cylinder(parent,rTop,rBottom,height,x,y,z,material,segments=14){
+ const mesh=new THREE.Mesh(new THREE.CylinderGeometry(rTop,rBottom,height,segments),material);
+ mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh;
+}
+function hangingDriver(x,color,length=1.02){
+ box(bench,[.06,.09,.33],[x,1.02,-3.85],accentMetal);
+ cylinder(bench,.089,.105,.43,x,.76,-3.62,color);
+ cylinder(bench,.023,.024,length,x,.03,-3.62,accentMetal);
+ cylinder(bench,.045,.045,.04,x,-.49,-3.62,paintBlack);
+}
+for(let i=0;i<8;i++)hangingDriver(-4.8+i*.62,coloredRubber[i%4],.84+(i%3)*.18);
+function hangingWrench(x){
+ const metal=accentMetal;
+ cylinder(bench,.034,.04,1.0,x,.24,-3.63,metal);
+ const jaw=new THREE.Mesh(new THREE.TorusGeometry(.16,.035,8,24,Math.PI*1.45),metal);
+ jaw.position.set(x,-.33,-3.63);jaw.rotation.z=Math.PI*.45;bench.add(jaw);
+ box(bench,[.08,.075,.35],[x,.99,-3.88],steel);
+}
+hangingWrench(1.5);hangingWrench(2.10);
+// Magnetic bits tray and precision screwdriver lying on the wood surface.
+const trayOuter=new THREE.Mesh(new THREE.CylinderGeometry(.45,.45,.11,32),steel);
+trayOuter.position.set(-6.60,-2.64,2.75);trayOuter.receiveShadow=true;bench.add(trayOuter);
+const trayInside=new THREE.Mesh(new THREE.CylinderGeometry(.375,.375,.02,32),paintBlack);
+trayInside.position.set(-6.60,-2.575,2.75);bench.add(trayInside);
+for(let i=0;i<19;i++){
+ const a=i*2.3999,rad=.095+(i%5)*.052;
+ const screw=cylinder(bench,.028,.028,.045,-6.60+Math.cos(a)*rad,-2.54,2.75+Math.sin(a)*rad,accentMetal,10);
+ screw.rotation.z=(i%7)*.18;
+}
+const driverBody=cylinder(bench,.105,.10,.82,-4.75,-2.52,3.10,coloredRubber[1]);
+driverBody.rotation.z=Math.PI/2;
+const driverSteel=cylinder(bench,.031,.034,.66,-4.02,-2.52,3.10,accentMetal);driverSteel.rotation.z=Math.PI/2;
+// Under-desk drawer system: handles, accent edges and dark lower shelves.
+box(bench,[2.15,1.20,1.45],[5.85,-3.34,-1.85],paintBlack);
+for(let i=0;i<3;i++){
+ box(bench,[1.95,.29,.055],[5.85,-3.68+i*.34,-1.08],storageMat);
+ box(bench,[.57,.045,.06],[5.85,-3.68+i*.34,-1.045],accentMetal);
+}
+// Desk plant with pot and tapered leaves, away from the assembly mat.
+const pot=new THREE.Mesh(new THREE.CylinderGeometry(.35,.26,.54,18),new THREE.MeshStandardMaterial({color:0x52473b,roughness:.9}));
+pot.position.set(-6.95,-2.48,-2.9);bench.add(pot);
+const leafMat=new THREE.MeshStandardMaterial({color:0x4b7d57,roughness:.92,side:THREE.DoubleSide});
+for(let i=0;i<11;i++){
+ const angle=i*2.4,leafLength=.65+(i%4)*.17;
+ const leaf=new THREE.Mesh(new THREE.SphereGeometry(.105,9,7),leafMat);
+ leaf.position.set(-6.95+Math.cos(angle)*.28,-2.01+leafLength*.35,-2.9+Math.sin(angle)*.25);
+ leaf.scale.set(.57,leafLength*3,.29);leaf.rotation.z=(i%2?-.37:.42);bench.add(leaf);
+}
+// Subtle task lighting emitted by the workshop strip.
+const ledGlow=new THREE.PointLight(0xffc485,23,8,2);
+ledGlow.position.set(-1.15,-1.48,-3.25);scene.add(ledGlow);
+
 for(let i=0;i<5;i++){
  const drawer=box(bench,[.9,.40,.68],[-6.3,-2.35+i*.42,-3.1],storageMat);
  box(bench,[.52,.025,.02],[-6.3,-2.38+i*.42,-2.744],screwMat);
