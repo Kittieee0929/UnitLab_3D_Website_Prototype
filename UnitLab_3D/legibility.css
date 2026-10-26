@@ -1,0 +1,70 @@
+/* UnitLab 3D — legibility & compatibility redesign.
+   Loaded last: intentionally overrides older small-print rules. */
+.unitlab-unified .main,.unitlab-unified .main p,.unitlab-unified .main label,.unitlab-unified .main select,.unitlab-unified .main button{font-family:"DM Sans",system-ui,sans-serif}
+.unitlab-unified .main .view-heading h1{font-size:clamp(32px,3vw,45px);line-height:1.2;letter-spacing:-1.1px}
+.unitlab-unified .main .view-heading p{font-size:16px;line-height:1.75;color:#c3d7e1;max-width:900px}
+.unitlab-unified .main .eyebrow{font-size:12px;letter-spacing:1px}
+.unitlab-unified .main .btn,.unitlab-unified .main .lesson-tab{font-size:15px;line-height:1.4;min-height:44px}
+.unitlab-unified .main .view p,.unitlab-unified .main .view li{font-size:15px;line-height:1.75}
+.unitlab-unified .main .view h2{font-size:clamp(24px,2.3vw,31px)}
+.unitlab-unified .main .view h3{font-size:20px;line-height:1.35}
+.unitlab-unified .main .resource-card p,.unitlab-unified .main .learning-paper p,.unitlab-unified .main .learning-paper li{font-size:15px;line-height:1.76}
+.unitlab-unified .main .learning-paper .score-note{font-size:13px;line-height:1.7}
+.unitlab-unified .main .lesson-tab strong{font-size:16px}
+.unitlab-unified .main .lesson-tab small{font-size:13px}
+.unitlab-unified .main .resource-card h3{font-size:20px}
+.unitlab-unified .main .lesson-media-card h4{font-size:17px}
+.unitlab-unified .main .lesson-media-card>p{font-size:14px!important}
+.unitlab-unified .main .builder-layout{grid-template-columns:minmax(0,1fr) minmax(0,.88fr);gap:22px}
+.unitlab-unified .main .builder-field{padding:20px 21px}
+.unitlab-unified .main .builder-summary{padding:23px 25px;gap:15px;flex-wrap:wrap}
+.unitlab-unified .main .builder-summary span{font-size:12px;letter-spacing:.45px}
+.unitlab-unified .main .builder-summary small{font-size:13px;line-height:1.6;color:#b8d2db}
+.unitlab-unified .main .builder-summary strong{font-size:clamp(30px,3vw,42px);letter-spacing:-1.4px}
+.unitlab-unified .main #buildRating{display:inline-flex;justify-content:center;align-items:center;padding:11px 13px;font-size:12px!important;line-height:1.45;letter-spacing:.2px;text-align:center;border-radius:8px}
+.unitlab-unified .main .field-head{gap:12px;flex-wrap:wrap;margin-bottom:11px}
+.unitlab-unified .main .field-head label{font-size:17px;line-height:1.4;color:#f4fdff}
+.unitlab-unified .main .field-head small{font-size:14px;color:#9bdae0}
+.unitlab-unified .main .builder-field select{width:100%;min-height:53px;font-size:16px;line-height:1.5;padding:12px 14px}
+.unitlab-unified .main .builder-field .spec-line{font-size:14px;line-height:1.7;margin-top:13px;color:#c3d6de}
+.unitlab-unified .main .builder-field .price-source{font-size:13px;line-height:1.5;gap:12px;flex-wrap:wrap}
+.unitlab-unified .main .builder-field .price-source a{font-size:13px;color:#b7f9e3}
+.unitlab-unified .main .part-summary{padding:24px}
+.unitlab-unified .main .part-summary h3{font-size:21px}
+.unitlab-unified .main .part-summary p{font-size:15px;line-height:1.7}
+.unitlab-unified .main .compatibility{padding:0;border:1px solid #355c67;background:#102330;border-radius:16px;overflow:hidden}
+.unitlab-unified .main .compat-head{padding:22px 24px 12px;display:flex;gap:14px;justify-content:space-between;align-items:flex-start}
+.unitlab-unified .main .compat-head h3{font-size:25px;margin:6px 0 8px}
+.unitlab-unified .main .compat-head p{font-size:14px;line-height:1.6;color:#bdd2da;margin:0}
+.unitlab-unified .main .compat-eyebrow{font-size:11px;font-weight:800;color:#88f0d3;letter-spacing:.9px}
+.unitlab-unified .main .compat-count{flex:none;background:#1a5745;border:1px solid #45816c;color:#baf5db;border-radius:9px;padding:8px 10px;font-size:12px;font-weight:800}
+.unitlab-unified .main .compat-count.is-bad{background:#682a35;color:#ffe2e1;border-color:#b85b6a}
+.unitlab-unified .main .compat-summary{display:flex;flex-wrap:wrap;gap:8px;padding:0 24px 20px;border-bottom:1px solid #2c4e5d}
+.unitlab-unified .main .compat-summary span{border:1px solid #3c6471;background:#17394a;color:#bed9dc;border-radius:7px;padding:7px 10px;font-size:12px}
+.unitlab-unified .main .compat-issues{padding:17px 20px;display:grid;gap:13px}
+.unitlab-unified .main .compat-card{padding:19px 19px 16px;background:#331f2a;border:1px solid #af6170;border-radius:12px}
+.unitlab-unified .main .compat-card-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.unitlab-unified .main .compat-icon{display:grid;place-items:center;width:28px;height:28px;border-radius:7px;background:#803c4a;color:#fff;font-weight:900}
+.unitlab-unified .main .compat-card h4{font-size:18px;line-height:1.35;margin:0;color:#fff2ef}
+.unitlab-unified .main .compat-card p{font-size:14px;line-height:1.67;color:#f5dbe1;margin:7px 0}
+.unitlab-unified .main .compat-card b{color:#ffedef}
+.unitlab-unified .main .compat-fixes{display:grid;gap:8px;margin-top:13px}
+.unitlab-unified .main .compat-fix{display:block;min-height:42px;text-align:left;border:1px solid #477a70;background:#1c5148;color:#d7fff0;border-radius:9px;padding:10px 12px;font-size:13px;line-height:1.5;font-weight:700;cursor:pointer}
+.unitlab-unified .main .compat-fix:hover{background:#296d5b;border-color:#81e4c5}
+.unitlab-unified .main .compat-success{padding:17px 22px;background:#173a34;color:#bdffe0;font-size:15px}
+.unitlab-unified .main .compat-review,.unitlab-unified .main .compat-passing{margin:0;border-top:1px solid #2d4c5c}
+.unitlab-unified .main .compat-review summary,.unitlab-unified .main .compat-passing summary{padding:16px 22px;cursor:pointer;color:#bfe6e4;font-size:15px;font-weight:700;list-style-position:inside}
+.unitlab-unified .main .compat-review .compat-note{padding:14px 22px;border-top:1px solid #2b4857}
+.unitlab-unified .main .compat-note strong{font-size:15px;color:#ffddaa}
+.unitlab-unified .main .compat-note p{font-size:14px;line-height:1.65;margin:8px 0;color:#c4d8df}
+.unitlab-unified .main .compat-passing ul{padding:0 22px 20px 43px;margin:0;color:#c5e5d6}
+.unitlab-unified .main .compat-passing li{font-size:14px;line-height:1.7;margin:7px 0}
+.unitlab-unified .main .compat-disclaimer{padding:17px 23px;margin:0!important;border-top:1px solid #2d4c5c;font-size:12px!important;line-height:1.7;color:#9bbcc3}
+.unitlab-unified .main .pc-visualizer{height:410px;display:block}
+.unitlab-unified .main .pc-visualizer model-viewer{display:block;position:absolute;inset:0;width:100%;height:100%;background:radial-gradient(circle,#194153,#0b202f 72%)}
+.unitlab-unified .main .pc-visualizer .build-overlay{pointer-events:none;font-size:13px!important;line-height:1.55!important}
+.unitlab-unified .main .viewer-heading{font-size:12px;letter-spacing:.5px}
+.unitlab-unified .main .pc-legend{font-size:13px;line-height:1.6;color:#abc5cc}
+.unitlab-unified .main .resource-open,.unitlab-unified .main .lesson-media-open{font-size:14px!important;min-height:45px}
+@media(max-width:1120px){.unitlab-unified .main .builder-layout{grid-template-columns:1fr}.unitlab-unified .main .builder-right{display:grid;grid-template-columns:1fr;gap:8px}}
+@media(max-width:600px){.unitlab-unified .main .builder-field{padding:16px}.unitlab-unified .main .compat-head{padding:18px 16px 10px}.unitlab-unified .main .compat-issues{padding:12px}.unitlab-unified .main .compat-summary{padding:0 16px 14px}.unitlab-unified .main .compat-card{padding:14px}.unitlab-unified .main .compat-count{font-size:11px}.unitlab-unified .main .builder-summary strong{font-size:31px}}
