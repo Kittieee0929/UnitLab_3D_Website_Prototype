@@ -159,7 +159,7 @@ function activeZone(p){return inPreassembly(p.id)?benchZones[p.id]:p.zone}
 function markInstalled(id,where){
  const obj=ensureMesh(id),target=byId[where]?.pos||[3.02,-1.32,1.42];
  if(inPreassembly(id)){
-   obj.position.set(...benchZones[id]);obj.scale.setScalar(id==='motherboard'?.78:id==='cooler'?.48:id==='ram'?.55:.66);
+   obj.position.set(...benchZones[id]);obj.scale.setScalar(id==='motherboard' ? 0.78 : id==='cooler' ? 0.48 : id==='ram' ? 0.55 : 0.66);
    obj.rotation.set(id==='motherboard'?-Math.PI/2:0,0,0);
  }else{
    obj.position.set(...target);obj.scale.setScalar(1);obj.rotation.set(0,0,0);
