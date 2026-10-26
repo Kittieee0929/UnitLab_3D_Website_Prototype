@@ -3,35 +3,26 @@
 <body class="unitlab-unified academy-page">
 <div id="authModal" class="modal" hidden><div class="modal-box"><button id="modalClose" class="icon-only close" aria-label="Close">×</button><div class="stamp">U<span>3D</span></div><div class="eyebrow">STUDENT SPACE · LOCAL DEMO</div><h2 id="accountTitle">Student sign in</h2><p>Create a local demonstration account to save practice progress on this device. A real school-wide account system will require an approved authentication service.</p><form id="loginForm"><label for="loginCode">Learner code <small>(use a non-identifying nickname/code)</small></label><input id="loginCode" required maxlength="24" minlength="3" pattern="[A-Za-z0-9_-]{3,24}" placeholder="e.g. CSS-001" autocomplete="username"><label for="loginPassword">Password</label><input id="loginPassword" type="password" required minlength="8" autocomplete="current-password" placeholder="At least 8 characters"><label for="confirmPassword" id="confirmLabel" hidden>Confirm password</label><input id="confirmPassword" type="password" autocomplete="new-password" placeholder="Confirm password" hidden><p class="tiny" id="accountFeedback" role="status"></p><button class="btn solid" id="accountSubmit" type="submit">Log in →</button><button class="btn outline" id="accountSwitch" type="button">Create an account instead</button></form><p class="tiny">LOCAL DEMO ACCOUNTS ONLY: password verification and activity records stay in this browser/device; they are not shared with your school or protected by a server. Do not use your actual school password or enter identifiable research data.</p></div></div>
 <div class="app-shell">
-<aside class="rail" id="primaryRail" aria-label="Main navigation">
-<a class="brand" href="hub-v2.html" aria-label="UnitLab 3D overview"><span class="stamp">U<span>3D</span></span><span><strong>UnitLab <span>3D</span></strong><small>THE HARDWARE LEARNING STUDIO</small></span></a>
-<div class="rail-caption">YOUR WORKSPACE</div>
-<nav class="nav" id="mainNav" aria-label="Learning sections">
-<a class="nav-button" href="hub-v2.html"><span aria-hidden="true">◈</span>Overview<span class="nav-mini">01</span></a>
-<button class="nav-button" type="button" data-go="modules"><span aria-hidden="true">▤</span>Learning modules</button>
-<a class="nav-button" href="real-models.html"><span aria-hidden="true">⬡</span>3D parts gallery</a>
-<button class="nav-button" type="button" data-go="builder"><span aria-hidden="true">◇</span>PC builder</button>
-<button class="nav-button" type="button" data-go="workbench"><span aria-hidden="true">▣</span>3D workbench</button>
-<button class="nav-button" type="button" data-go="quiz"><span aria-hidden="true">◎</span>Activities & quizzes</button>
-<a class="nav-button" href="hub-v2.html#progress"><span aria-hidden="true">↗</span>My progress</a>
-</nav>
-<div class="rail-divider" aria-hidden="true"></div>
-<div class="rail-caption">RESOURCES</div>
-<nav class="nav" aria-label="Additional learning resources">
-<button class="nav-button" type="button" data-go="curriculum"><span aria-hidden="true">▧</span>Learning resources</button>
-<button class="nav-button" type="button" data-go="plans"><span aria-hidden="true">≡</span>Lesson plans</button>
-<button class="nav-button" type="button" data-go="safety"><span aria-hidden="true">✳</span>Tools & lab safety</button>
-</nav>
-<div class="rail-bottom"><div class="rail-notice"><div><span>LAB ENVIRONMENT READY</span><p>Interactive CBAR prototype</p></div></div>
-<button class="nav-button bottom-link" type="button" id="loginSidebar">⌁ Student sign in</button>
-<a class="legacy-link" href="index.html?page=assessment" target="_blank" rel="noopener">Open teacher assessment ↗</a></div>
-</aside>
-<div class="main-column"><header class="topbar">
-  <div class="breadcrumb"><button class="menu-toggle" id="menuToggle" type="button" aria-label="Open navigation" aria-controls="primaryRail" aria-expanded="false">☰</button>
-  <a href="hub-v2.html" class="home-link">UNITLAB</a><b>/</b><span id="pageCrumb">Overview</span></div>
-  <div class="top-right"><span class="label-pill">CBAR · LEARNING PROTOTYPE</span><span id="userBadge" class="user-badge">Guest</span>
-  <button id="loginTop" type="button" class="btn small ghost">Student login</button>
-  <button id="logoutTop" type="button" class="btn small ghost" hidden>Log out</button></div></header>
+<header class="rail" id="primaryRail">
+<a class="brand" href="hub-v2.html" aria-label="UnitLab 3D home"><span class="stamp">U<span>3D</span></span><span><strong>UnitLab <span>3D</span></strong><small>HARDWARE LEARNING STUDIO</small></span></a>
+<nav class="nav" id="mainNav" aria-label="Primary navigation">
+<a class="nav-button" href="hub-v2.html">Home</a>
+<button class="nav-button" type="button" data-go="modules">Lessons</button>
+<a class="nav-button" href="real-models.html">3D Parts</a>
+<button class="nav-button" type="button" data-go="builder">PC Builder</button>
+<button class="nav-button" type="button" data-go="workbench">3D Lab</button>
+<button class="nav-button" type="button" data-go="quiz">Quizzes</button>
+<button class="nav-button" type="button" data-go="curriculum">Resources</button>
+<a href="hub-v2.html#progress" class="nav-button mobile-only">My progress</a>
+<button type="button" data-go="plans" class="nav-button mobile-only">Lesson plans</button><button type="button" data-go="safety" class="nav-button mobile-only">Lab safety</button>
+</nav><button type="button" id="loginSidebar" hidden>Student sign in</button>
+</header>
+<div class="main-column"><header class="topbar"><div class="breadcrumb"><span id="pageCrumb">Learning Modules</span></div>
+ <div class="top-right"><span id="userBadge" class="user-badge">Guest</span>
+ <button id="loginTop" type="button" class="btn small ghost">Sign in</button>
+ <button id="logoutTop" type="button" class="btn small ghost" hidden>Log out</button>
+ <button type="button" class="menu-toggle" id="menuToggle" aria-controls="mainNav" aria-expanded="false" aria-label="Open navigation"><span></span><span></span><span></span></button>
+ </div></header>
 <main class="main" id="mainContent">
 <section class="view active" id="view-home"><div class="hero"><div class="hero-copy"><div class="eyebrow">WELCOME TO UNITLAB 3D / RESEARCH PROTOTYPE</div><h1>Learn the hardware.<br><span>Build the real skills.</span></h1><p>Explore computer components, practice building compatible PCs, and learn safe servicing procedures using official DepEd and TESDA learning references.</p><div class="action-row"><button class="btn solid" data-go="builder">Build a PC <span>↗</span></button><button class="btn outline" data-go="modules">Explore lessons <span>→</span></button></div><div class="hero-meta"><span>◉ CURRICULUM LINKED</span><span>◉ INTERACTIVE BUILDER</span><span>◉ SKILL-BASED</span></div></div><div class="hero-pc" id="heroPc"></div></div>
 <div class="section-head"><div><small>YOUR LEARNING SYSTEM</small><h2>Learn. Explore. Apply.</h2></div><span>Computer Systems Servicing / ICT</span></div><div class="stat-grid"><button data-go="modules" class="stat-tile"><span class="tile-icon turquoise">▤</span><strong>06</strong><span>Guided learning modules</span></button><button data-go="plans" class="stat-tile"><span class="tile-icon violet">▣</span><strong>03</strong><span>Teacher-ready lesson plans</span></button><button data-go="builder" class="stat-tile"><span class="tile-icon amber">⬡</span><strong id="catalogCount">24+</strong><span>Component catalog options</span></button><button data-go="safety" class="stat-tile"><span class="tile-icon mint">✚</span><strong>12</strong><span>Tools & safety essentials</span></button></div>
