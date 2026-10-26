@@ -249,10 +249,10 @@ addEventListener('unhandledrejection',e=>{
  if(!ready)showWorkingFallback('An essential 3D module could not load: '+String(e.reason?.message||e.reason||'unknown module error'));
 });
 addEventListener('unitlab3d:performance-error',()=>showWorkingFallback('The browser failed to render the 3D assembly desk. Try the backup viewer.'));
-setTimeout(()=>{if(!ready)showWorkingFallback('The 3D engine did not start after 10 seconds. The Three.js script or CDN may be blocked by this network. Try the backup lab below.')},10000);
+setTimeout(()=>{if(!ready)showWorkingFallback('The primary graphics source and backup provider could not initialize the scene. Open the backup 3D lab below.')},26000);
 })();
 </script>
-<script type="module" src="performance-3d.js"></script>
+<script type="module" src="performance-3d-boot.js"></script>
 <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.3.1/model-viewer.min.js"></script>
 <script>
 /* Let the parent Learning Studio scroll the entire lab page, instead of nesting
