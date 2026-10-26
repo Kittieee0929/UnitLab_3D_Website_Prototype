@@ -827,11 +827,11 @@ $('#railSettings').addEventListener('click',()=>$('#labSettingsPanel').scrollInt
 const searchInput=$('#labSearch');
 searchInput.addEventListener('input',()=>{
  const q=searchInput.value.trim().toLowerCase();
- $('.inventory').forEach(el=>{
+ $$('.inventory').forEach(el=>{
   const p=byId[el.dataset.part];
   el.hidden=!!q&&!([p.name,p.short,p.desc,p.category].join(' ').toLowerCase().includes(q));
  });
- if(q)$('[data-filter]').forEach(btn=>{btn.classList.toggle('active',btn.dataset.filter==='all');btn.setAttribute('aria-pressed',String(btn.dataset.filter==='all'))});
+ if(q)$$('[data-filter]').forEach(btn=>{btn.classList.toggle('active',btn.dataset.filter==='all');btn.setAttribute('aria-pressed',String(btn.dataset.filter==='all'))});
 });
 let exploded=false;
 $('#explodeViewBtn').addEventListener('click',()=>{
