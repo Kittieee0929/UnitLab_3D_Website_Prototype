@@ -53,116 +53,84 @@
     <div class="sr-only" id="introAnnouncement" aria-live="polite"></div>
   </section>
 
-  <div class="hub" id="hub">
-    <aside class="sidebar" id="sidebar" aria-label="Main navigation">
-      <a class="brand" href="hub-v2.html" aria-label="UnitLab 3D home">
-        <span class="brand-symbol">U<span>3D</span></span>
-        <span class="brand-name">UnitLab <strong>3D</strong><small>THE HARDWARE LEARNING STUDIO</small></span>
+  <div class="hub" id="hub" aria-hidden="true">
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="hub-v2.html" class="site-brand" aria-label="UnitLab 3D — Home">
+        <span class="brand-mark">U<span>3D</span></span>
+        <span class="brand-text"><strong>UnitLab <em>3D</em></strong><small>HARDWARE LEARNING STUDIO</small></span>
       </a>
-      <div class="side-label">YOUR WORKSPACE</div>
-      <nav class="sidebar-nav" aria-label="Learning sections">
-        <a class="nav-link selected" href="hub-v2.html" aria-current="page"><span class="nav-symbol">◈</span> Overview <span class="nav-mini">01</span></a>
-        <a class="nav-link" href="academy.html#modules"><span class="nav-symbol">▤</span> Learning modules</a>
-        <a class="nav-link" href="real-models.html"><span class="nav-symbol">⬡</span> 3D parts gallery</a>
-        <a class="nav-link" href="academy.html#builder"><span class="nav-symbol">◇</span> PC builder</a>
-        <a class="nav-link" href="academy.html#workbench"><span class="nav-symbol">▣</span> 3D workbench</a>
-        <a class="nav-link" href="academy.html#quiz"><span class="nav-symbol">◎</span> Activities & quizzes</a>
-        <a class="nav-link" href="#progress"><span class="nav-symbol">↗</span> My progress</a>
+      <nav class="primary-nav" id="sidebar" aria-label="Primary navigation">
+        <a href="hub-v2.html" class="current" aria-current="page">Home</a>
+        <a href="academy.html#modules">Lessons</a>
+        <a href="real-models.html">3D Parts</a>
+        <a href="academy.html#builder">PC Builder</a>
+        <a href="academy.html#workbench">3D Lab</a>
+        <a href="academy.html#quiz">Quizzes</a>
+        <a href="academy.html#curriculum" class="mobile-only">Resources</a>
+        <a href="#progress" class="mobile-only">My progress</a>
       </nav>
-      <div class="side-divider"></div>
-      <div class="side-label">RESOURCES</div>
-      <nav class="sidebar-nav small-links" aria-label="Additional resources">
-        <a class="nav-link" href="academy.html#curriculum"><span class="nav-symbol">▧</span> Learning resources</a>
-        <a class="nav-link" href="academy.html#plans"><span class="nav-symbol">≡</span> Lesson plans</a>
-        <a class="nav-link" href="academy.html#safety"><span class="nav-symbol">✳</span> Tools & lab safety</a>
-      </nav>
-      <div class="sidebar-bottom">
-        <div class="lab-status"><span class="status-dot"></span><div><strong>LAB ENVIRONMENT READY</strong><small>Interactive CBAR prototype</small></div></div>
-        <div class="sidebar-note">Build knowledge. Practice safely.<br>Perform with confidence.</div>
+      <div class="header-tools">
+        <a class="resources-link" href="academy.html#curriculum">Resources</a>
+        <a class="progress-link" href="#progress">Progress</a>
+        <button class="replay-button" type="button" id="replayIntro" aria-label="Replay monitor introduction" title="Replay introduction">↻</button>
+        <span class="avatar" id="avatar" aria-label="Guest learner">G</span>
+        <button type="button" class="menu-toggle" id="menuToggle" aria-controls="sidebar" aria-expanded="false" aria-label="Open navigation"><span></span><span></span><span></span></button>
       </div>
-    </aside>
-
-    <div class="hub-column">
-      <header class="topbar">
-        <div class="crumb"><button type="button" class="menu-toggle" id="menuToggle" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar"><span></span><span></span><span></span></button><span>UNITLAB / <strong>OVERVIEW</strong></span></div>
-        <div class="topbar-actions"><span class="top-prototype"><span></span> CBAR · LEARNING PROTOTYPE</span><button class="replay-button" id="replayIntro" type="button" title="Watch the monitor intro again">↻ <span>Replay intro</span></button><div class="avatar" id="avatar" aria-label="Guest learner">G</div></div>
-      </header>
-      <main id="hubMain" tabindex="-1">
-        <div class="main-wrap">
-          <div class="greeting"><span class="eyebrow"><span class="eyebrow-line"></span> INTERACTIVE HARDWARE EDUCATION <span class="eyebrow-dash">/</span> UNITLAB 3D</span><span class="edition">LEARNING ENVIRONMENT // 2026</span></div>
-          <section class="hero" aria-labelledby="heroTitle">
-            <div class="hero-grain"></div>
-            <div class="hero-copy">
-              <div class="hero-kicker"><span class="hero-live"></span> YOUR VIRTUAL LAB IS READY</div>
-              <h1 id="heroTitle">Learn the parts.<br><em>Master the build.</em></h1>
-              <p>Explore computer hardware, choose compatible components, and practice assembling a system unit — before stepping into the physical laboratory.</p>
-              <div class="hero-buttons"><a class="button primary" href="academy.html#modules">Start learning <span aria-hidden="true">↗</span></a><a class="button secondary" href="academy.html#workbench">Enter 3D workbench <span aria-hidden="true">→</span></a></div>
-              <div class="hero-meta"><span><i></i> Guided learning</span><span><i></i> 3D simulation</span><span><i></i> Hands-on practice</span></div>
-            </div>
-            <div class="hero-art" aria-hidden="true">
-              <div class="orbit orbit-a"></div><div class="orbit orbit-b"></div>
-              <div class="rig">
-                <div class="rig-top"></div><div class="rig-side"></div><div class="rig-glass"></div>
-                <div class="rig-mobo"><div class="mobo-wire wire-a"></div><div class="mobo-wire wire-b"></div><div class="mobo-socket">CPU</div><div class="mobo-ram"></div><div class="mobo-ram r2"></div><div class="mobo-ssd"></div></div>
-                <div class="rig-gpu"><div></div><span>GRAPHICS</span></div>
-                <div class="rig-fan f1"><div></div></div><div class="rig-fan f2"><div></div></div><div class="rig-fan f3"><div></div></div>
-                <div class="rig-psu">POWER</div><div class="rig-leg left"></div><div class="rig-leg right"></div>
-              </div>
-              <div class="float-tag tag-a"><span class="tag-point"></span> BUILD / EXPLORE</div>
-              <div class="float-tag tag-b">SYSTEM UNIT <b>01</b></div>
-              <div class="art-foot">ILLUSTRATED PREVIEW · OPEN THE 3D LAB FOR INTERACTION</div>
-            </div>
-          </section>
-
-          <section class="stats-row" aria-label="Learning environment statistics">
-            <div class="stat"><span class="stat-mark cyan">▤</span><div><strong>06</strong><small>Learning modules</small></div></div>
-            <div class="stat"><span class="stat-mark purple">⬡</span><div><strong>3D</strong><small>Interactive workbench</small></div></div>
-            <div class="stat"><span class="stat-mark yellow">◇</span><div><strong>08+</strong><small>Core hardware categories</small></div></div>
-            <div class="stat"><span class="stat-mark green">✓</span><div><strong id="statProgress">0/6</strong><small>Modules marked studied</small></div></div>
-          </section>
-
-          <section class="section-block" id="journey" aria-labelledby="journeyTitle">
-            <div class="section-heading"><div><span class="section-kicker">YOUR TRAINING PATH</span><h2 id="journeyTitle">From learning to doing.</h2><p>Move through each stage at your own pace.</p></div><span class="section-aside">01 — 03 / LEARNING JOURNEY</span></div>
-            <div class="journey-grid">
-              <a class="journey-card" href="academy.html#modules"><div class="journey-top"><span>01 / DISCOVER</span><span class="round-arrow">↗</span></div><div class="journey-figure figure-learn"><span class="diagram-line dl1"></span><span class="diagram-line dl2"></span><span class="book-left"></span><span class="book-right"></span><span class="figure-dot dot1"></span><span class="figure-dot dot2"></span></div><h3>Learn the fundamentals</h3><p>Study safety, system components, compatibility, tools and correct procedures.</p><span class="card-link">Explore learning modules <b>→</b></span></a>
-              <a class="journey-card featured" href="academy.html#builder"><div class="journey-top"><span>02 / CONFIGURE</span><span class="round-arrow">↗</span></div><div class="journey-figure figure-build"><span class="chip chip-a">CPU</span><span class="chip chip-b">GPU</span><span class="chip chip-c">RAM</span><span class="chip chip-d">SSD</span><span class="diagram-connector con-a"></span><span class="diagram-connector con-b"></span></div><h3>Create your PC build</h3><p>Compare compatible parts, explore options and see illustrative component costs.</p><span class="card-link">Launch PC builder <b>→</b></span></a>
-              <a class="journey-card" href="academy.html#workbench"><div class="journey-top"><span>03 / PRACTICE</span><span class="round-arrow">↗</span></div><div class="journey-figure figure-lab"><span class="lab-case"><i class="lab-ring one"></i><i class="lab-ring two"></i><i class="lab-ring three"></i></span><span class="lab-crosshair">+</span></div><h3>Assemble in 3D</h3><p>Follow guided assembly, then attempt an independent practical simulation.</p><span class="card-link">Open workbench <b>→</b></span></a>
-            </div>
-          </section>
-
-          <div class="content-grid">
-            <section class="section-block modules-block" aria-labelledby="modulesTitle">
-              <div class="section-heading compact"><div><span class="section-kicker">THE LESSON LIBRARY</span><h2 id="modulesTitle">Learning modules</h2><p>Six existing Computer Hardware Servicing lesson topics.</p></div><a class="text-link" href="academy.html#modules">View all modules ↗</a></div>
-              <div class="module-grid">
-                <a class="module-card" href="academy.html#modules" data-module="0"><div class="module-icon mint">01</div><div class="module-body"><span class="module-category">FOUNDATION • 30–40 MIN</span><h3>Occupational Health & Safety</h3><p>Power isolation, hazards, ESD awareness.</p></div><span class="module-arrow">↗</span></a>
-                <a class="module-card" href="academy.html#modules" data-module="1"><div class="module-icon blue">02</div><div class="module-body"><span class="module-category">IDENTIFICATION • 40–50 MIN</span><h3>Inside the System Unit</h3><p>Learn each component and its function.</p></div><span class="module-arrow">↗</span></a>
-                <a class="module-card" href="academy.html#modules" data-module="2"><div class="module-icon violet">03</div><div class="module-body"><span class="module-category">COMPATIBILITY • 35–45 MIN</span><h3>Compatibility & Smart Builds</h3><p>Choose suitable hardware for a build.</p></div><span class="module-arrow">↗</span></a>
-                <a class="module-card" href="academy.html#modules" data-module="3"><div class="module-icon amber">04</div><div class="module-body"><span class="module-category">PREPARATION • 30–40 MIN</span><h3>Tools, PPE & Bench Preparation</h3><p>Prepare a safe servicing workspace.</p></div><span class="module-arrow">↗</span></a>
-                <a class="module-card" href="academy.html#modules" data-module="4"><div class="module-icon pink">05</div><div class="module-body"><span class="module-category">PROCEDURE • 60–90 MIN</span><h3>Safe Assembly & Disassembly</h3><p>Practice an organized working sequence.</p></div><span class="module-arrow">↗</span></a>
-                <a class="module-card" href="academy.html#modules" data-module="5"><div class="module-icon light">06</div><div class="module-body"><span class="module-category">INSPECTION • 35–45 MIN</span><h3>Inspection & Maintenance</h3><p>Check work, identify faults, reflect.</p></div><span class="module-arrow">↗</span></a>
-              </div>
-            </section>
-            <aside class="right-column">
-              <section class="progress-panel" id="progress" aria-labelledby="progressTitle">
-                <div class="panel-eyebrow">YOUR PROGRESS <span class="panel-ellipsis">• • •</span></div><h2 id="progressTitle">Keep moving forward.</h2>
-                <div class="progress-chart"><div class="progress-ring" id="progressRing"><div><strong id="progressPercent">0%</strong><small>MODULES</small></div></div><div class="progress-copy"><strong id="progressLabel">0 of 6 studied</strong><p id="progressNote">Sign in using your demo learner code in the Learning Studio to record module progress on this device.</p></div></div>
-                <a href="academy.html#modules" class="panel-action">Continue learning <span>↗</span></a>
-                <p class="panel-disclaimer">Practice flags are self-reported and stored locally, not formal CBAR assessment results.</p>
-              </section>
-              <section class="shortcuts-panel" aria-labelledby="shortcutsTitle"><div class="panel-eyebrow">QUICK ACCESS</div><h2 id="shortcutsTitle">Jump into the lab.</h2>
-                <a href="real-models.html"><span class="shortcut-icon">⬡</span><span><strong>3D Parts Gallery</strong><small>Explore hardware models</small></span><b>↗</b></a>
-                <a href="academy.html#quiz"><span class="shortcut-icon">◎</span><span><strong>Activity Quizzes</strong><small>Formative knowledge checks</small></span><b>↗</b></a>
-                <a href="academy.html#workbench"><span class="shortcut-icon">▣</span><span><strong>Performance Workbench</strong><small>Guided & independent simulation</small></span><b>↗</b></a>
-              </section>
-            </aside>
-          </div>
-
-          <section class="closing-banner" aria-label="About UnitLab 3D"><div><span>DEVELOPING AND EVALUATING UNITLAB 3D</span><strong>Learn. Explore. Assemble. Reflect.</strong><p>A CBAR educational prototype for enhancing learners' performance in Computer Hardware Servicing. Virtual practice supplements, rather than replaces, supervised physical laboratory tasks.</p></div><a class="button secondary" href="academy.html#curriculum">Explore learning resources ↗</a></section>
-        </div>
-      </main>
-      <footer class="footer"><span>© 2026 UNITLAB 3D · CBAR RESEARCH PROTOTYPE</span><span>FOR EDUCATIONAL AND FORMATIVE PRACTICE ONLY</span></footer>
     </div>
-    <button class="mobile-scrim" id="mobileScrim" type="button" aria-label="Close navigation" hidden></button>
-  </div>
+  </header>
+  <main id="hubMain" tabindex="-1">
+    <div class="main-wrap">
+      <div class="page-intro"><span>UNITLAB 3D <span aria-hidden="true">/</span> LEARNING HUB</span><span class="live-status"><span></span> LAB READY</span></div>
+      <section class="hero" aria-labelledby="heroTitle">
+        <div class="hero-copy">
+          <span class="eyebrow">YOUR COMPUTER HARDWARE LEARNING SPACE</span>
+          <h1 id="heroTitle">Learn the parts.<br><span>Build the skills.</span></h1>
+          <p>Start with the basics, explore real 3D hardware models, configure a compatible PC, and practice assembly in the virtual workbench.</p>
+          <div class="hero-actions">
+            <a href="academy.html#modules" class="button primary">Start learning <span aria-hidden="true">↗</span></a>
+            <a href="academy.html#workbench" class="button outline">Explore 3D Lab <span aria-hidden="true">→</span></a>
+          </div>
+          <div class="hero-facts"><span><b>06</b> Learning modules</span><span><b>3D</b> Practical simulation</span><span><b id="statProgress">0/6</b> Studied</span></div>
+        </div>
+        <div class="hero-path" aria-label="How UnitLab works">
+          <div class="path-head"><span>YOUR LEARNING PATH</span><span>01 — 03</span></div>
+          <div class="path-row"><span class="path-index">01</span><div><strong>Learn</strong><small>Lessons and real teaching materials</small></div><span class="path-done">●</span></div>
+          <div class="path-row"><span class="path-index">02</span><div><strong>Build</strong><small>Explore parts and check compatibility</small></div><span class="path-done">●</span></div>
+          <div class="path-row"><span class="path-index">03</span><div><strong>Practice</strong><small>Assemble and inspect in 3D</small></div><span class="path-done">●</span></div>
+          <div class="path-foot"><span class="path-foot-dot"></span> INTERACTIVE LEARNING ENVIRONMENT</div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="areasTitle">
+        <div class="section-head"><div><span class="eyebrow">EXPLORE UNITLAB</span><h2 id="areasTitle">Choose where to begin</h2><p>One clear workspace for every part of your training.</p></div></div>
+        <div class="feature-grid">
+          <a class="feature-card" href="academy.html#modules"><div class="feature-top"><span class="feature-label">01 · STUDY</span><span class="feature-arrow">↗</span></div><div class="feature-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M6 12c6-2 12-1 18 3 6-4 12-5 18-3v23c-6-2-12-1-18 3-6-4-12-5-18-3V12ZM24 15v23M11 19c3-1 6-1 9 1M28 20c3-2 6-2 9-1M11 26c3-1 6-1 9 1M28 27c3-2 6-2 9-1"/></svg></div><h3>Learning Modules</h3><p>Six guided lessons with actual PDF documents, presentations, and activities.</p><span class="feature-link">Open lessons <span aria-hidden="true">→</span></span></a>
+          <a class="feature-card" href="real-models.html"><div class="feature-top"><span class="feature-label">02 · EXPLORE</span><span class="feature-arrow">↗</span></div><div class="feature-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="m24 5 16 9v20l-16 9L8 34V14l16-9ZM8 14l16 10 16-10M24 24v19M16 18l16-10"/></svg></div><h3>3D Parts Library</h3><p>Inspect and rotate PC components, from the motherboard to the graphics card.</p><span class="feature-link">Explore parts <span aria-hidden="true">→</span></span></a>
+          <a class="feature-card" href="academy.html#builder"><div class="feature-top"><span class="feature-label">03 · CONFIGURE</span><span class="feature-arrow">↗</span></div><div class="feature-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><rect x="8" y="8" width="32" height="32" rx="5"/><rect x="17" y="17" width="14" height="14" rx="2"/><path d="M17 3v5m8-5v5m8-5v5M17 40v5m8-5v5m8-5v5M3 17h5m-5 8h5m-5 8h5m32-16h5m-5 8h5m-5 8h5"/></svg></div><h3>PC Builder</h3><p>Select components, compare illustrative prices, and check compatibility.</p><span class="feature-link">Build a PC <span aria-hidden="true">→</span></span></a>
+          <a class="feature-card" href="academy.html#workbench"><div class="feature-top"><span class="feature-label">04 · PRACTICE</span><span class="feature-arrow">↗</span></div><div class="feature-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><rect x="10" y="7" width="28" height="34" rx="4"/><circle cx="24" cy="20" r="7"/><path d="M17 32h14M21 20h6M24 17v6"/></svg></div><h3>3D Workbench</h3><p>Practice guided assembly or attempt an independent performance simulation.</p><span class="feature-link">Enter the lab <span aria-hidden="true">→</span></span></a>
+        </div>
+      </section>
+
+      <section class="section" id="modules" aria-labelledby="modulesTitle">
+        <div class="section-head row-head"><div><span class="eyebrow">COURSE CONTENT</span><h2 id="modulesTitle">Six learning modules</h2><p>Build a foundation before attempting the virtual assembly task.</p></div><a class="section-link" href="academy.html#modules">View all lessons <span aria-hidden="true">↗</span></a></div>
+        <div class="module-grid"><a class="module-item" href="academy.html?module=0#modules" data-module="0"><span class="module-number">01</span><span class="module-info"><small>SAFE PREPARATION</small><h3>Occupational Health & Safety</h3><p>Learn hazards, power isolation and ESD protection.</p></span><span class="module-chevron" aria-hidden="true">↗</span></a>
+<a class="module-item" href="academy.html?module=1#modules" data-module="1"><span class="module-number">02</span><span class="module-info"><small>HARDWARE BASICS</small><h3>Inside the System Unit</h3><p>Identify and understand essential PC components.</p></span><span class="module-chevron" aria-hidden="true">↗</span></a>
+<a class="module-item" href="academy.html?module=2#modules" data-module="2"><span class="module-number">03</span><span class="module-info"><small>COMPONENT CHOICES</small><h3>Compatibility & Smart Builds</h3><p>Match CPUs, motherboards, memory and power.</p></span><span class="module-chevron" aria-hidden="true">↗</span></a>
+<a class="module-item" href="academy.html?module=3#modules" data-module="3"><span class="module-number">04</span><span class="module-info"><small>GET READY</small><h3>Tools & Bench Preparation</h3><p>Prepare your workspace and servicing tools.</p></span><span class="module-chevron" aria-hidden="true">↗</span></a>
+<a class="module-item" href="academy.html?module=4#modules" data-module="4"><span class="module-number">05</span><span class="module-info"><small>HANDS-ON SEQUENCE</small><h3>Assembly & Disassembly</h3><p>Follow the proper order for hardware installation.</p></span><span class="module-chevron" aria-hidden="true">↗</span></a>
+<a class="module-item" href="academy.html?module=5#modules" data-module="5"><span class="module-number">06</span><span class="module-info"><small>FINAL CHECKS</small><h3>Inspection & Maintenance</h3><p>Inspect, troubleshoot and document your work.</p></span><span class="module-chevron" aria-hidden="true">↗</span></a></div>
+      </section>
+
+      <section class="section extra-grid" aria-label="Assessments and progress">
+        <div class="simple-panel assessments-panel"><div class="panel-icon" aria-hidden="true">✓</div><span class="eyebrow">CHECK YOUR KNOWLEDGE</span><h2>Activities & quizzes</h2><p>Review what you have learned with short, formative knowledge checks before hands-on practice.</p><a href="academy.html#quiz" class="panel-link">Open quizzes <span aria-hidden="true">↗</span></a></div>
+        <div class="simple-panel progress-panel" id="progress"><div class="progress-top"><div><span class="eyebrow">YOUR LEARNING PROGRESS</span><h2>Keep moving forward</h2></div><div class="progress-ring" id="progressRing"><strong id="progressPercent">0%</strong></div></div><strong class="progress-label" id="progressLabel">0 of 6 studied</strong><p id="progressNote">Sign in using a demo learner code in the Learning Studio to record your progress on this device.</p><a href="academy.html#modules" class="panel-link">Continue learning <span aria-hidden="true">↗</span></a><small class="progress-disclaimer">Progress is self-reported practice, not an official assessment score.</small></div>
+      </section>
+      <div class="resource-strip"><div><span class="eyebrow">NEED REFERENCE MATERIALS?</span><strong>Real PDFs, presentations & practical guides</strong></div><a href="academy.html#curriculum" class="section-link">Browse learning resources <span aria-hidden="true">↗</span></a></div>
+    </div>
+  </main>
+  <footer class="site-footer"><span>© 2026 UNITLAB 3D · CBAR EDUCATIONAL PROTOTYPE</span><span>Educational practice does not replace teacher-observed competency assessment.</span></footer>
+  <button type="button" id="mobileScrim" class="mobile-scrim" aria-label="Close navigation" hidden></button>
+</div>
 </body>
 </html>
