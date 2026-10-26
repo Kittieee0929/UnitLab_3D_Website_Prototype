@@ -68,3 +68,22 @@
 .unitlab-unified .main .resource-open,.unitlab-unified .main .lesson-media-open{font-size:14px!important;min-height:45px}
 @media(max-width:1120px){.unitlab-unified .main .builder-layout{grid-template-columns:1fr}.unitlab-unified .main .builder-right{display:grid;grid-template-columns:1fr;gap:8px}}
 @media(max-width:600px){.unitlab-unified .main .builder-field{padding:16px}.unitlab-unified .main .compat-head{padding:18px 16px 10px}.unitlab-unified .main .compat-issues{padding:12px}.unitlab-unified .main .compat-summary{padding:0 16px 14px}.unitlab-unified .main .compat-card{padding:14px}.unitlab-unified .main .compat-count{font-size:11px}.unitlab-unified .main .builder-summary strong{font-size:31px}}
+
+
+.unitlab-unified .main .pc-visualizer{isolation:isolate;background:radial-gradient(circle,#203d4e,#0b1725 76%);border-radius:13px}
+.unitlab-unified .main .pc-visualizer .build-loading{
+ position:absolute;top:16px;left:15px;right:15px;z-index:2;background:#102739db;
+ border:1px solid #4d7582;border-radius:9px;padding:11px 13px;
+ color:#c3e5dd;font-size:13px;line-height:1.5;text-align:center;pointer-events:none;
+}
+.unitlab-unified .main .pc-visualizer .build-loading[hidden]{display:none!important}
+.unitlab-unified .main .pc-visualizer .build-overlay{
+ position:absolute;bottom:12px;left:12px;right:12px;z-index:2;
+ padding:12px 15px;background:#081924db;border:1px solid #426e77;
+ color:#d9f8f0;border-radius:10px;font-size:13px;line-height:1.6;
+ pointer-events:none;
+}
+.unitlab-unified .main .pc-viewport{margin-top:15px}
+.unitlab-unified .main .compatibility{margin-top:0;scroll-margin-top:100px}
+.unitlab-unified .main .compatibility.compat-attention{outline:3px solid #e7b16a;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.unitlab-unified .main .compatibility{scroll-behavior:auto}}
