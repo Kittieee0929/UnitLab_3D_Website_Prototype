@@ -626,6 +626,27 @@ function drawStatus(){
  const next=state.mode==='disassembly'?byId[reverse.find(x=>!state.removed.has(x))]:byId[sequence[state.step]];
  const stepIdx=Math.min(done+1,sequence.length);
  $('#stepNumber').textContent=atMount?'MOTHERBOARD MOUNT':stepIdx+' / '+sequence.length;
+ const checklists={
+  motherboard:['Find the CPU socket and alignment marker','Identify the DDR DIMM slots','Locate the M.2 NVMe socket','Identify 24-pin and CPU power connectors'],
+  cpu:['Check the processor socket type','Align the corner/triangle marker','Lower the CPU without force','Secure the socket retention arm'],
+  ram:['Confirm DDR generation is correct','Identify primary DIMM slots','Align the notch before seating','Check both retention clips'],
+  storage:['Locate the proper M.2 socket','Check 2280 clearance and mounting','Insert at the specified angle','Secure the SSD with the correct latch/screw'],
+  cooler:['Check the cooler mounting kit','Use appropriate thermal interface','Secure mounting screws evenly','Connect the CPU_FAN header'],
+  psu:['Confirm PSU wattage and connectors','Orient the PSU fan for airflow','Secure the PSU to the chassis','Route the ATX/EPS power cables'],
+  gpu:['Use the correct PCIe x16 slot','Remove the matching rear slot cover','Seat the GPU until latched','Secure it and connect GPU power'],
+  casefans:['Identify intake and exhaust direction','Mount fans to the case frame','Connect system-fan headers','Check cable clearance and airflow']
+ };
+ const currentId=atMount?'motherboard':next?.id;
+ const badge=$('#stepBadge');if(badge)badge.textContent=atMount?'↪':String(stepIdx);
+ const list=$('#stepChecklist');
+ if(list){
+   list.replaceChildren();
+   const lines=atMount?
+      ['Check matching motherboard standoff locations','Align rear I/O with the chassis opening','Lower the board carefully onto standoffs','Fasten with approved screws, without overtightening']:
+      (checklists[currentId]||['Confirm part orientation','Follow your teacher’s safety instructions']);
+   for(const line of lines){const li=document.createElement('li');li.textContent=line;list.appendChild(li)}
+ }
+
  if(atMount){
    $('#stepHeading').textContent='Install the prepared motherboard';
    $('#stepInstruction').textContent='The CPU, RAM, NVMe SSD and cooler are ready. Move the assembled motherboard from the ESD mat into the horizontal case, aligned to the standoffs.';
@@ -677,6 +698,7 @@ const url=URL.createObjectURL(new Blob([text],{type:'text/csv'})),link=document.
 function reset(mode){
  state.mode=mode;state.step=0;state.selected=null;state.placed={};state.boardMounted=mode==='disassembly';state.removed.clear();
  state.attempts=[];state.submitted=false;state.report=null;state.hover=null;
+ if(typeof exploded!=='undefined'){$('#explodeViewBtn').setAttribute('aria-pressed','false');$('#explodeViewBtn').classList.remove('selected');exploded=false;}
  $('#result').replaceChildren();
  $$('[data-mode]').forEach(b=>{const selected=b.dataset.mode===mode;b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected))});
  for(const p of parts){
@@ -793,6 +815,32 @@ $('#stepBackBtn').addEventListener('click',()=>{
  if(previous)selectPart(previous);
 });
 setMouseTool('rotate');
+/* Reference-layout tools are real controls, not decorative navigation. */
+const helpBtn=$('#labHelpBtn'),helpPanel=$('#labHelpPanel');
+helpBtn.addEventListener('click',()=>{
+ const next=helpPanel.hidden;helpPanel.hidden=!next;
+ helpBtn.setAttribute('aria-expanded',String(next));
+});
+$('#railGuides').addEventListener('click',()=>$('.guide-main')?.scrollIntoView({behavior:'smooth',block:'start'}));
+$('#railCaseView').addEventListener('click',()=>$('#focusCase').click());
+$('#railSettings').addEventListener('click',()=>$('#labSettingsPanel').scrollIntoView({behavior:'smooth',block:'center'}));
+const searchInput=$('#labSearch');
+searchInput.addEventListener('input',()=>{
+ const q=searchInput.value.trim().toLowerCase();
+ $('.inventory').forEach(el=>{
+  const p=byId[el.dataset.part];
+  el.hidden=!!q&&!([p.name,p.short,p.desc,p.category].join(' ').toLowerCase().includes(q));
+ });
+ if(q)$('[data-filter]').forEach(btn=>{btn.classList.toggle('active',btn.dataset.filter==='all');btn.setAttribute('aria-pressed',String(btn.dataset.filter==='all'))});
+});
+let exploded=false;
+$('#explodeViewBtn').addEventListener('click',()=>{
+ exploded=!exploded;
+ const btn=$('#explodeViewBtn');btn.classList.toggle('selected',exploded);btn.setAttribute('aria-pressed',String(exploded));
+ const txt=btn.querySelector('span');if(txt)txt.textContent=exploded?'Reassemble':'Explode';
+ if(exploded)$('#hoverName').textContent='Exploded view · Installed parts have been separated for inspection; scoring is unchanged.';
+ else highlights();
+});
 $('#resetScene').addEventListener('click',()=>reset(state.mode));$('#submitBtn').addEventListener('click',submit);$('#csvBtn').addEventListener('click',download);$('#againBtn').addEventListener('click',()=>reset(state.mode));
 $('#hints').addEventListener('change',e=>{state.hints=e.target.checked;highlights()});
 $('#glass').addEventListener('change',e=>panelGlass.visible=e.target.checked);
@@ -832,6 +880,15 @@ function frame(){
   rig.rotation.x+=(orientationAngles[orientation]-rig.rotation.x)*.13;
   rig.position.y=-2.69+Math.abs(Math.cos(rig.rotation.x))*2.55+Math.abs(Math.sin(rig.rotation.x))*1.2+.13;
   rig.updateMatrixWorld(true);
+  // Exploded view is visual-only: it does not change correctness or install state.
+  for(const [index,p] of parts.entries()){
+   const obj=meshes.get(p.id);
+   if(!obj||obj.parent!==rig||!obj.visible||gesture?.id===p.id)continue;
+   const base=new THREE.Vector3(...p.pos);
+   const offset=new THREE.Vector3((index%3-1)*.48,(index-3.5)*.20,1.1+(index%2)*.30);
+   if(exploded)base.add(offset);
+   obj.position.lerp(base,.12);
+  }
   for(const p of parts){
    const ring=slots.get(p.id);
    if(ring?.visible){
