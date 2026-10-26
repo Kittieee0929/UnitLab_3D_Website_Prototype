@@ -9,6 +9,10 @@ on:
       - '.github/workflows/lab-smoke.yml'
   workflow_dispatch:
 
+concurrency:
+  group: unitlab-3d-lab-test-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -23,6 +27,15 @@ jobs:
           node-version: '22'
       - name: Install browser automation
         run: npm install --no-save --ignore-scripts playwright-core@1.56.1
+      - name: Prevent single-vs-list selector regressions
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const code=fs.readFileSync('UnitLab_3D/performance-3d.js','utf8');
+          const errors=[...code.matchAll(/(?<!\\$)\\$\\(['"][^'"]+['"]\\)\\.forEach/g)].map(m=>m[0]);
+          if(errors.length)throw new Error('Single-element selector used with forEach: '+errors.join(', '));
+          console.log('Static selector test PASS');
+          NODE
       - name: Start local UnitLab static server
         run: |
           python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/unitlab-server.log 2>&1 &
@@ -39,7 +52,7 @@ jobs:
             });
             const page = await browser.newPage({ viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 });
             const errors = [];
-            page.on('pageerror', err => errors.push(err.message));
+            page.on('pageerror', err => errors.push(err.stack||err.message));
             page.on('console', msg => { if(msg.type()==='error') console.log('BROWSER ERROR:', msg.text().slice(0,500)); });
             await page.goto('http://127.0.0.1:8765/UnitLab_3D/performance-3d.html', { waitUntil:'domcontentloaded', timeout:30000 });
             await page.waitForTimeout(25000);
@@ -55,10 +68,23 @@ jobs:
               viewport: document.querySelector('.stage')?.getBoundingClientRect().width
             }));
             console.log('INITIAL:', JSON.stringify(initial));
+            console.log('MODEL FIT:', JSON.stringify(await page.evaluate(()=>window.__unitlabFit||{})));
             await page.screenshot({path:'/tmp/unitlab-lab-1600.png',fullPage:true});
             if(!initial.loaded)throw new Error('3D Lab did not render: '+initial.status);
             if(initial.tray < 8)throw new Error('Parts tray incomplete');
             if(initial.width < 500)throw new Error('3D canvas unexpectedly small');
+            // Actual 3D part installation: verify a real scene click moves
+            // the motherboard from "ready" to "placed" and advances the guide.
+            const boardPoint=await page.evaluate(()=>window.__unitlabQA?.targetClient('motherboard'));
+            if(!boardPoint)throw new Error('3D part placement API not available');
+            console.log('MOTHERBOARD TARGET:',JSON.stringify(boardPoint));
+            await page.mouse.click(boardPoint.x,boardPoint.y);
+            await page.waitForTimeout(450);
+            const boardState=await page.evaluate(()=>window.__unitlabQA?.snapshot());
+            console.log('BOARD INSTALL:',JSON.stringify(boardState));
+            if(boardState.step!==1||boardState.placed.motherboard!=='motherboard')
+              throw new Error('Guided motherboard placement failed');
+            await page.screenshot({path:'/tmp/unitlab-after-board-install.png',fullPage:true});
             await page.locator('[data-filter="storage"]').click();
             const visibleParts = await page.locator('.inventory:visible').count();
             console.log('STORAGE FILTER:',visibleParts);
@@ -91,4 +117,5 @@ jobs:
           path: |
             /tmp/unitlab-lab-1600.png
             /tmp/unitlab-lab-tested.png
+            /tmp/unitlab-after-board-install.png
           if-no-files-found: ignore
