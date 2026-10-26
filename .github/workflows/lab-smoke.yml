@@ -85,6 +85,52 @@ jobs:
             if(boardState.step!==1||boardState.placed.motherboard!=='motherboard')
               throw new Error('Guided motherboard placement failed');
             await page.screenshot({path:'/tmp/unitlab-after-board-install.png',fullPage:true});
+            for(const id of ['cpu','ram','storage','cooler']){
+              await page.locator('.inventory[data-part="'+id+'"]').click();
+              await page.waitForTimeout(300);
+              let pt=await page.evaluate(id=>window.__unitlabQA.targetClient(id),id);
+              if(!pt.withinStage){
+                await page.locator('#focusMotherboard').click();
+                await page.waitForTimeout(750);
+                pt=await page.evaluate(id=>window.__unitlabQA.targetClient(id),id);
+              }
+              if(!pt.withinStage)throw new Error('Socket offscreen: '+id);
+              await page.mouse.click(pt.x,pt.y);
+              await page.waitForTimeout(850);
+              const st=await page.evaluate(()=>window.__unitlabQA.snapshot());
+              const a=await page.evaluate(id=>window.__unitlabQA.anchors().find(x=>x.id===id),id);
+              console.log('CONNECTOR',id,JSON.stringify(a));
+              if(st.placed[id]!==id||a.parent!=='board'||a.distance>.085)
+                throw new Error('Misaligned '+id+': '+JSON.stringify({st,a}));
+            }
+            await page.locator('#mountBoardBtn').click();
+            await page.waitForTimeout(1450);
+            const mounted=await page.evaluate(()=>window.__unitlabQA.snapshot());
+            if(!mounted.boardMounted||mounted.parentBoard!=='case')throw new Error('Motherboard failed to mount');
+            for(const id of ['motherboard','cpu','ram','storage','cooler']){
+              const a=await page.evaluate(id=>window.__unitlabQA.anchors().find(x=>x.id===id),id);
+              if(a.parent!=='board'||a.distance>.085)throw new Error(id+' shifted when board entered the chassis');
+            }
+            for(const id of ['psu','gpu','casefans']){
+              await page.locator('.inventory[data-part="'+id+'"]').click();
+              await page.waitForTimeout(350);
+              let pt=await page.evaluate(id=>window.__unitlabQA.targetClient(id),id);
+              if(!pt.withinStage){
+                await page.locator('#focusCase').click();
+                await page.waitForTimeout(650);
+                pt=await page.evaluate(id=>window.__unitlabQA.targetClient(id),id);
+              }
+              if(!pt.withinStage)throw new Error('Case socket offscreen: '+id);
+              await page.mouse.click(pt.x,pt.y);
+              await page.waitForTimeout(850);
+              const a=await page.evaluate(id=>window.__unitlabQA.anchors().find(x=>x.id===id),id);
+              console.log('CASE CONNECTOR',id,JSON.stringify(a));
+              if(a.distance>.085)throw new Error(id+' missed case connector');
+            }
+            const full=await page.evaluate(()=>window.__unitlabQA.snapshot());
+            if(full.step!==8)throw new Error('Not fully built: '+JSON.stringify(full));
+            await page.screenshot({path:'/tmp/unitlab-complete-assembly.png',fullPage:true});
+
             await page.locator('[data-filter="storage"]').click();
             const visibleParts = await page.locator('.inventory:visible').count();
             console.log('STORAGE FILTER:',visibleParts);
@@ -118,4 +164,5 @@ jobs:
             /tmp/unitlab-lab-1600.png
             /tmp/unitlab-lab-tested.png
             /tmp/unitlab-after-board-install.png
+            /tmp/unitlab-complete-assembly.png
           if-no-files-found: ignore
