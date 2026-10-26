@@ -37,49 +37,104 @@ scene.add(new THREE.HemisphereLight(0xe7eff5,0x303642,2.25));
 const sun=new THREE.DirectionalLight(0xffffff,3.1);sun.position.set(5,8,8);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-9;sun.shadow.camera.right=9;sun.shadow.camera.top=9;sun.shadow.camera.bottom=-9;scene.add(sun);
 const glow=new THREE.PointLight(0x75e6ce,20,11);glow.position.set(-3,2,3);scene.add(glow);
 const pink=new THREE.PointLight(0xaec3f3,10,10);pink.position.set(3,1,-2);scene.add(pink);
-const ground=new THREE.Mesh(new THREE.PlaneGeometry(120,120),new THREE.MeshStandardMaterial({color:0x1b2530,roughness:.95}));
-ground.rotation.x=-Math.PI/2;ground.position.y=-2.57;ground.receiveShadow=true;scene.add(ground);
-const grid=new THREE.GridHelper(32,44,0x4c646e,0x293943);grid.position.y=-2.55;grid.material.opacity=.21;grid.material.transparent=true;scene.add(grid);
-const steel=new THREE.MeshStandardMaterial({color:0x454c53,metalness:.78,roughness:.35}),dark=new THREE.MeshStandardMaterial({color:0x161c22,metalness:.64,roughness:.49}),circuit=new THREE.MeshStandardMaterial({color:0x2c3c38,metalness:.40,roughness:.7});
+/* Workspace v3: an actual horizontal assembly desk and scale-proportional hardware.
+   The chassis/workshop furniture is procedural; selected components are textured GLB meshes. */
+scene.background=new THREE.Color(0x17212c);
+scene.fog=new THREE.FogExp2(0x17212c,.012);
+renderer.toneMappingExposure=1.36;
+camera.position.set(7.5,7.3,12.4);
+controls.target.set(-.35,-1.6,-.1);
+controls.minDistance=4;
+controls.maxDistance=27;
+controls.maxPolarAngle=Math.PI*.88;
+const steel=new THREE.MeshStandardMaterial({color:0x555d64,metalness:.7,roughness:.43});
+const dark=new THREE.MeshStandardMaterial({color:0x1d242b,metalness:.58,roughness:.52});
+const circuit=new THREE.MeshStandardMaterial({color:0x1c272c,metalness:.35,roughness:.61});
+const trim=new THREE.MeshStandardMaterial({color:0x252d33,metalness:.76,roughness:.40});
+const screwMat=new THREE.MeshStandardMaterial({color:0xadb4b5,metalness:.93,roughness:.24});
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(140,140),new THREE.MeshStandardMaterial({color:0x171c24,roughness:.95}));
+ground.rotation.x=-Math.PI/2;ground.position.y=-3.67;ground.receiveShadow=true;scene.add(ground);
 const bench=new THREE.Group();scene.add(bench);
-const maple=new THREE.MeshStandardMaterial({color:0x78685a,roughness:.86});
-const matMaterial=new THREE.MeshStandardMaterial({color:0x174449,roughness:.92,metalness:.03});
-const rubber=new THREE.MeshStandardMaterial({color:0x222a30,metalness:.06,roughness:.96});
-const rig=new THREE.Group();scene.add(rig);
-function box(parent,dim,xyz,material){const obj=new THREE.Mesh(new THREE.BoxGeometry(...dim),material);obj.position.set(...xyz);obj.castShadow=true;obj.receiveShadow=true;parent.add(obj);return obj}
-// Service bench and anti-static mat: modeled work surface, not an imported SKU asset.
-box(bench,[15.5,.22,7],[-1.25,-2.79,0],maple);
-box(bench,[15.5,.10,.20],[-1.25,-2.93,3.4],dark);
-for(const x of [-7.8,5.2])for(const z of [-2.65,2.75])box(bench,[.20,1.10,.22],[x,-3.4,z],steel);
-box(bench,[3.6,.028,2.70],[-4.25,-2.65,.13],matMaterial);
-box(bench,[3.68,.024,.05],[-4.25,-2.62,1.47],rubber);
-box(bench,[3.68,.024,.05],[-4.25,-2.62,-1.21],rubber);
-box(bench,[.05,.024,2.70],[-6.08,-2.62,.13],rubber);
-box(bench,[.05,.024,2.70],[-2.42,-2.62,.13],rubber);
-const workLamp=new THREE.PointLight(0xfff2df,11,7);workLamp.position.set(-4,3.25,2.9);scene.add(workLamp);
-box(rig,[3.65,4.92,.12],[0,0,-1.16],steel);
-box(rig,[.13,4.92,2.55],[-1.82,0,-.07],dark);
-box(rig,[.13,4.92,2.55],[1.82,0,-.07],steel);
-box(rig,[3.74,.13,2.50],[0,2.48,-.03],steel);
-box(rig,[3.74,.19,2.50],[0,-2.48,-.03],dark);
-box(rig,[3.60,.69,2.31],[0,-2.10,-.04],steel);
-box(rig,[2.64,3.12,.05],[-.37,.30,-.80],circuit).castShadow=false;
-for(let i=0;i<4;i++)box(rig,[.28,.08,.06],[-1.26+i*.81,2.50,.92],steel);
-/* Chassis service details: mounting standoffs, vent slots and metal trim.
-   These represent case hardware; interactive parts are still the licensed GLB meshes. */
-const screwMaterial=new THREE.MeshStandardMaterial({color:0xc5cacb,metalness:.93,roughness:.26});
-for(const x of [-1.45,-.35,.73])for(const y of [-1.25,.16,1.57]){
- const standoff=new THREE.Mesh(new THREE.CylinderGeometry(.064,.064,.05,16),screwMaterial);
- standoff.rotation.x=Math.PI/2;standoff.position.set(x,y,-.69);
- standoff.castShadow=true;rig.add(standoff);
+function box(parent,dim,xyz,material){
+ const obj=new THREE.Mesh(new THREE.BoxGeometry(...dim),material);
+ obj.position.set(...xyz);obj.castShadow=true;obj.receiveShadow=true;parent.add(obj);return obj;
 }
-for(let i=0;i<18;i++){const slit=box(rig,[.018,.42,.017],[1.70,1.95-i*.235,-1.1],dark);slit.castShadow=false}
-for(let i=0;i<9;i++){box(rig,[1.22,.023,.023],[.59,-2.28+i*.055,1.14],dark)}
-
-const panelGlass=box(rig,[3.55,4.68,.02],[0,0,1.25],new THREE.MeshPhysicalMaterial({color:0xc1edff,opacity:.11,transparent:true,roughness:.04,depthWrite:false,side:THREE.DoubleSide}));
+function makeWorktopTexture(){
+ const c=document.createElement('canvas');c.width=512;c.height=512;
+ const g=c.getContext('2d');g.fillStyle='#967d60';g.fillRect(0,0,512,512);
+ for(let i=0;i<80;i++){
+   const v=(Math.sin(i*14.37)*.5+.5);
+   g.fillStyle='rgba('+(v>.5?'237,207,163':'35,25,19')+','+(0.02+v*.065)+')';
+   g.fillRect(0,i*6.5,512,1+v*2.7);
+ }
+ for(let i=1;i<10;i++){g.fillStyle='rgba(12,12,14,.14)';g.fillRect(0,i*54,512,2);}
+ const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;
+ t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(2.9,1.4);
+ t.anisotropy=4;return t;
+}
+const maple=new THREE.MeshStandardMaterial({map:makeWorktopTexture(),roughness:.88,metalness:.02});
+const rubber=new THREE.MeshStandardMaterial({color:0x0c252b,roughness:.95});
+const matMaterial=new THREE.MeshStandardMaterial({color:0x1f3640,roughness:.96,metalness:0});
+const desk=box(bench,[15.2,.24,8.1],[-.75,-2.83,-.10],maple);
+box(bench,[15.2,.12,.18],[-.75,-2.99,3.84],dark);
+for(const x of [-7.5,5.8])for(const z of [-3,3])box(bench,[.2,1.1,.2],[x,-3.5,z],steel);
+const mat=box(bench,[4.55,.028,4.6],[-3.65,-2.675,-.15],matMaterial);
+mat.castShadow=false;
+for(const [dx,dz,dw,dd] of [[0,-2.23,4.43,.025],[0,2.23,4.43,.025],[-2.18,0,.025,4.45],[2.18,0,.025,4.45]]){
+ box(bench,[dw,.015,dd],[-3.65+dx,-2.652,-.15+dz],rubber);
+}
+const matLineMat=new THREE.MeshBasicMaterial({color:0x477583,transparent:true,opacity:.22,depthWrite:false});
+for(let i=0;i<20;i++){
+ const k=-2.1+i*.22;
+ const l=box(bench,[.009,.001,4.25],[-3.65+k,-2.653,-.15],matLineMat);l.castShadow=false;
+ const h=box(bench,[4.25,.001,.009],[-3.65,-2.653,-2.28+i*.22],matLineMat);h.castShadow=false;
+}
+// Optional subtle storage drawers and pegboard are visual context, not draggable tools.
+box(bench,[8.6,3.2,.14],[-.8,-.48,-4.1],trim);
+for(let row=0;row<12;row++)for(let col=0;col<32;col++){
+ const hole=new THREE.Mesh(new THREE.CircleGeometry(.016,8),new THREE.MeshBasicMaterial({color:0x080d12}));
+ hole.position.set(-5+col*.26,-1.9+row*.235,-4.014);bench.add(hole);
+}
+const storageMat=new THREE.MeshStandardMaterial({color:0x303e49,metalness:.6,roughness:.54});
+for(let i=0;i<5;i++){
+ const drawer=box(bench,[.9,.40,.68],[-6.3,-2.35+i*.42,-3.1],storageMat);
+ box(bench,[.52,.025,.02],[-6.3,-2.38+i*.42,-2.744],screwMat);
+}
+// Chassis: side-open, actual PC-case form with a bottom tray, rails and vents.
+const rig=new THREE.Group();scene.add(rig);
+rig.position.set(2.28,-1.51,-.10);
+const caseSideGlassMaterial=new THREE.MeshPhysicalMaterial({color:0xa1c2cf,metalness:.03,roughness:.08,transparent:true,opacity:.14,depthWrite:false,side:THREE.DoubleSide});
+const panelGlass=box(rig,[3.5,4.78,.022],[0,0,1.19],caseSideGlassMaterial);
 panelGlass.visible=false;panelGlass.castShadow=false;
-/* Real GLB case fans are installed as an eighth component. No artificial neon circles. */
-const fans=[];
+box(rig,[3.68,4.95,.12],[0,0,-1.17],steel);                 // baseplate
+box(rig,[.12,4.95,2.4],[-1.86,0,0],dark);                    // back edge
+box(rig,[.12,4.95,2.4],[1.86,0,0],dark);                     // front edge
+box(rig,[3.72,.14,2.40],[0,2.51,0],trim);                    // top
+box(rig,[3.72,.14,2.40],[0,-2.51,0],trim);                   // bottom
+box(rig,[2.87,3.54,.065],[-.28,.34,-1.02],circuit);        // mounting tray
+for(const x of [-1.35,-.27,.82])for(const y of [-1.02,.20,1.40]){
+ const s=new THREE.Mesh(new THREE.CylinderGeometry(.058,.058,.080,14),screwMat);
+ s.rotation.x=Math.PI/2;s.position.set(x,y,-.92);rig.add(s);
+}
+// PSU bay / structural rail
+box(rig,[1.47,.81,.9],[.96,-1.86,-.48],dark);
+for(let row=0;row<7;row++){
+ box(rig,[1.31,.025,.020],[.97,-2.20+row*.09,.12],steel);
+}
+const ventMaterial=new THREE.MeshStandardMaterial({color:0x11171b,roughness:.6,metalness:.54});
+for(let i=0;i<17;i++)box(rig,[.020,.18,.030],[1.92,-2.08+i*.24,-.88],ventMaterial);
+for(let i=0;i<7;i++)box(rig,[1.45,.026,.025],[-.62,2.55,-.95+i*.18],ventMaterial);
+const caseFeet=box(rig,[.55,.08,.55],[-1.15,-2.56,-.95],rubber);
+for(const x of [-1.15,1.15])for(const y of [-2.55,2.55]){
+ const foot=box(rig,[.42,.06,.42],[x,y,-1.06],rubber);
+ foot.castShadow=false;
+}
+const cameraCase=new THREE.Vector3(2.28,-1.51,-.1);
+const orientationAngles={upright:0,landscape:-Math.PI/2,inverted:Math.PI/2};
+let orientation='landscape';
+rig.rotation.x=orientationAngles.landscape;
+const taskLight=new THREE.PointLight(0xffdfa5,42,11);taskLight.position.set(-4,4,1.8);scene.add(taskLight);
+const studioFill=new THREE.PointLight(0xe4f5ff,24,14);studioFill.position.set(4,5,4);scene.add(studioFill);
 const slots=new Map();
 for(const p of parts){
 const [w,h]=p.id==='motherboard'?[1.02,1.78]:p.id==='gpu'?[1.20,.42]:p.id==='ram'?[.35,.91]:p.id==='psu'?[.90,.45]:p.id==='storage'?[.56,.23]:p.id==='cooler'?[.81,.83]:p.id==='casefans'?[1.05,2.2]:[.45,.46];
