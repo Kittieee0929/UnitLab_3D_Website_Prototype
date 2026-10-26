@@ -194,7 +194,7 @@ for(const p of parts){
 function modelRackScale(id){const p=byId[id];return .72/Math.max(...p.dims)}
 function returnToRack(id){
  const obj=ensureMesh(id);
- obj.position.copy(rackPositions[id]);obj.scale.setScalar(modelRackScale(id));obj.visible=true;
+ obj.position.copy(rackPositions[id]);obj.scale.setScalar(modelRackScale(id));obj.rotation.set(0,0,0);obj.visible=true;
 }
 function rackDrop(clientX,clientY){
  const rect=canvas.getBoundingClientRect();
@@ -303,7 +303,7 @@ state.attempts.push({id,slot,kind,time:Date.now()});
 state.placed[id]=slot;state.step=sequence.filter(p=>state.placed[p]===p).length;
 }
 markInstalled(id,slot);selectPart(id);drawStatus();highlights();
-if(state.mode==='tutorial'&&state.step===1)cameraView([-1.2,1.4,5.4],[-.5,.35,-.40]);
+if(state.mode==='tutorial'&&state.step===1)cameraView([-3.55,1.4,6.5],[-4.25,-2.26,.10]);
 if(state.mode==='tutorial'&&state.step===5)cameraView([7.0,3.8,11.7],[-.95,0,0]);
 }
 function remove(id){
@@ -320,9 +320,9 @@ $('#modeKicker').textContent=state.mode==='tutorial'?'GUIDED TRAINING':'INDEPEND
 $('#progressFill').style.width=(done/7*100)+'%';
 $('#progressText').textContent=done+' / 7 '+(state.mode==='disassembly'?'components removed':'components correctly installed');
 $('#hints').disabled=state.mode!=='tutorial';$('#hints').checked=state.mode==='tutorial'&&state.hints;
-$('#stepNumber').textContent=state.mode==='tutorial'?'STEP '+Math.min(state.step+1,7)+' / 7':'NO PLACEMENT HINTS';
+$('#stepNumber').textContent=state.mode==='tutorial'&&state.step>=5&&!state.boardMounted?'BOARD INSTALLATION':'STEP '+Math.min(state.step+1,7)+' / 7';
 if(state.mode==='tutorial'){
-const next=byId[sequence[state.step]];$('#stepHeading').textContent=next?'Follow the placement guide':'Guided build finished';
+const next=byId[sequence[state.step]];$('#stepHeading').textContent=state.step>=5&&!state.boardMounted?'Mount your prepared motherboard':next?'Follow the placement guide':'Guided build finished';
 $('#stepInstruction').textContent=state.step>=5&&!state.boardMounted
  ?'The CPU, RAM, SSD and cooler are prepared on the anti-static mat. Mount the complete motherboard inside the case before installing the PSU and graphics card.'
  :(next?'Drag '+next.name+' from the cabinet to the glowing '+(inPreassembly(next.id)?'anti-static mat':'case')+' target.':'You completed the guided build. Choose an independent test to assess your performance.');
@@ -443,7 +443,7 @@ refModel.addEventListener('error',()=>{
  else refText.textContent='Model unavailable from publisher. Reconnect to view; guided assembly is still accessible.';
 });
 
-$('#focusMotherboard').addEventListener('click',()=>cameraView([-1.2,1.4,5.4],[-.5,.35,-.40]));
+$('#focusMotherboard').addEventListener('click',()=>state.mode==='tutorial'&&!state.boardMounted?cameraView([-3.55,1.4,6.5],[-4.25,-2.26,.10]):cameraView([-1.2,1.4,5.4],[-.5,.35,-.40]));
 $('#focusCase').addEventListener('click',()=>cameraView([6.9,3.8,9.2],[.0,0,0]));
 function resize(){const r=canvas.getBoundingClientRect(),w=Math.floor(r.width),h=Math.floor(r.height),pixel=renderer.getPixelRatio();
 if(w>0&&h>0&&(canvas.width!==Math.floor(w*pixel)||canvas.height!==Math.floor(h*pixel))){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}}
