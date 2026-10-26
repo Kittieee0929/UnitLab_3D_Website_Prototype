@@ -43,7 +43,7 @@ scene.fog=new THREE.FogExp2(0x17212c,.012);
 renderer.toneMappingExposure=1.36;
 camera.position.set(3.8,6.5,8.7);
 controls.target.set(-.45,-2.02,-.10);
-controls.minDistance=4;
+controls.minDistance=2.25;
 controls.maxDistance=27;
 controls.maxPolarAngle=Math.PI*.88;
 const steel=new THREE.MeshStandardMaterial({color:0x555d64,metalness:.7,roughness:.43});
@@ -733,46 +733,88 @@ function highlights(){
   ?'Place '+byId[focus].name+' on the glowing socket · Scroll to inspect'
   :'Rotate workstation · Zoom onto connector · Choose a part';
 }
+const successCopy={
+ motherboard:'Motherboard aligned on the anti-static mat. Identify the CPU socket before installation.',
+ cpu:'CPU centered over the socket and lowered into its seating area. Check the corner marker and retention mechanism.',
+ ram:'Memory snapped into the motherboard DIMM positions. A2/B2 placement is illustrated for a two-stick kit.',
+ storage:'M.2 SSD edge inserted at the illustrated M.2 connector and lowered to its standoff.',
+ cooler:'Cooler base placed directly above the installed CPU, ready for appropriate fastening.',
+ psu:'Power supply aligned with the case PSU bay.',
+ gpu:'Graphics card seated into the illustrated PCIe x16 connector, with the bracket facing the case edge.',
+ casefans:'Case-fan frame positioned on the chassis mounting area.'
+};
+function placementMessage(message){const el=$('#placementFeedback');if(el)el.textContent=message}
+function focusConnector(id){
+ if(!id||!socketPose(id))return;
+ const target=socketWorld(id);
+ const parent=socketParent(id);
+ const normal=new THREE.Vector3(0,0,1).applyQuaternion(parent.getWorldQuaternion(new THREE.Quaternion()));
+ const distance=id==='cpu'?2.6:id==='storage'||id==='ram'?3.2:4.5;
+ const offset=normal.multiplyScalar(distance).add(new THREE.Vector3(1.05,1.2,1.55));
+ camera.position.copy(target.clone().add(offset));
+ controls.target.copy(target);controls.update();
+}
 function install(id,slot){
- if(!byId[id]||state.submitted||state.mode==='disassembly')return;
- if(state.placed[id]===id)return;
+ if(!byId[id]||state.submitted||state.mode==='disassembly'||state.placed[id]===id)return;
+ if(slot!==id){
+  if(state.mode==='assembly')state.attempts.push({id,slot,kind:'wrong-slot',time:Date.now()});
+  placementMessage('Not aligned. Place '+byId[id].name+' on its glowing connector, not an adjacent location.');
+  $('#stepInstruction').textContent='Move to the highlighted '+byId[id].name+' socket. The component will not install at an incorrect location.';
+  return;
+ }
  if(id!=='motherboard'&&preassemblyIds.includes(id)&&state.placed.motherboard!=='motherboard'){
   if(state.mode==='assembly')state.attempts.push({id,slot,kind:'out-of-sequence',time:Date.now()});
-  $('#stepInstruction').textContent='Place the motherboard on the ESD mat before installing its components.';return;
+  placementMessage('Place the motherboard on the anti-static mat first.');return;
  }
  if(id==='cooler'&&state.placed.cpu!=='cpu'){
   if(state.mode==='assembly')state.attempts.push({id,slot,kind:'out-of-sequence',time:Date.now()});
-  $('#stepInstruction').textContent='Install the CPU before attaching its cooler.';return;
+  placementMessage('The CPU must be seated before installing its cooler.');return;
  }
  if(!state.boardMounted&&!preassemblyIds.includes(id)){
-   if(state.mode==='assembly')state.attempts.push({id,slot,kind:'out-of-sequence',time:Date.now()});
-   $('#stepInstruction').textContent='Prepare the motherboard with CPU, RAM, NVMe SSD and cooler first. Then use Move motherboard into case.';
-   return;
+  if(state.mode==='assembly')state.attempts.push({id,slot,kind:'out-of-sequence',time:Date.now()});
+  placementMessage('Complete motherboard preparation, then move the populated board into the case.');
+  return;
  }
  if(state.mode==='tutorial'){
-   const expected=sequence[state.step];
-   if(id!==expected||slot!==id){
-     $('#stepInstruction').textContent='Next part: '+(byId[expected]?.name||'complete')+'. Select it from the Parts Tray, then click the indicated mounting ring.';
-     return;
-   }
-   state.placed[id]=slot;state.step++;
+  const expected=sequence[state.step];
+  if(id!==expected){
+   placementMessage('Next required part: '+(byId[expected]?.name||'assembly complete')+'.');
+   return;
+  }
+  state.placed[id]=id;state.step++;
  }else{
-   const expected=sequence.find(p=>state.placed[p]!==p);
-   const kind=slot!==id?'wrong-slot':expected!==id?'out-of-sequence':'correct';
-   state.attempts.push({id,slot,kind,time:Date.now()});
-   state.placed[id]=slot;
-   state.step=sequence.filter(p=>state.placed[p]===p).length;
+  const expected=sequence.find(key=>state.placed[key]!==key);
+  state.attempts.push({id,slot,kind:id===expected?'correct':'out-of-sequence',time:Date.now()});
+  state.placed[id]=id;
+  state.step=sequence.filter(key=>state.placed[key]===key).length;
  }
- markInstalled(id,slot);selectPart(state.mode==='tutorial'?(sequence[state.step]||id):id);drawStatus();highlights();
- if(state.mode==='tutorial'&&state.step===1)cameraView([2.1,8.3,8.3],[-3.55,-2.2,-.15]);
- if(state.mode==='tutorial'&&state.step===5)cameraView([7.4,8.2,11.2],[-.5,-1.65,0]);
+ markInstalled(id,id,{animate:id!=='motherboard'});
+ placementMessage(successCopy[id]||'Component aligned and installed in its receiving slot.');
+ selectPart(state.mode==='tutorial'?(sequence[state.step]||id):id);
+ drawStatus();
+ if(state.mode==='tutorial'&&state.step>0&&state.step<5){
+  focusConnector(sequence[state.step]);
+ }else if(state.mode==='tutorial'&&state.step===5){
+  cameraView([4.2,6.7,9.0],[-1.0,-2.1,0]);
+ }
 }
 function remove(id){
  if(state.mode!=='disassembly'||state.submitted||!byId[id]||state.removed.has(id))return;
- const expected=reverse.find(p=>!state.removed.has(p));
- state.attempts.push({id,slot:'tray',kind:id===expected?'correct':'out-of-sequence',time:Date.now()});
- state.removed.add(id);returnToRack(id);
- state.step=state.removed.size;selectPart(id);drawStatus();highlights();
+ const expected=reverse.find(key=>!state.removed.has(key));
+ if(id!==expected){
+  state.attempts.push({id,slot:'tray',kind:'out-of-sequence',time:Date.now()});
+  placementMessage('Removal order: take out '+byId[expected].name+' before '+byId[id].name+'.');
+  return;
+ }
+ state.attempts.push({id,slot:'tray',kind:'correct',time:Date.now()});
+ state.removed.add(id);state.step=state.removed.size;
+ const obj=ensureMesh(id),fromPosition=obj.position.clone();
+ const lift=.66;
+ snapTweens.set('remove-'+id,{obj,fromPosition,toPosition:fromPosition.clone().add(new THREE.Vector3(0,0,lift)),
+    start:performance.now(),duration:530,ease:k=>k*k*(3-2*k),
+    onComplete:()=>{returnToRack(id);if(id==='motherboard')socketGuides.visible=false}});
+ placementMessage(byId[id].name+' lifted clear of its slot. '+(state.step<reverse.length?'Next: '+byId[reverse[state.step]].name+'.':'Disassembly complete.'));
+ selectPart(reverse[state.step]||id);drawStatus();
 }
 function drawStatus(){
  const done=state.mode==='disassembly'?state.removed.size:sequence.filter(id=>state.placed[id]===id).length;
@@ -823,6 +865,8 @@ function drawStatus(){
  const readyToMount=atMount;
  $('#mountBoardBtn').hidden=!readyToMount;
  $('#removeTray').hidden=state.mode!=='disassembly';
+ $('#removeSelectedBtn').hidden=state.mode!=='disassembly'||state.submitted;
+ $('#removeSelectedBtn').disabled=state.removed.size===sequence.length;
  $('#submitBtn').hidden=state.mode==='tutorial'||state.submitted;
  $('#againBtn').hidden=!state.submitted;
  $('#csvBtn').hidden=!state.submitted;
@@ -856,7 +900,7 @@ const text='\ufeff'+csvRows.map(row=>row.map(a=>'"'+String(a??'').replaceAll('"'
 const url=URL.createObjectURL(new Blob([text],{type:'text/csv'})),link=document.createElement('a');link.href=url;link.download='UnitLab3D_'+r.mode+'_performance.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function reset(mode){
- snapTweens.clear();
+ snapTweens.clear();socketGuides.visible=true;
  state.mode=mode;state.step=0;state.selected=null;state.placed={};
  state.boardMounted=mode==='disassembly';state.removed.clear();
  state.attempts=[];state.submitted=false;state.report=null;state.hover=null;
@@ -947,6 +991,7 @@ tray.addEventListener('dragleave',()=>tray.classList.remove('hover'));
 tray.addEventListener('drop',e=>{e.preventDefault();tray.classList.remove('hover');if(state.mode==='disassembly')remove(e.dataTransfer.getData('text/plain')||state.selected)});
 $$('[data-mode]').forEach(b=>b.addEventListener('click',()=>reset(b.dataset.mode)));
 $('#mountBoardBtn').addEventListener('click',mountPreassembledBoard);
+$('#removeSelectedBtn').addEventListener('click',()=>remove(state.selected));
 /* Working workspace controls: tray filters, case orientation, camera and guided hints. */
 const trayFilters={all:parts.map(p=>p.id),core:['motherboard','cpu'],storage:['ram','storage'],cooling:['cooler','casefans'],power:['psu','gpu']};
 $$('[data-filter]').forEach(button=>button.addEventListener('click',()=>{
