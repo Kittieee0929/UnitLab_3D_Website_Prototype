@@ -949,6 +949,19 @@ function frame(){
 renderShelf();
 reset('tutorial');
 status();
+// Read-only observability for classroom QA and automated browser checks.
+window.__unitlabQA={
+ snapshot:()=>({mode:state.mode,step:state.step,placed:{...state.placed},boardMounted:state.boardMounted,loaded:active.loaded}),
+ targetClient:id=>{
+   const part=byId[id];if(!part)return null;
+   const local=project(part),rect=canvas.getBoundingClientRect();
+   return {x:Math.round(rect.left+local.x),y:Math.round(rect.top+local.y)};
+ },
+ meshes:()=>Array.from(meshes.entries()).map(([id,obj])=>({id,visible:obj.visible,worldSize:(()=>{
+   const sz=new THREE.Box3().setFromObject(obj).getSize(new THREE.Vector3());
+   return sz.toArray().map(v=>+v.toFixed(2));
+ })()}))
+};
 requestAnimationFrame(frame);
 // Real hardware meshes load asynchronously into the visible left-hand 3D rack at startup.
 
