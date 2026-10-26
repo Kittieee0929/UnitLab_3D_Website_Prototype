@@ -818,6 +818,27 @@ function install(id,slot){
   cameraView([4.2,6.7,9.0],[-1.0,-2.1,0]);
  }
 }
+/* Disassembled parts are placed visibly on the service desk, not deleted.
+   The motherboard returns to the ESD mat after external parts are removed. */
+const removalLaydown={
+ casefans:[-7.36,-2.45,-.08],gpu:[-4.35,-2.47,3.19],
+ psu:[-6.68,-2.25,2.85],cooler:[-2.55,-2.46,2.98],
+ storage:[-1.51,-2.52,3.05],ram:[-6.68,-2.50,-2.55],
+ cpu:[-7.37,-2.52,1.94],motherboard:MAT_BOARD_LOCATION
+};
+function placeRemovedOnDesk(id){
+ const obj=ensureMesh(id),where=removalLaydown[id];
+ scene.attach(obj);
+ obj.visible=true;
+ const fromPosition=obj.position.clone(),fromRotation=obj.quaternion.clone();
+ const toPosition=new THREE.Vector3(...where);
+ const toRotation=new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI/2,0,0));
+ snapTweens.set('store-'+id,{
+  obj,fromPosition,toPosition,fromRotation,toRotation,
+  start:performance.now(),duration:820,ease:k=>k*k*(3-2*k)
+ });
+ if(id==='motherboard')socketGuides.visible=false;
+}
 function remove(id){
  if(state.mode!=='disassembly'||state.submitted||!byId[id]||state.removed.has(id))return;
  const expected=reverse.find(key=>!state.removed.has(key));
@@ -832,8 +853,8 @@ function remove(id){
  const lift=.66;
  snapTweens.set('remove-'+id,{obj,fromPosition,toPosition:fromPosition.clone().add(new THREE.Vector3(0,0,lift)),
     start:performance.now(),duration:530,ease:k=>k*k*(3-2*k),
-    onComplete:()=>{returnToRack(id);if(id==='motherboard')socketGuides.visible=false}});
- placementMessage(byId[id].name+' lifted clear of its slot. '+(state.step<reverse.length?'Next: '+byId[reverse[state.step]].name+'.':'Disassembly complete.'));
+    onComplete:()=>placeRemovedOnDesk(id)});
+ placementMessage(byId[id].name+' removed and placed on the service bench. '+(state.step<reverse.length?'Next: '+byId[reverse[state.step]].name+'.':'Disassembly complete.'));
  selectPart(reverse[state.step]||id);drawStatus();
 }
 function drawStatus(){
