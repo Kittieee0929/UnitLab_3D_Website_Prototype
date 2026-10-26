@@ -231,7 +231,7 @@ function showWorkingFallback(reason){
  if(backup){backup.hidden=false;const frame=document.getElementById('native3dFallbackFrame');if(frame&&!frame.getAttribute('src'))frame.src='worklab-pro.html?embedded=1'}
  const layout=document.querySelector('.layout');if(layout)layout.classList.add('fallback-open');
 }
-addEventListener('unitlab3d:performance-ready',()=>{ready=true;const box=document.getElementById('stageStatus');if(box)box.hidden=true});
+addEventListener('unitlab3d:performance-ready',()=>{ready=true;/* Keep the loading panel until GLB models have actually finished loading. */});
 addEventListener('error',e=>{if(!ready&&(e.target?.tagName==='SCRIPT'||e.message)){showWorkingFallback('3D JavaScript or graphics engine failed to start.')}},true);
 addEventListener('unhandledrejection',()=>{if(!ready)showWorkingFallback('3D resources failed to load.')});
 setTimeout(()=>{if(!ready)showWorkingFallback('The graphics engine did not initialize. A 3D backup is available below.')},12000);
