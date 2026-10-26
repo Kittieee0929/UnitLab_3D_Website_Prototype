@@ -698,6 +698,9 @@ function selectPart(id){
  // Loading happens on demand. A missing remote file must not block the lab.
  if(!failure.has(id))ensureMesh(id);
  renderShelfStyles();highlights();
+ // Keep chassis sockets central and unobstructed by the bottom toolbar.
+ if(state.boardMounted&&['psu','gpu','casefans'].includes(id))
+   focusConnector(id);
 }
 const ray=new THREE.Raycaster(),mouse=new THREE.Vector2();
 function project(p){
