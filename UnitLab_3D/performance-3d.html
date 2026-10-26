@@ -95,35 +95,53 @@ html.embedded .page{padding:8px 10px}
 html.embedded header.top,html.embedded .resource-return-nav,html.embedded footer{display:none!important}
 html.embedded .stage{height:clamp(570px,75vh,830px)}
 </style><style>.mount-board{display:flex;width:100%;margin:10px 0 14px;padding:14px 18px!important;font-size:15px!important;line-height:1.4!important}.mount-board[hidden]{display:none!important}</style><link rel="stylesheet" href="assembly-lab-v3.css?rev=fix20261026"></head><body>
+<header class="lab-global-header" aria-label="UnitLab main navigation">
+  <a href="hub-v2.html" class="lab-global-brand"><span class="lab-logo-mark" aria-hidden="true">⬡</span><strong>UnitLab <em>3D</em></strong></a>
+  <nav class="lab-global-links" aria-label="Site navigation">
+    <a href="hub-v2.html">Home</a><a class="is-active" href="academy.html#workbench" aria-current="page">3D Lab</a>
+    <a href="academy.html#modules">Courses</a><a href="real-models.html">Hardware Library</a><a href="academy.html#quiz">Assessments</a>
+  </nav>
+  <div class="lab-global-right">
+    <label class="lab-search"><span aria-hidden="true">⌕</span><input type="search" id="labSearch" placeholder="Search PC parts…" aria-label="Search available PC parts" /></label>
+    <span class="lab-user-pill" id="student">Guest learner</span>
+  </div>
+</header>
+<div class="lab-app-shell">
+  <aside class="lab-quickrail" aria-label="Assembly tools and shortcuts">
+    <a href="#assemblyDesk" class="rail-tool is-current" aria-current="page"><span aria-hidden="true">▣</span><small>Assembly<br>Desk</small></a>
+    <a href="real-models.html" class="rail-tool"><span aria-hidden="true">⬡</span><small>Parts<br>Library</small></a>
+    <button type="button" class="rail-tool" id="railCaseView"><span aria-hidden="true">▯</span><small>Case View</small></button>
+    <a href="academy.html#safety" class="rail-tool"><span aria-hidden="true">⚒</span><small>Tools</small></a>
+    <button type="button" class="rail-tool" id="railGuides"><span aria-hidden="true">▤</span><small>Guides</small></button>
+    <button type="button" class="rail-tool" id="railSettings"><span aria-hidden="true">⚙</span><small>Settings</small></button>
+  </aside>
 <div class="page lab-v3">
-  <header class="lab-top">
+  <header class="lab-workflowbar">
     <div class="lab-heading">
-      <a class="lab-back" href="hub-v2.html">← UnitLab 3D Home</a>
-      <span class="lab-eyebrow">COMPUTER HARDWARE SERVICING · INTERACTIVE WORKBENCH</span>
       <h1>3D Assembly Lab</h1>
-      <p>Choose a part, inspect its 3D model, and place it onto the motherboard or into the case. Practice the correct sequence before working with real equipment.</p>
+      <p>Learn by doing <span>·</span> Build <span>·</span> Disassemble <span>·</span> Explore PC hardware</p>
+    </div>
+    <div class="mode-options" role="group" aria-label="Lab mode">
+      <button type="button" class="btn active" data-mode="tutorial"><span aria-hidden="true">▤</span> Guided Assembly</button>
+      <button type="button" class="btn" data-mode="assembly"><span aria-hidden="true">⚒</span> Free Build</button>
+      <button type="button" class="btn" data-mode="disassembly"><span aria-hidden="true">▣</span> Disassembly</button>
     </div>
     <div class="lab-top-actions">
-      <button type="button" class="btn" id="resetScene">↻ Reset lab</button>
-      <a href="MODEL_ATTRIBUTION.md" class="btn subtle" target="_blank" rel="noopener">3D model sources ↗</a>
+      <button type="button" class="btn" id="resetScene">⟳ Reset Lab</button>
+      <button type="button" class="btn" id="labHelpBtn" aria-controls="labHelpPanel" aria-expanded="false">ⓘ Help</button>
     </div>
   </header>
-
-  <div class="modes">
-    <div class="mode-options" role="group" aria-label="Lab mode">
-      <button type="button" class="btn active" data-mode="tutorial">▤ Guided Assembly</button>
-      <button type="button" class="btn" data-mode="assembly">⚒ Free Assembly</button>
-      <button type="button" class="btn" data-mode="disassembly">↶ Disassembly</button>
-    </div>
-    <span class="badge" id="student">Guest · local demonstration</span>
+  <div class="lab-help-panel" id="labHelpPanel" hidden>
+    <strong>How the interactive workbench works</strong>
+    <p>Choose a hardware part from the tray. Click the glowing mounting zone on the workbench or drag the selected part into place. Rotate, pan, zoom, or turn the case on its side before installation. Use Guided Assembly to learn the order; Free Build records mistakes; Disassembly starts with an assembled system.</p>
+    <p>Real 3D GLB parts load when selected. Exact brand geometry and screw/cable physics are not simulated.</p>
   </div>
-
   <div class="lab-grid">
     <main class="lab-work-area">
       <section class="parts-tray panel" aria-labelledby="trayTitle">
         <div class="tray-top">
-          <div><span class="lab-eyebrow">CHOOSE REAL HARDWARE MODELS</span><h2 id="trayTitle">Parts Tray</h2><p>Choose a part below, then click its highlighted position on the 3D desk. Drag-and-drop is also supported.</p></div>
-          <span class="mesh-status" id="assetsStatus">Loading models…</span>
+          <div class="tray-title"><span aria-hidden="true">▣</span><h2 id="trayTitle">Parts Tray</h2><p>Drag parts to the workspace or click to select</p></div>
+          <span class="mesh-status" id="assetsStatus">Models on demand</span>
         </div>
         <div id="meshNotice" class="mesh-notice" role="status" aria-live="polite" hidden></div>
         <div class="tray-filters" role="group" aria-label="Filter available parts">
@@ -134,10 +152,10 @@ html.embedded .stage{height:clamp(570px,75vh,830px)}
           <button type="button" data-filter="power" class="tray-filter" aria-pressed="false">Power & GPU</button>
         </div>
         <div class="shelves" id="shelves" aria-label="Selectable 3D hardware components"></div>
-        <p class="tray-help">3D assets are provided by PC Anatomy. The models represent hardware categories, not your exact retail PC Builder SKUs.</p>
+        <p class="tray-help">Actual GLB hardware models load when selected. Component scale and case mounting are instructional approximations.</p>
       </section>
 
-      <section class="bench-panel panel" aria-label="Interactive assembly desk">
+      <section class="bench-panel panel" id="assemblyDesk" aria-label="Interactive assembly desk">
         <div class="bench-header">
           <div class="bench-header-title"><span class="status-indicator"></span><strong id="modeLabel">GUIDED ASSEMBLY</strong></div>
           <div class="bench-header-actions">
@@ -168,6 +186,7 @@ html.embedded .stage{height:clamp(570px,75vh,830px)}
               <button class="tool-button" id="panTool" type="button" aria-pressed="false">✥ <span>Pan</span></button>
               <button class="tool-button" id="zoomInTool" type="button">＋ <span>Zoom in</span></button>
               <button class="tool-button" id="zoomOutTool" type="button">－ <span>Zoom out</span></button>
+              <button class="tool-button" id="explodeViewBtn" type="button" aria-pressed="false">◇ <span>Explode</span></button>
               <button class="tool-button" id="caseRefToggle" type="button" aria-controls="caseReference" aria-expanded="false">⬡ <span>Full PC</span></button>
             </div>
           </div>
@@ -182,7 +201,7 @@ html.embedded .stage{height:clamp(570px,75vh,830px)}
         </div>
 
         <div id="removeTray" class="drop-tray" hidden><strong>DISASSEMBLY PARTS TRAY</strong><span>Drag a component here after removing it from the case, or select the component and tap this tray.</span></div>
-        <div class="bench-options">
+        <div class="bench-options" id="labSettingsPanel">
           <label><input id="hints" type="checkbox" checked> Show installation highlights</label>
           <label><input id="glass" type="checkbox"> Show glass panel</label>
           <label><input id="rgb" type="checkbox" checked> Bench lighting</label>
@@ -193,14 +212,16 @@ html.embedded .stage{height:clamp(570px,75vh,830px)}
 
     <aside class="guide-column" aria-label="Assembly instructions and component details">
       <section class="panel guide guide-main">
-        <div class="guide-header"><span class="lab-eyebrow" id="modeKicker">GUIDED TRAINING</span><span id="stepNumber">STEP 1 / 8</span></div>
-        <h2 id="stepHeading">Prepare the motherboard</h2>
+        <div class="guide-header"><strong><span aria-hidden="true">▤</span> Assembly Guide</strong><span id="stepNumber">1 / 8</span></div>
         <div class="guide-progress"><div class="bar"><i id="progressFill"></i></div><div class="stats" id="progressText">0 / 8 components installed</div></div>
+        <div class="guide-stage-caption" id="modeKicker">GUIDED TRAINING</div>
+        <div class="guide-step-label" id="stepBadge">1</div><h2 id="stepHeading">Prepare the motherboard</h2>
         <div class="guide-step"><p id="stepInstruction">Place the motherboard on the anti-static mat. Then add the CPU, RAM, and NVMe storage.</p></div>
         <div class="guide-illustration"><model-viewer id="preview3D" camera-controls auto-rotate rotation-per-second="18deg" shadow-intensity="1" environment-image="neutral" interaction-prompt="none" loading="lazy" alt="3D preview of selected hardware component" style="display:none"></model-viewer><div class="placeholder" id="previewPlaceholder">Preparing 3D hardware preview…</div></div>
+        <div class="guide-checks"><strong>What to look for</strong><ul id="stepChecklist"><li>CPU socket and alignment marker</li><li>Memory slots</li><li>M.2 SSD slot</li><li>Motherboard power connectors</li></ul></div>
         <button type="button" class="btn primary mount-board" id="mountBoardBtn" hidden>Move assembled motherboard into case →</button>
         <p class="guide-tip"><strong>Tip:</strong> Choose a part from the top tray and click the matching highlighted location on the desk. You can also drag parts onto the target.</p>
-        <div class="guide-actions"><button type="button" class="btn" id="stepBackBtn" disabled>← Previous</button><button type="button" class="btn primary" id="stepNextBtn">Show next step →</button></div>
+        <div class="guide-actions"><button type="button" class="btn" id="stepBackBtn" disabled>← Previous</button><button type="button" class="btn primary" id="stepNextBtn">Next Step →</button></div>
         <div class="performance-actions">
           <button class="btn primary" id="submitBtn" hidden>Submit practice performance</button>
           <button class="btn" id="againBtn" hidden>Try again</button>
@@ -209,7 +230,7 @@ html.embedded .stage{height:clamp(570px,75vh,830px)}
         <div id="result" aria-live="polite"></div>
       </section>
       <section class="panel inspector">
-        <span class="lab-eyebrow">3D HARDWARE INSPECTOR</span>
+        <span class="lab-eyebrow">CURRENT PART</span>
         <h2 id="inspectedName">Motherboard</h2>
         <p class="inspector-description" id="inspectedInfo">Choose a 3D component to learn its function and location.</p>
         <p class="inspector-chips" id="inspectedChips">Model asset details</p>
@@ -222,6 +243,7 @@ html.embedded .stage{height:clamp(570px,75vh,830px)}
     <iframe id="native3dFallbackFrame" title="3D hardware backup viewer" loading="lazy"></iframe>
   </div>
   <footer class="lab-footer">UnitLab 3D · CBAR training prototype. Part assets attributed to <a href="https://github.com/brickshow/pc-anatomy" target="_blank" rel="noopener">PC Anatomy</a> under its repository license. <a href="MODEL_ATTRIBUTION.md">Model source notes</a>. Practice scoring does not replace teacher-observed competency assessment.</footer>
+</div>
 </div>
 <script>
 (function(){
