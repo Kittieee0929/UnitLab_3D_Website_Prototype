@@ -239,7 +239,7 @@ function mountPreassembledBoard(){
   mesh.rotation.set(0,0,0);mesh.scale.setScalar(1);mesh.visible=true;
  }
  cameraView([7.7,7.6,9.2],[1.6,-1.45,0]);
- drawStatus();highlights();
+ selectPart(sequence[state.step]||'psu');drawStatus();highlights();
 }
 function returnToRack(id){
  // The tray contains selectable GLB thumbnails; no scale-distorting 3D rack.
@@ -277,7 +277,7 @@ model.addEventListener('load',()=>loading.hidden=true);
 model.addEventListener('error',()=>{loading.hidden=false;loading.textContent=p.short+' (preview unavailable)'});
 const wrapper=document.createElement('span');wrapper.className='inventory-text';
 const title=document.createElement('b'),subtitle=document.createElement('small');
-title.textContent=p.name;subtitle.textContent='Select → install in 3D';
+title.textContent=p.name;subtitle.textContent='Select • place on highlighted target';
 wrapper.append(title,subtitle);button.append(icon,wrapper);
 button.addEventListener('click',()=>selectPart(p.id));button.addEventListener('dragstart',e=>{
 state.selected=p.id;inspect(p.id);active.dragged=p.id;
@@ -340,6 +340,14 @@ function highlights(){
 function install(id,slot){
  if(!byId[id]||state.submitted||state.mode==='disassembly')return;
  if(state.placed[id]===id)return;
+ if(id!=='motherboard'&&preassemblyIds.includes(id)&&state.placed.motherboard!=='motherboard'){
+  if(state.mode==='assembly')state.attempts.push({id,slot,kind:'out-of-sequence',time:Date.now()});
+  $('#stepInstruction').textContent='Place the motherboard on the ESD mat before installing its components.';return;
+ }
+ if(id==='cooler'&&state.placed.cpu!=='cpu'){
+  if(state.mode==='assembly')state.attempts.push({id,slot,kind:'out-of-sequence',time:Date.now()});
+  $('#stepInstruction').textContent='Install the CPU before attaching its cooler.';return;
+ }
  if(!state.boardMounted&&!preassemblyIds.includes(id)){
    if(state.mode==='assembly')state.attempts.push({id,slot,kind:'out-of-sequence',time:Date.now()});
    $('#stepInstruction').textContent='Prepare the motherboard with CPU, RAM, NVMe SSD and cooler first. Then use Move motherboard into case.';
@@ -359,7 +367,7 @@ function install(id,slot){
    state.placed[id]=slot;
    state.step=sequence.filter(p=>state.placed[p]===p).length;
  }
- markInstalled(id,slot);selectPart(id);drawStatus();highlights();
+ markInstalled(id,slot);selectPart(state.mode==='tutorial'?(sequence[state.step]||id):id);drawStatus();highlights();
  if(state.mode==='tutorial'&&state.step===1)cameraView([2.1,8.3,8.3],[-3.55,-2.2,-.15]);
  if(state.mode==='tutorial'&&state.step===5)cameraView([7.4,8.2,11.2],[-.5,-1.65,0]);
 }
