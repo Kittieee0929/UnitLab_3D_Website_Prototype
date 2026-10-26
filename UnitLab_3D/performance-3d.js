@@ -32,16 +32,30 @@ try{
  controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.minDistance=6.0;controls.maxDistance=20;controls.maxPolarAngle=Math.PI*.85;controls.target.set(-.95,0,0);
  loader=new GLTFLoader();
 }catch(e){$('#stageStatus').innerHTML='<strong>3D unavailable</strong><p>WebGL failed. Use the lightweight workbench instead.</p><a class="btn" href="training.html">Open fallback</a>';throw e}
-scene.add(new THREE.HemisphereLight(0xe2f5ff,0x263647,2.7));
-const sun=new THREE.DirectionalLight(0xffffff,2.9);sun.position.set(5,8,8);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-9;sun.shadow.camera.right=9;sun.shadow.camera.top=9;sun.shadow.camera.bottom=-9;scene.add(sun);
-const glow=new THREE.PointLight(0x43ccdf,37,10);glow.position.set(-3,2,3);scene.add(glow);
-const pink=new THREE.PointLight(0xaf70d3,28,10);pink.position.set(3,1,-2);scene.add(pink);
-const ground=new THREE.Mesh(new THREE.PlaneGeometry(120,120),new THREE.MeshStandardMaterial({color:0x0a1b27,roughness:.81}));
+scene.add(new THREE.HemisphereLight(0xe7eff5,0x303642,2.25));
+const sun=new THREE.DirectionalLight(0xffffff,3.1);sun.position.set(5,8,8);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-9;sun.shadow.camera.right=9;sun.shadow.camera.top=9;sun.shadow.camera.bottom=-9;scene.add(sun);
+const glow=new THREE.PointLight(0x75e6ce,20,11);glow.position.set(-3,2,3);scene.add(glow);
+const pink=new THREE.PointLight(0xaec3f3,10,10);pink.position.set(3,1,-2);scene.add(pink);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(120,120),new THREE.MeshStandardMaterial({color:0x1b2530,roughness:.95}));
 ground.rotation.x=-Math.PI/2;ground.position.y=-2.57;ground.receiveShadow=true;scene.add(ground);
-const grid=new THREE.GridHelper(32,44,0x325469,0x163144);grid.position.y=-2.555;scene.add(grid);
-const steel=new THREE.MeshStandardMaterial({color:0x223948,metalness:.72,roughness:.36}),dark=new THREE.MeshStandardMaterial({color:0x112431,metalness:.68,roughness:.46}),circuit=new THREE.MeshStandardMaterial({color:0x1e4e56,metalness:.37,roughness:.58});
+const grid=new THREE.GridHelper(32,44,0x4c646e,0x293943);grid.position.y=-2.55;grid.material.opacity=.21;grid.material.transparent=true;scene.add(grid);
+const steel=new THREE.MeshStandardMaterial({color:0x454c53,metalness:.78,roughness:.35}),dark=new THREE.MeshStandardMaterial({color:0x161c22,metalness:.64,roughness:.49}),circuit=new THREE.MeshStandardMaterial({color:0x2c3c38,metalness:.40,roughness:.7});
+const bench=new THREE.Group();scene.add(bench);
+const maple=new THREE.MeshStandardMaterial({color:0x78685a,roughness:.86});
+const matMaterial=new THREE.MeshStandardMaterial({color:0x174449,roughness:.92,metalness:.03});
+const rubber=new THREE.MeshStandardMaterial({color:0x222a30,metalness:.06,roughness:.96});
 const rig=new THREE.Group();scene.add(rig);
 function box(parent,dim,xyz,material){const obj=new THREE.Mesh(new THREE.BoxGeometry(...dim),material);obj.position.set(...xyz);obj.castShadow=true;obj.receiveShadow=true;parent.add(obj);return obj}
+// Service bench and anti-static mat: modeled work surface, not an imported SKU asset.
+box(bench,[15.5,.22,7],[-1.25,-2.79,0],maple);
+box(bench,[15.5,.10,.20],[-1.25,-2.93,3.4],dark);
+for(const x of [-7.8,5.2])for(const z of [-2.65,2.75])box(bench,[.20,1.10,.22],[x,-3.4,z],steel);
+box(bench,[3.6,.028,2.70],[-4.25,-2.65,.13],matMaterial);
+box(bench,[3.68,.024,.05],[-4.25,-2.62,1.47],rubber);
+box(bench,[3.68,.024,.05],[-4.25,-2.62,-1.21],rubber);
+box(bench,[.05,.024,2.70],[-6.08,-2.62,.13],rubber);
+box(bench,[.05,.024,2.70],[-2.42,-2.62,.13],rubber);
+const workLamp=new THREE.PointLight(0xfff2df,11,7);workLamp.position.set(-4,3.25,2.9);scene.add(workLamp);
 box(rig,[3.65,4.92,.12],[0,0,-1.16],steel);
 box(rig,[.13,4.92,2.55],[-1.82,0,-.07],dark);
 box(rig,[.13,4.92,2.55],[1.82,0,-.07],steel);
@@ -54,7 +68,7 @@ const panelGlass=box(rig,[3.55,4.68,.02],[0,0,1.25],new THREE.MeshPhysicalMateri
 panelGlass.visible=false;panelGlass.castShadow=false;
 const fans=[];
 function makeFan(pos,r,i){const group=new THREE.Group();group.position.set(...pos);rig.add(group);
-const ring=new THREE.Mesh(new THREE.TorusGeometry(r,.045,10,36),new THREE.MeshBasicMaterial({color:0x6ff0da}));group.add(ring);
+const ring=new THREE.Mesh(new THREE.TorusGeometry(r,.028,12,56),new THREE.MeshStandardMaterial({color:0x8dd7c7,emissive:0x163f35,emissiveIntensity:.6,metalness:.22,roughness:.32}));group.add(ring);
 const rotor=new THREE.Group();group.add(rotor);
 for(let n=0;n<7;n++){const blade=box(rotor,[.14,r*.9,.05],[0,r*.27,0],steel);blade.rotation.z=n*2*Math.PI/7}
 fans.push({rotor,ring,i})}
@@ -78,7 +92,7 @@ const promise=new Promise((resolve,reject)=>loader.load(p.url,glb=>resolve(glb.s
 assetCache.set(p.id,promise);return promise;
 }
 function placeholder(p){
-const holder=new THREE.Group();box(holder,p.dims,[0,0,0],new THREE.MeshStandardMaterial({color:0x3e7f92,metalness:.66,roughness:.4}));
+const holder=new THREE.Group();box(holder,p.dims,[0,0,0],new THREE.MeshStandardMaterial({color:0x42606b,wireframe:true,transparent:true,opacity:.27,metalness:.1,roughness:.9}));
 return holder;
 }
 function normalize(model,dim,id){
@@ -358,11 +372,14 @@ $('#resetScene').addEventListener('click',()=>reset(state.mode));$('#submitBtn')
 $('#hints').addEventListener('change',e=>{state.hints=e.target.checked;highlights()});
 $('#glass').addEventListener('change',e=>panelGlass.visible=e.target.checked);
 $('#rgb').addEventListener('change',e=>fans.forEach(f=>f.ring.visible=e.target.checked));
-$('#resetCamera').addEventListener('click',()=>{camera.position.set(7.0,3.8,11.7);controls.target.set(-.95,0,0);controls.update()});
+function cameraView(pos,target){camera.position.set(...pos);controls.target.set(...target);controls.update()}
+$('#resetCamera').addEventListener('click',()=>cameraView([7.0,3.8,11.7],[-.95,0,0]));
+$('#focusMotherboard').addEventListener('click',()=>cameraView([-1.2,1.4,5.4],[-.5,.35,-.40]));
+$('#focusCase').addEventListener('click',()=>cameraView([6.9,3.8,9.2],[.0,0,0]));
 function resize(){const r=canvas.getBoundingClientRect(),w=Math.floor(r.width),h=Math.floor(r.height),pixel=renderer.getPixelRatio();
 if(w>0&&h>0&&(canvas.width!==Math.floor(w*pixel)||canvas.height!==Math.floor(h*pixel))){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}}
-const clock=new THREE.Clock();
-function frame(){requestAnimationFrame(frame);resize();controls.update();const t=clock.getElapsedTime();for(const f of fans)if($('#rgb').checked){f.rotor.rotation.z+=.08;f.ring.material.color.setHSL((t*.11+f.i*.23)%1,.95,.61)}renderer.render(scene,camera)}
-renderShelf();reset('tutorial');requestAnimationFrame(frame);$('#stageStatus').hidden=true;status();
+function frame(){requestAnimationFrame(frame);resize();controls.update();for(const f of fans)if($('#rgb').checked)f.rotor.rotation.z+=.016;renderer.render(scene,camera)}
+renderShelf();reset('tutorial');requestAnimationFrame(frame);status();
+const assetMonitor=setInterval(()=>{if(active.loading!==0)return;clearInterval(assetMonitor);if(active.failed){$('#stageStatus').innerHTML='<strong>Some detailed 3D meshes failed to load</strong><p>Outlined forms are temporary fallbacks, not realistic hardware. Reconnect and restart to load licensed GLB models.</p>';}else{$('#stageStatus').hidden=true;}},450);
 window.dispatchEvent(new Event('unitlab3d:performance-ready'));
 // Real hardware meshes load asynchronously into the visible left-hand 3D rack at startup.
