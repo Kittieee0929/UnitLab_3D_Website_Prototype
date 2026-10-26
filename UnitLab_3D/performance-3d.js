@@ -262,7 +262,7 @@ const shelves=$('#shelves');shelves.replaceChildren();const groups=new Map();
 for(const p of parts){if(!groups.has(p.category))groups.set(p.category,[]);groups.get(p.category).push(p)}
 for(const [cat,members] of groups){const container=document.createElement('div');container.className='shelf';const head=document.createElement('div');head.className='shelf-name';head.textContent=cat;container.appendChild(head);
 for(const p of members){
-const button=document.createElement('button');button.className='inventory';button.dataset.part=p.id;button.type='button';button.draggable=true;
+const button=document.createElement('button');button.className='inventory';button.setAttribute('aria-label','Select '+p.name+' for assembly');button.dataset.part=p.id;button.type='button';button.draggable=true;
 const icon=document.createElement('span');icon.className='inventory-icon';
 const model=document.createElement('model-viewer');
 model.setAttribute('src',p.url);model.setAttribute('alt','Actual 3D model of '+p.name);
@@ -277,7 +277,7 @@ model.addEventListener('load',()=>loading.hidden=true);
 model.addEventListener('error',()=>{loading.hidden=false;loading.textContent=p.short+' (preview unavailable)'});
 const wrapper=document.createElement('span');wrapper.className='inventory-text';
 const title=document.createElement('b'),subtitle=document.createElement('small');
-title.textContent=p.name;subtitle.textContent='Drag this 3D model → PC case';
+title.textContent=p.name;subtitle.textContent='Select → install in 3D';
 wrapper.append(title,subtitle);button.append(icon,wrapper);
 button.addEventListener('click',()=>selectPart(p.id));button.addEventListener('dragstart',e=>{
 state.selected=p.id;inspect(p.id);active.dragged=p.id;
@@ -323,60 +323,89 @@ for(const hit of hits){let o=hit.object;while(o&&!o.userData.partId)o=o.parent;i
 return null;
 }
 function highlights(){
-for(const p of parts){
-const ghost=slots.get(p.id),isGuide=state.mode==='tutorial'&&state.hints&&sequence[state.step]===p.id;
-ghost.position.set(...activeZone(p));ghost.rotation.x=inPreassembly(p.id)?-Math.PI/2:0;
-ghost.material.opacity=isGuide?.48:state.mode==='tutorial'?.08:.012;ghost.material.color.set(isGuide?0x72f4c8:0x799cac);
-ghost.scale.setScalar(isGuide?1.18:1);
-}
-$('#hoverName').textContent=state.mode==='tutorial'&&state.hover&&byId[state.hover]?'Mount: '+byId[state.hover].name:'3D assembly workstation';
+ const next=sequence[state.step],focus=state.selected||(state.mode==='tutorial'?next:null);
+ for(const p of parts){
+   const target=slots.get(p.id);
+   const guideTarget=state.mode==='tutorial'?next===p.id:focus===p.id;
+   const already=state.mode==='disassembly'?state.removed.has(p.id):state.placed[p.id]===p.id;
+   target.visible=guideTarget&&!already&&(!state.submitted);
+   target.position.set(...activeZone(p));
+   target.rotation.x=inPreassembly(p.id)?-Math.PI/2:rig.rotation.x;
+   target.material.opacity=state.mode==='tutorial'&&state.hints?.78:.53;
+   target.material.color.set(guideTarget?0x87fae0:0x8ecbd8);
+   target.scale.setScalar(guideTarget?1.08:1);
+ }
+ $('#hoverName').textContent=focus&&byId[focus]?'Selected: '+byId[focus].name+' · Click the highlighted target to install':'Rotate the desk · Scroll to zoom · Select parts from the tray';
 }
 function install(id,slot){
-if(!byId[id]||state.submitted||state.mode==='disassembly')return;
-if(state.mode==='tutorial'){
-if(state.step>=5&&!state.boardMounted){$('#stepInstruction').textContent='First move your populated motherboard from the antistatic mat into the case using the Mount motherboard button.';returnToRack(id);return}
-const expected=sequence[state.step];
-if(id!==expected||slot!==id){$('#stepInstruction').textContent='Follow the glowing part and its matching slot. The next item is '+byId[expected]?.name+'.';returnToRack(id);return}
-state.placed[id]=slot;state.step++;
-}else{
-const expected=sequence.find(p=>state.placed[p]!==p);
-const kind=slot!==id?'wrong-slot':expected!==id?'out-of-sequence':'correct';
-state.attempts.push({id,slot,kind,time:Date.now()});
-state.placed[id]=slot;state.step=sequence.filter(p=>state.placed[p]===p).length;
-}
-markInstalled(id,slot);selectPart(id);drawStatus();highlights();
-if(state.mode==='tutorial'&&state.step===1)cameraView([-3.55,1.4,6.5],[-4.25,-2.26,.10]);
-if(state.mode==='tutorial'&&state.step===5)cameraView([7.0,3.8,11.7],[-.95,0,0]);
+ if(!byId[id]||state.submitted||state.mode==='disassembly')return;
+ if(state.placed[id]===id)return;
+ if(!state.boardMounted&&!preassemblyIds.includes(id)){
+   if(state.mode==='assembly')state.attempts.push({id,slot,kind:'out-of-sequence',time:Date.now()});
+   $('#stepInstruction').textContent='Prepare the motherboard with CPU, RAM, NVMe SSD and cooler first. Then use Move motherboard into case.';
+   return;
+ }
+ if(state.mode==='tutorial'){
+   const expected=sequence[state.step];
+   if(id!==expected||slot!==id){
+     $('#stepInstruction').textContent='Next part: '+(byId[expected]?.name||'complete')+'. Select it from the Parts Tray, then click the indicated mounting ring.';
+     return;
+   }
+   state.placed[id]=slot;state.step++;
+ }else{
+   const expected=sequence.find(p=>state.placed[p]!==p);
+   const kind=slot!==id?'wrong-slot':expected!==id?'out-of-sequence':'correct';
+   state.attempts.push({id,slot,kind,time:Date.now()});
+   state.placed[id]=slot;
+   state.step=sequence.filter(p=>state.placed[p]===p).length;
+ }
+ markInstalled(id,slot);selectPart(id);drawStatus();highlights();
+ if(state.mode==='tutorial'&&state.step===1)cameraView([2.1,8.3,8.3],[-3.55,-2.2,-.15]);
+ if(state.mode==='tutorial'&&state.step===5)cameraView([7.4,8.2,11.2],[-.5,-1.65,0]);
 }
 function remove(id){
-if(state.mode!=='disassembly'||state.submitted||!byId[id]||state.removed.has(id))return;
-const expected=reverse.find(p=>!state.removed.has(p));
-state.attempts.push({id,slot:'tray',kind:id===expected?'correct':'out-of-sequence',time:Date.now()});
-state.removed.add(id);returnToRack(id);
-state.step=state.removed.size;selectPart(id);drawStatus();
+ if(state.mode!=='disassembly'||state.submitted||!byId[id]||state.removed.has(id))return;
+ const expected=reverse.find(p=>!state.removed.has(p));
+ state.attempts.push({id,slot:'tray',kind:id===expected?'correct':'out-of-sequence',time:Date.now()});
+ state.removed.add(id);returnToRack(id);
+ state.step=state.removed.size;selectPart(id);drawStatus();highlights();
 }
 function drawStatus(){
-const done=state.mode==='disassembly'?state.removed.size:sequence.filter(id=>state.placed[id]===id).length;
-$('#modeLabel').textContent={tutorial:'◉ GUIDED ASSEMBLY',assembly:'◉ ASSEMBLY PERFORMANCE',disassembly:'◉ DISASSEMBLY PERFORMANCE'}[state.mode];
-$('#modeKicker').textContent=state.mode==='tutorial'?'GUIDED TRAINING':'INDEPENDENT PERFORMANCE';
-$('#progressFill').style.width=(done/sequence.length*100)+'%';
-$('#progressText').textContent=done+' / '+sequence.length+' '+(state.mode==='disassembly'?'components removed':'components correctly installed');
-$('#hints').disabled=state.mode!=='tutorial';$('#hints').checked=state.mode==='tutorial'&&state.hints;
-$('#stepNumber').textContent=state.mode==='tutorial'&&state.step>=5&&!state.boardMounted?'BOARD INSTALLATION':'STEP '+Math.min(state.step+1,sequence.length)+' / '+sequence.length;
-if(state.mode==='tutorial'){
-const next=byId[sequence[state.step]];$('#stepHeading').textContent=state.step>=5&&!state.boardMounted?'Mount your prepared motherboard':next?'Follow the placement guide':'Guided build finished';
-$('#stepInstruction').textContent=state.step>=5&&!state.boardMounted
- ?'The CPU, RAM, SSD and cooler are prepared on the anti-static mat. Mount the complete motherboard inside the case before installing the PSU and graphics card.'
- :(next?'Drag '+next.name+' from the cabinet to the glowing '+(inPreassembly(next.id)?'anti-static mat':'case')+' target.':'You completed the guided build. Choose an independent test to assess your performance.');
-}else{
-$('#stepHeading').textContent=state.mode==='assembly'?'Build without a trail':'Disassemble without a trail';
-$('#stepInstruction').textContent=state.submitted?'See your assessment checklist below.':'Carry out the build on your own. Wrong slots and ordering errors are counted but NOT corrected or disclosed during the test.';
-}
-$('#removeTray').hidden=state.mode!=='disassembly';
-$('#mountBoardBtn').hidden=!(state.mode==='tutorial'&&state.step>=5&&!state.boardMounted);
-$('#submitBtn').hidden=state.mode==='tutorial'||state.submitted;
-$('#againBtn').hidden=!state.submitted;$('#csvBtn').hidden=!state.submitted;
-renderShelfStyles();
+ const done=state.mode==='disassembly'?state.removed.size:sequence.filter(id=>state.placed[id]===id).length;
+ $('#modeLabel').textContent={tutorial:'GUIDED ASSEMBLY',assembly:'FREE ASSEMBLY',disassembly:'DISASSEMBLY'}[state.mode];
+ $('#modeKicker').textContent=state.mode==='tutorial'?'STEP-BY-STEP INSTRUCTIONS':state.mode==='assembly'?'INDEPENDENT ASSEMBLY':'INDEPENDENT DISASSEMBLY';
+ $('#progressFill').style.width=(done/sequence.length*100)+'%';
+ $('#progressText').textContent=done+' of '+sequence.length+(state.mode==='disassembly'?' components removed':' components installed');
+ $('#hints').disabled=state.mode!=='tutorial';
+ $('#hints').checked=state.mode==='tutorial'&&state.hints;
+ const atMount=state.mode!=='disassembly'&&!state.boardMounted&&boardIsPrepared();
+ const next=state.mode==='disassembly'?byId[reverse.find(x=>!state.removed.has(x))]:byId[sequence[state.step]];
+ const stepIdx=Math.min(done+1,sequence.length);
+ $('#stepNumber').textContent=atMount?'MOTHERBOARD MOUNT':stepIdx+' / '+sequence.length;
+ if(atMount){
+   $('#stepHeading').textContent='Install the prepared motherboard';
+   $('#stepInstruction').textContent='The CPU, RAM, NVMe SSD and cooler are ready. Move the assembled motherboard from the ESD mat into the horizontal case, aligned to the standoffs.';
+ }else if(state.mode==='tutorial'){
+   $('#stepHeading').textContent=next?({motherboard:'Prepare the motherboard',cpu:'Install the CPU',ram:'Seat the RAM sticks',storage:'Fit the NVMe SSD',cooler:'Install CPU cooling',psu:'Install the power supply',gpu:'Install the graphics card',casefans:'Install case fans'}[next.id]):'Guided assembly complete';
+   $('#stepInstruction').textContent=next?('Select '+next.name+' from the Parts Tray. Place it onto the highlighted '+(inPreassembly(next.id)?'ESD-mat / motherboard':'PC case')+' mounting area. '+next.safety):'All eight component groups are installed. You can restart or try Free Assembly.';
+ }else if(state.mode==='disassembly'){
+   $('#stepHeading').textContent=next?'Remove '+next.name:'Disassembly complete';
+   $('#stepInstruction').textContent=next?'Select the component, then tap the Removed Parts Tray to take it out. Work from external case parts inward. Mistakes in the order are recorded only in your local practice log.':'You have removed every modeled component.';
+ }else{
+   $('#stepHeading').textContent='Assemble without hints';
+   $('#stepInstruction').textContent=state.submitted?'Review your local practice result below.':'Prepare parts on the ESD mat, mount the completed motherboard, then install the remaining case components. Hardware selection and order errors are recorded for formative feedback.';
+ }
+ const readyToMount=atMount;
+ $('#mountBoardBtn').hidden=!readyToMount;
+ $('#removeTray').hidden=state.mode!=='disassembly';
+ $('#submitBtn').hidden=state.mode==='tutorial'||state.submitted;
+ $('#againBtn').hidden=!state.submitted;
+ $('#csvBtn').hidden=!state.submitted;
+ $('#stepBackBtn').disabled=done===0;
+ $('#stepNextBtn').disabled=done>=sequence.length;
+ $('#stepNextBtn').textContent=atMount?'Show motherboard placement →':state.mode==='disassembly'?'Show removal target →':'Show installation target →';
+ renderShelfStyles();
+ highlights();
 }
 function report(){
 const rows=parts.map(p=>{
@@ -402,14 +431,19 @@ const text='\ufeff'+csvRows.map(row=>row.map(a=>'"'+String(a??'').replaceAll('"'
 const url=URL.createObjectURL(new Blob([text],{type:'text/csv'})),link=document.createElement('a');link.href=url;link.download='UnitLab3D_'+r.mode+'_performance.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function reset(mode){
-state.mode=mode;state.step=0;state.selected=null;state.placed={};state.boardMounted=false;state.removed.clear();state.attempts=[];state.submitted=false;state.report=null;$('#result').replaceChildren();
-$$('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
-for(const p of parts){
- const mesh=ensureMesh(p.id);
- if(mode==='disassembly'){mesh.position.set(...p.pos);mesh.scale.setScalar(1);mesh.visible=true;state.placed[p.id]=p.id;if(p.id==='ram')updateRam()}
- else returnToRack(p.id);
-}
-selectPart(mode==='disassembly'?'gpu':'motherboard');drawStatus();highlights();
+ state.mode=mode;state.step=0;state.selected=null;state.placed={};state.boardMounted=mode==='disassembly';state.removed.clear();
+ state.attempts=[];state.submitted=false;state.report=null;state.hover=null;
+ $('#result').replaceChildren();
+ $$('[data-mode]').forEach(b=>{const selected=b.dataset.mode===mode;b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected))});
+ for(const p of parts){
+   const mesh=ensureMesh(p.id);
+   if(mode==='disassembly'){
+     state.placed[p.id]=p.id;markInstalled(p.id,p.id);
+   }else returnToRack(p.id);
+ }
+ selectPart(mode==='disassembly'?'casefans':'motherboard');
+ drawStatus();
+ cameraView([7.5,7.3,12.4],[-.35,-1.6,-.1]);
 }
 const stage=$('#stage'),tray=$('#removeTray');
 stage.addEventListener('dragover',e=>{e.preventDefault();if(state.mode==='disassembly')return;state.hover=nearestZone(e);highlights()});
