@@ -6,14 +6,14 @@ const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll
 const canvas=$('#assemblyCanvas');
 const upstream='https://raw.githubusercontent.com/brickshow/pc-anatomy/main/public/models/';
 const specs=[
-['motherboard','Motherboard','MB','01 · CORE HARDWARE','motherboard.glb',[2.46,2.88,.20],[-.3,.40,-.56],[-1.32,.41,.08],'Connects the processor, RAM, GPU, storage and power connections. Align standoffs and board form factor.','Isolate mains power and use an approved ESD-safe workspace.'],
-['cpu','Processor / CPU','CPU','01 · CORE HARDWARE','cpu.glb',[.68,.65,.23],[-.71,1.10,-.20],[-.89,1.28,.42],'A socketed processor performs computation. Match its socket and firmware requirements.','Align the processor with socket markings; never force it.'],
-['cooler','CPU Cooler','FAN','01 · CORE HARDWARE','cpu_fan.glb',[1.00,1.0,.66],[-.71,1.02,.16],[-.69,.65,.70],'The cooler removes CPU heat through a heatsink and fan or radiator.','Apply the correct mounting kit and fan/pump connection.'],
-['ram','RAM DIMM Kit','RAM','02 · MEMORY & STORAGE','ram.glb',[.11,1.25,.12],[.56,1.03,-.24],[.96,1.08,.45],'Memory kit: configure two or four DIMM sticks in the PC Builder.','Use the correct DDR generation and recommended slots.'],
-['storage','M.2 NVMe SSD','SSD','02 · MEMORY & STORAGE','m.2.glb',[.73,.19,.11],[-.82,-.37,-.26],[-1.10,-.45,.50],'Nonvolatile storage for your operating system and files.','Insert the drive at the instructed angle and secure the retainer.'],
-['psu','Power Supply','PSU','03 · POWER & GRAPHICS','psu.glb',[1.15,.73,1.03],[.54,-1.76,-.22],[.94,-1.79,.68],'The PSU converts mains electricity into DC power used by the computer.','Never open the PSU housing. Disconnect power before cabling.'],
-['gpu','Graphics Card','GPU','03 · POWER & GRAPHICS','gpu.glb',[2.16,.60,.63],[-.10,-.82,.38],[-.06,-1.01,.99],'The GPU provides graphics acceleration and may require dedicated power cables.','Support the card; release PCIe latch before removal.'],
-['casefans','Case Cooling Fans','FANS','04 · COOLING & AIRFLOW','case_fans.glb',[.92,2.75,.38],[1.31,.02,.89],[1.37,.03,.98],'Real 3D case-fan assembly demonstrating airflow management and fan header planning.','Check airflow arrows and connect fan leads to the correct headers.']
+['motherboard','Motherboard','MB','01 · CORE HARDWARE','motherboard.glb',[2.58,2.80,.12],[-.40,.35,-.83],[-.40,.35,-.83],'Main circuit board. CPU, DIMMs, M.2 drive and cables connect here. A full ATX board is roughly 305 × 244 mm in real life.','Work on an ESD-safe mat; keep the computer unplugged.'],
+['cpu','Processor / CPU','CPU','01 · CORE HARDWARE','cpu.glb',[.46,.46,.065],[-.76,.92,-.65],[-.76,.92,-.65],'Socketed processor. About 40 mm across on a full-size desktop CPU, far smaller than the motherboard.','Align the corner marker and socket. Never force a processor into place.'],
+['ram','RAM DIMM Kit','RAM','02 · MEMORY & STORAGE','ram.glb',[.13,1.20,.30],[.68,.82,-.57],[.68,.82,-.57],'Memory modules slide into motherboard DIMM slots. Install in the board manufacturer’s recommended slots.','Use the correct DDR generation and make sure retention clips engage.'],
+['storage','M.2 NVMe SSD','SSD','02 · MEMORY & STORAGE','m.2.glb',[.78,.24,.05],[-.81,-.43,-.66],[-.81,-.43,-.66],'Small NVMe SSD installed in an M.2 slot. Typical M.2 2280 drives are about 80 mm long.','Insert at the supported angle and secure with the correct standoff or latch.'],
+['cooler','CPU Cooler','FAN','04 · COOLING & AIRFLOW','cpu_fan.glb',[.88,.88,.66],[-.76,.92,-.33],[-.76,.92,-.33],'Heatsink and fan assembly. Mount it over the CPU and connect the CPU_FAN cable.','Use the correct mounting hardware and thermal interface.'],
+['psu','Power Supply','PSU','03 · POWER & GRAPHICS','psu.glb',[1.15,.85,1.0],[.97,-1.79,-.54],[.97,-1.79,-.54],'ATX power supply that powers motherboard, CPU, GPU, fans and drives.','Never open the PSU casing. Disconnect power when cabling.'],
+['gpu','Graphics Card','GPU','03 · POWER & GRAPHICS','gpu.glb',[2.22,.58,.52],[-.05,-.88,-.42],[-.05,-.88,-.42],'Graphics card slides into the motherboard PCIe x16 slot and locks into the case bracket.','Check GPU and PCIe power connections, slot latch and card clearance.'],
+['casefans','Case Cooling Fans','FANS','04 · COOLING & AIRFLOW','case_fans.glb',[.85,2.68,.34],[1.43,.03,-.45],[1.43,.03,-.45],'Fan assembly mounts to the case with airflow direction and fan-header requirements.','Match airflow arrows and avoid mixing incompatible RGB headers.']
 ];
 const parts=specs.map(([id,name,short,category,filename,dims,pos,zone,desc,safety])=>({
  id,name,short,category,filename,dims,pos,zone,desc,safety,
@@ -135,11 +135,13 @@ let orientation='landscape';
 rig.rotation.x=orientationAngles.landscape;
 const taskLight=new THREE.PointLight(0xffdfa5,42,11);taskLight.position.set(-4,4,1.8);scene.add(taskLight);
 const studioFill=new THREE.PointLight(0xe4f5ff,24,14);studioFill.position.set(4,5,4);scene.add(studioFill);
+/* True top-surface target rings; the learner can drag or click the intended location. */
 const slots=new Map();
 for(const p of parts){
-const [w,h]=p.id==='motherboard'?[1.02,1.78]:p.id==='gpu'?[1.20,.42]:p.id==='ram'?[.35,.91]:p.id==='psu'?[.90,.45]:p.id==='storage'?[.56,.23]:p.id==='cooler'?[.81,.83]:p.id==='casefans'?[1.05,2.2]:[.45,.46];
-const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:0x76aabb,opacity:.035,transparent:true,depthWrite:false,side:THREE.DoubleSide}));
-m.position.set(...p.zone);scene.add(m);slots.set(p.id,m);
+ const size=p.id==='motherboard'?.43:p.id==='casefans'?.28:.20;
+ const ring=new THREE.Mesh(new THREE.RingGeometry(size*.72,size,56),
+   new THREE.MeshBasicMaterial({color:0x8df7dc,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide}));
+ ring.rotation.x=-Math.PI/2;ring.visible=false;scene.add(ring);slots.set(p.id,ring);
 }
 const assetCache=new Map(),meshes=new Map(),failure=new Set();
 const state={mode:'tutorial',step:0,selected:null,placed:{},boardMounted:false,removed:new Set(),attempts:[],submitted:false,hints:true,hover:null,visited:new Set(),report:null};
