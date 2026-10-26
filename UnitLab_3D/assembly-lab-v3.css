@@ -170,3 +170,24 @@ html.embedded .lab-v3{padding:8px}
 .lab-v3 .inventory .inventory-icon model-viewer{pointer-events:none}
 .lab-v3 .inventory[hidden]{display:none!important}
 .lab-v3 .guide-attention{box-shadow:0 0 0 3px #f3d591!important}
+
+
+/* Resilient loading: thumbnails are low-cost category labels. The genuine
+   GLB is imported into the workbench only after the user selects a component. */
+.lab-v3 .inventory .inventory-icon{display:grid;place-items:center;min-height:88px;height:88px}
+.lab-v3 .inventory .inventory-icon .hardware-glyph{
+ display:flex;align-items:center;justify-content:center;
+ width:60px;height:60px;border-radius:13px;background:linear-gradient(145deg,#255a63,#133444);
+ border:1px solid #4e9e9c;color:#d2fff3;font:800 14px/1.15 Inter,system-ui,sans-serif;
+ letter-spacing:.06em;box-shadow:0 5px 14px #03121a33;
+}
+.lab-v3 .inventory[data-part="motherboard"] .hardware-glyph{width:64px;height:62px;border-radius:7px;background:repeating-linear-gradient(35deg,#134d47,#134d47 9px,#226c61 10px,#226c61 12px)}
+.lab-v3 .inventory[data-part="cpu"] .hardware-glyph{width:51px;height:51px;border-radius:6px;background:#a1b5b9;color:#16323d;border:5px solid #596e75}
+.lab-v3 .inventory[data-part="ram"] .hardware-glyph{width:77px;height:26px;border-radius:4px;background:#296b52;border:2px solid #4bb58a}
+.lab-v3 .inventory[data-part="storage"] .hardware-glyph{width:73px;height:21px;border-radius:3px;background:#276f59}
+.lab-v3 .inventory[data-part="gpu"] .hardware-glyph{width:83px;height:39px;border-radius:7px;background:#333f4b;border:2px solid #6d8b8f}
+.lab-v3 .inventory[data-part="casefans"] .hardware-glyph{border-radius:50%;border:6px double #7fbdbe}
+.lab-v3 .mesh-notice:not([hidden]){display:block;border:1px solid #d69e6e;border-radius:9px;padding:10px 13px;margin:0 0 14px;color:#ffe9cc;background:#543929;font-size:13px;line-height:1.55}
+.lab-v3 .mesh-notice[hidden]{display:none}
+.lab-v3 .stage-status .btn{margin-top:12px;min-height:44px}
+.lab-v3 .stage-status[hidden]{display:none!important}
