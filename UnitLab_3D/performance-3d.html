@@ -20,7 +20,7 @@ footer{font-size:11px;color:#8ca9b5;margin:21px 0;line-height:1.65}.warn-note{ba
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script>
 <style>.resource-return-nav{display:flex;gap:8px;align-items:center;justify-content:flex-start;flex-wrap:wrap;background:#123443;border:1px solid #3b6574;border-radius:13px;padding:10px 12px;margin:0 0 16px}.resource-return-nav a{display:inline-block;color:#c8fbf2!important;border:1px solid #356274;border-radius:9px;text-decoration:none;padding:8px 11px;font:700 12px system-ui;background:#0a2636}.resource-return-nav a:hover{background:#275563}</style><style>
 html.embedded .page{max-width:none;padding:10px}
-body.embedded header.top,body.embedded .resource-return-nav,body.embedded footer{display:none!important}
+html.embedded header.top,html.embedded .resource-return-nav,html.embedded footer{display:none!important}
 body.embedded .stage{height:min(76vh,730px);min-height:510px}
 .layout.fallback-open>:not(#inlineFallback){display:none!important}
 .layout.fallback-open{display:block}
@@ -46,7 +46,7 @@ body.embedded .stage{height:min(76vh,730px);min-height:510px}
 @media(max-width:830px){.inventory{grid-template-columns:80px minmax(0,1fr);min-height:87px}.inventory-icon{width:80px;height:70px}.stage-direction{bottom:52px;font-size:9px}}
 </style></head><body>
 <div class="page">
-<div class="resource-return-nav" role="navigation" aria-label="Learning Studio"><a href="academy.html#home">← Back to UnitLab</a></div>
+<div class="resource-return-nav" role="navigation" aria-label="Learning Studio"><a href="hub-v2.html">← Back to UnitLab</a></div>
 <header class="top"><div><div class="kicker">UNITLAB 3D / AUTHENTIC 3D HARDWARE PRACTICUM</div><h1>Assemble a PC. Prove you can.</h1><p class="sub">Real textured 3D hardware models, an interactive assembly bench, guided practice and independent performance grading. Rotate the workstation, drag parts from the cabinet, then reverse the build in disassembly mode.</p></div></header>
 <div class="modes"><div class="mode-options" role="group" aria-label="Select training mode"><button type="button" class="btn active" data-mode="tutorial">01 · Guided Build</button><button type="button" class="btn" data-mode="assembly">02 · Performance Build</button><button type="button" class="btn" data-mode="disassembly">03 · Disassembly Test</button></div><div class="badge" id="student">Guest · local demonstration</div></div>
 <div class="layout">
@@ -92,4 +92,28 @@ setTimeout(()=>{if(!ready)showWorkingFallback('The graphics engine did not initi
 </script>
 <script type="module" src="performance-3d.js"></script>
 <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.3.1/model-viewer.min.js"></script>
+<script>
+/* Let the parent Learning Studio scroll the entire lab page, instead of nesting
+   a second scrollbar inside the 3D canvas iframe. No assessment data is sent. */
+(function(){
+  if (!new URLSearchParams(location.search).has("embedded")) return;
+  let previousHeight=0;
+  const reportHeight=()=>{
+    const node=document.querySelector(".page");
+    if(!node || window.parent===window) return;
+    const h=Math.ceil(node.getBoundingClientRect().height)+24;
+    if(Math.abs(h-previousHeight)<4)return;
+    previousHeight=h;
+    window.parent.postMessage({type:"unitlab3d:workbench-height",height:h},location.origin);
+  };
+  if("ResizeObserver" in window){
+    const observer=new ResizeObserver(reportHeight);
+    const node=document.querySelector(".page");
+    if(node)observer.observe(node);
+  }
+  window.addEventListener("load",reportHeight);
+  window.addEventListener("resize",reportHeight);
+  setTimeout(reportHeight,250);
+})();
+</script>
 </body></html>
