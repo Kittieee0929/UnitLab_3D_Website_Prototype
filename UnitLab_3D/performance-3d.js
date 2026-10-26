@@ -288,15 +288,18 @@ function socketWorld(id){
  return parent.localToWorld(new THREE.Vector3(...pose.position));
 }
 function startSnapTween(obj,partId,target,rotation,lift){
- const toPosition=new THREE.Vector3(...target);
- obj.position.copy(toPosition).add(new THREE.Vector3(0,0,lift));
- const fromPosition=obj.position.clone();
+ // Invariants FIRST: the component's transform is aligned to the receiver
+ // immediately. The optional animation only adjusts its visual scale/tilt.
+ // Browser frame throttling must never leave a CPU hovering above its socket.
+ obj.position.set(...target);
  const toRotation=new THREE.Quaternion().setFromEuler(new THREE.Euler(...rotation));
  const fromRotation=toRotation.clone();
- if(partId==='storage')fromRotation.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-.34));
+ if(partId==='storage')fromRotation.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-.30));
+ const fromScale=partId==='cpu'?.92:partId==='ram'?.89:.83;
+ obj.scale.setScalar(fromScale);
  obj.quaternion.copy(fromRotation);
- snapTweens.set(partId,{obj,fromPosition,toPosition,fromRotation,toRotation,
-   start:performance.now(),duration:650,ease:k=>1-Math.pow(1-k,3)});
+ snapTweens.set(partId,{obj,fromScale,toScale:1,fromRotation,toRotation,
+   start:performance.now(),duration:520,ease:k=>1-Math.pow(1-k,3)});
 }
 function beginBoardMount(){
  rig.attach(boardAssembly); // Preserve board + CPU + RAM + NVMe + cooler assembly as ONE object.
@@ -685,7 +688,9 @@ const previewPlaceholder=$('#previewPlaceholder');
  previewPlaceholder.hidden=false;
  previewPlaceholder.innerHTML=card?card.outerHTML:'Hardware preview loading';
  preview.style.display='none';
- preview.src=p.url;preview.alt='3D '+p.name;
+ // The 3D canvas itself already downloads the licensed GLB for inspection.
+ // Do not download the same large file a second time into model-viewer.
+ preview.removeAttribute('src');
 }
 function selectPart(id){
  if(!byId[id])return;
@@ -1101,6 +1106,7 @@ $('#focusCase').addEventListener('click',()=>cameraView([7.7,7.2,8.5],[2.28,-1.5
 function resize(){const r=canvas.getBoundingClientRect(),w=Math.floor(r.width),h=Math.floor(r.height),pixel=renderer.getPixelRatio();
 if(w>0&&h>0&&(canvas.width!==Math.floor(w*pixel)||canvas.height!==Math.floor(h*pixel))){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}}
 let firstSuccessfulFrame=false;
+let renderedFrames=0;
 function frame(){
  requestAnimationFrame(frame);
  try{
@@ -1115,7 +1121,10 @@ function frame(){
   for(const [key,tween] of Array.from(snapTweens.entries())){
     const k=Math.max(0,Math.min(1,(now-tween.start)/tween.duration));
     const t=tween.ease(k);
-    tween.obj.position.lerpVectors(tween.fromPosition,tween.toPosition,t);
+    if(tween.fromPosition&&tween.toPosition)
+      tween.obj.position.lerpVectors(tween.fromPosition,tween.toPosition,t);
+    if(tween.fromScale!==undefined)
+      tween.obj.scale.setScalar(tween.fromScale+(tween.toScale-tween.fromScale)*t);
     if(tween.fromRotation&&tween.toRotation)
       tween.obj.quaternion.slerpQuaternions(tween.fromRotation,tween.toRotation,t);
     if(k>=1){snapTweens.delete(key);tween.onComplete?.()}
@@ -1141,6 +1150,7 @@ function frame(){
     ring.quaternion.copy(socketParent(p.id).getWorldQuaternion(new THREE.Quaternion()));
   }
   controls.update();renderer.render(scene,camera);
+  renderedFrames++;
   if(!firstSuccessfulFrame){
     firstSuccessfulFrame=true;$('#stageStatus').hidden=true;
     window.dispatchEvent(new Event('unitlab3d:performance-ready'));
@@ -1167,7 +1177,7 @@ window.__unitlabQA={
  snapshot:()=>({
    mode:state.mode,step:state.step,placed:{...state.placed},
    boardMounted:state.boardMounted,removed:Array.from(state.removed),
-   loaded:active.loaded,pendingAnimations:Array.from(snapTweens.keys()),
+   loaded:active.loaded,pendingAnimations:Array.from(snapTweens.keys()),frames:renderedFrames,
    parentBoard:boardAssembly.parent===rig?'case':'mat'
  }),
  targetClient:id=>{
