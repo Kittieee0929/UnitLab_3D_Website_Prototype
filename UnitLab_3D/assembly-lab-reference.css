@@ -214,3 +214,19 @@ html.embedded .lab-v3 .lab-workflowbar{padding:10px 12px}
 .lab-v3 .guide-illustration{background:radial-gradient(ellipse at center,#26455a,#091a29)}
 .lab-v3 .scene-label{bottom:118px}
 @media(max-width:760px){.lab-v3 .guide-illustration .placeholder svg{max-height:210px}}
+
+/* Snap alignment and reverse-removal coaching */
+.lab-v3 .placement-feedback{
+ position:absolute;left:50%;transform:translateX(-50%);bottom:10px;z-index:11;
+ width:max-content;max-width:min(88%,610px);border:1px solid #48a8aa;
+ border-radius:9px;background:#082c3de8;padding:9px 14px;
+ color:#d3fcf5;font-size:12px;font-weight:700;text-align:center;
+ line-height:1.5;pointer-events:none;box-shadow:0 7px 20px #02131d8a;
+}
+.lab-v3 .removal-action{width:100%;margin:12px 0 0;padding:12px;font-size:14px}
+.lab-v3 .removal-action[hidden]{display:none!important}
+.lab-v3 .bench-controls{bottom:63px}
+.lab-v3 .scene-label{bottom:129px}
+@media(max-width:760px){
+ .lab-v3 .placement-feedback{position:relative;bottom:auto;left:auto;transform:none;width:100%;max-width:none;font-size:12px;border-radius:0}
+}
