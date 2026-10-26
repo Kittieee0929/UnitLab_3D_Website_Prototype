@@ -120,9 +120,11 @@ jobs:
                 await page.waitForTimeout(650);
                 pt=await page.evaluate(id=>window.__unitlabQA.targetClient(id),id);
               }
-              if(!pt.withinStage)throw new Error('Case socket offscreen: '+id);
+              if(!pt.withinStage)throw new Error('Case socket offscreen: '+id+' '+JSON.stringify(pt)+' '+JSON.stringify(await page.evaluate(()=>window.__unitlabQA.snapshot())));
               await page.mouse.click(pt.x,pt.y);
               await page.waitForTimeout(850);
+              const st=await page.evaluate(()=>window.__unitlabQA.snapshot());
+              console.log('CASE AFTER CLICK',id,JSON.stringify(st));
               const a=await page.evaluate(id=>window.__unitlabQA.anchors().find(x=>x.id===id),id);
               console.log('CASE CONNECTOR',id,JSON.stringify(a));
               if(a.distance>.085)throw new Error(id+' missed case connector');
