@@ -236,7 +236,7 @@ const CHASSIS_CONNECTORS={
  psu:{position:[.97,-1.79,-.54],rotation:[0,0,0]},
  casefans:{position:[1.43,.03,-.45],rotation:[0,0,0]}
 };
-const MAT_BOARD_LOCATION=[-3.65,-2.48,-.15];
+const MAT_BOARD_LOCATION=[-3.65,-2.61,-.15];
 const CASE_BOARD_LOCATION=[-.40,.35,-.83];
 const boardAssembly=new THREE.Group();
 boardAssembly.name='Motherboard assembly with real snap connectors';
