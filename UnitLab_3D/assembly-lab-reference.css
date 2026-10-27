@@ -1,0 +1,232 @@
+/* UnitLab 3D - visually focused assembly-lab layout.
+   This layer deliberately follows the supplied reference's hierarchy,
+   while retaining the live interactive Three.js viewport beneath. */
+:root{--lab-bg:#07151f;--lab-ink:#f3fafc;--lab-teal:#22dbe8;--lab-bd:#21475a}
+html,body{background:var(--lab-bg)}
+body{margin:0;font-family:Inter,"Segoe UI",system-ui,sans-serif;color:var(--lab-ink);font-size:15px}
+.lab-global-header{height:66px;display:flex;align-items:center;gap:24px;padding:0 27px;background:#061520;border-bottom:1px solid #174257;position:relative;z-index:70}
+.lab-global-brand{display:inline-flex;gap:12px;align-items:center;white-space:nowrap;color:white;text-decoration:none;padding-right:25px;border-right:1px solid #224354;flex:none}
+.lab-logo-mark{display:grid;place-items:center;width:43px;height:43px;color:#30f2ee;font-size:37px;line-height:1}
+.lab-global-brand strong{font-size:25px;font-weight:850;letter-spacing:-1.2px}
+.lab-global-brand em{font-style:normal;color:#0de0e6}
+.lab-global-links{display:flex;align-items:center;gap:10px;height:100%;margin-right:auto}
+.lab-global-links a{display:flex;align-items:center;justify-content:center;padding:4px 14px;height:100%;position:relative;text-decoration:none;color:#b7cbd8;font-size:14px;white-space:nowrap;font-weight:600}
+.lab-global-links a:hover{color:white}
+.lab-global-links a.is-active{color:#39ebed;font-weight:800}
+.lab-global-links a.is-active:after{content:"";height:3px;background:#27ebed;left:14px;right:14px;bottom:10px;position:absolute;border-radius:2px}
+.lab-global-right{display:flex;align-items:center;gap:17px;min-width:0}
+.lab-search{display:flex;align-items:center;gap:10px;height:40px;width:clamp(180px,22vw,350px);border-radius:9px;border:1px solid #31576d;padding:0 13px;background:#102333}
+.lab-search>span{font-size:27px;line-height:1;color:#e3eef2}
+.lab-search input{background:transparent;border:0;color:#eaf9fc;width:100%;min-width:0;outline:0;font-size:14px}
+.lab-search input::placeholder{color:#8fa9bb}
+.lab-search:focus-within{border-color:#31e8ea;box-shadow:0 0 0 2px #2ad9e426}
+.lab-user-pill{display:inline-flex;align-items:center;justify-content:center;min-width:65px;height:39px;padding:0 12px;color:#dceef2;background:#153146;border:1px solid #33596b;border-radius:21px;font-size:12px;white-space:nowrap;font-weight:750}
+.lab-app-shell{display:grid;grid-template-columns:94px minmax(0,1fr);width:100%;min-height:calc(100vh - 66px)}
+.lab-quickrail{background:#061723;border-right:1px solid #214457;display:flex;flex-direction:column;gap:8px;align-items:stretch;padding:11px 7px;position:sticky;top:0;align-self:start;height:calc(100vh - 66px);z-index:30}
+.lab-quickrail .rail-tool{background:transparent;border:1px solid transparent;border-radius:8px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;text-decoration:none;color:#c4d5e2;min-height:86px;padding:11px 2px;cursor:pointer}
+.lab-quickrail .rail-tool>span{color:#bfdce5;font-size:29px;line-height:1}
+.lab-quickrail .rail-tool>small{font-size:12px;line-height:1.27;text-align:center;font-weight:700}
+.lab-quickrail .rail-tool:hover,.lab-quickrail .rail-tool.is-current{background:#0a3b4b;border-color:#164f62;color:#5af9ed}
+.lab-quickrail .rail-tool.is-current:before{content:"";position:absolute;left:2px;width:3px;height:57px;border-radius:4px;background:#2cf2eb}
+.lab-quickrail .rail-tool.is-current>span{color:#30e7e7}
+.page.lab-v3{width:100%;max-width:none;padding:0 13px 26px;min-width:0;overflow:visible}
+.lab-v3 .lab-workflowbar{min-height:83px;border-bottom:1px solid #183d4d;display:flex;justify-content:space-between;align-items:center;gap:20px;padding:11px 15px}
+.lab-v3 .lab-heading{max-width:unset;flex:none;min-width:245px}
+.lab-v3 .lab-heading h1{font-size:clamp(23px,2vw,31px);margin:0 0 3px;line-height:1.1;letter-spacing:-1.15px}
+.lab-v3 .lab-heading p{font-size:13px;margin:0;color:#adc5d4;line-height:1.5}
+.lab-v3 .lab-heading p span{color:#42c6cf;padding:0 4px}
+.lab-v3 .mode-options{display:flex;gap:0;align-items:center;margin-left:auto;background:#0b2030;border:1px solid #25485a;border-radius:9px;overflow:hidden;flex:none}
+.lab-v3 .mode-options .btn{border:0;border-right:1px solid #26475b;border-radius:0!important;background:transparent!important;color:#a9bfcc!important;min-height:43px;padding:11px 18px;font-size:13px}
+.lab-v3 .mode-options .btn:last-child{border-right:0}
+.lab-v3 .mode-options .btn.active{background:#06353e!important;color:#64fff2!important;box-shadow:inset 0 0 0 1px #1ff2ec}
+.lab-v3 .mode-options .btn:hover{background:#133d4a!important}
+.lab-v3 .lab-top-actions{display:flex;align-items:center;gap:10px;flex:none}
+.lab-v3 .lab-top-actions .btn{min-height:43px;font-size:13px;padding:10px 14px}
+.lab-v3 .lab-help-panel:not([hidden]){display:block;background:#0d3543;border:1px solid #25788b;border-radius:9px;padding:16px 19px;margin:11px 0;color:#d3f5f7}
+.lab-v3 .lab-help-panel p{font-size:14px;margin:7px 0;line-height:1.6}
+.lab-v3 .lab-help-panel[hidden]{display:none}
+.lab-v3 .lab-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,342px);gap:10px;align-items:start;padding-top:7px}
+.lab-v3 .lab-work-area{gap:0;min-width:0}
+.lab-v3 .panel{border:1px solid #214d5e;border-radius:11px;background:#081f2e}
+.lab-v3 .parts-tray{padding:12px 12px 8px;min-width:0;overflow:hidden;border-bottom-left-radius:0;border-bottom-right-radius:0}
+.lab-v3 .tray-top{display:flex;justify-content:space-between;align-items:center;gap:9px;margin:0 0 10px}
+.lab-v3 .tray-title{display:flex;align-items:center;gap:8px;min-width:0}
+.lab-v3 .tray-title>span{font-size:20px;color:#d6f8ff}
+.lab-v3 .tray-title h2{margin:0;font-size:17px;line-height:1.25;white-space:nowrap}
+.lab-v3 .tray-title p{font-size:12px;margin:0 0 0 12px;color:#aabfcf;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lab-v3 .mesh-status{border-color:#315766;background:#102f3b;padding:5px 8px;font-size:10px;line-height:1.4;max-width:160px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.lab-v3 .tray-filters{display:flex;flex-wrap:nowrap;gap:5px;overflow-x:auto;scrollbar-width:none;margin-bottom:10px}
+.lab-v3 .tray-filters::-webkit-scrollbar{display:none}
+.lab-v3 .tray-filter{flex:none;min-height:31px;background:#0d2737;border:1px solid #285467;border-radius:6px;font-size:11px;font-weight:700;padding:6px 11px}
+.lab-v3 .tray-filter.active{background:#0b5960;border-color:#22f1ee;color:#bbfffa}
+.lab-v3 .shelves{display:grid;grid-template-columns:repeat(8,minmax(111px,1fr));gap:7px;width:100%;overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:4px;scrollbar-color:#436575 #0a1e2e}
+.lab-v3 .inventory{min-height:147px;border-radius:8px;padding:5px 6px 7px;gap:3px;background:linear-gradient(180deg,#142d3c,#0b2131);border:1px solid #2b5064;box-shadow:0 5px 15px #0002}
+.lab-v3 .inventory .inventory-icon{width:100%;height:101px;min-height:101px;border-radius:7px;background:radial-gradient(ellipse at 45% 35%,#31586e,#102535 74%);overflow:hidden}
+.lab-v3 .inventory .inventory-text b{font-size:12px;color:#f0f9ff;line-height:1.28;margin-top:1px;font-weight:750}
+.lab-v3 .inventory .inventory-text small{font-size:10px;color:#9cbdce;line-height:1.35}
+.lab-v3 .tray-help{font-size:10px;line-height:1.4;color:#7696a8;margin:4px 0 0}
+.lab-v3 .bench-panel{position:relative;overflow:hidden;border-top-left-radius:0;border-top-right-radius:0}
+.lab-v3 .bench-header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #28516a;padding:8px 14px;min-height:42px}
+.lab-v3 .bench-header-title strong{font-size:12px;color:#aefbea;letter-spacing:.02em}
+.lab-v3 .bench-header-actions .btn{min-height:31px;font-size:11px;padding:6px 9px;border-radius:6px}
+.lab-v3 .stage{height:clamp(520px,66vh,775px);min-height:515px;background:radial-gradient(ellipse at 52% 43%,#1f4250,#0b1f2e 80%);border:0;border-radius:0}
+.lab-v3 .stage-hint{top:12px;left:14px;z-index:5;font-size:11px;padding:6px 10px}
+.lab-v3 .scene-label{bottom:110px;background:#071e2ac9;border:1px solid #3c697c;border-radius:6px;padding:6px 9px;font-size:10px;color:#d7f3f4}
+.lab-v3 .bench-controls{position:absolute;z-index:9;left:50%;bottom:72px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 28px);display:flex;gap:18px;flex-wrap:nowrap;padding:10px 14px;background:#062334ed;border:1px solid #27869b;border-radius:12px;box-shadow:0 15px 45px #0008}
+.lab-v3 .controls-group{min-width:0;flex:none;gap:3px}
+.lab-v3 .control-title{font-size:10px;line-height:1.3}
+.lab-v3 .control-actions{gap:6px;flex-wrap:nowrap}
+.lab-v3 .tool-button{min-width:62px;min-height:54px;border-radius:7px;font-size:19px;padding:6px 7px}
+.lab-v3 .tool-button span{font-size:10px;white-space:nowrap}
+.lab-v3 .bench-options{min-height:57px;padding:10px 15px;gap:13px;font-size:11px}
+.lab-v3 .bench-options label{font-size:12px}
+.lab-v3 .bench-options>span{font-size:10px}
+.lab-v3 .guide-column{position:sticky;top:10px;display:flex;flex-direction:column;gap:7px;min-width:0}
+.lab-v3 .guide-main{padding:13px 13px 12px}
+.lab-v3 .guide-header{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.lab-v3 .guide-header strong{font-size:19px;font-weight:850;letter-spacing:-.5px;flex:1}
+.lab-v3 .guide-header strong span{color:#33e9ed;padding-right:6px}
+.lab-v3 .guide-header #stepNumber{font-size:12px;min-width:42px;background:transparent;border:0;padding:0;text-align:right}
+.lab-v3 .guide-progress{padding-bottom:9px;border-bottom:0}
+.lab-v3 .bar{height:7px;background:#1c3f54}
+.lab-v3 .guide-progress .stats{display:none}
+.lab-v3 .guide-stage-caption{font-size:10px;letter-spacing:.065em;color:#74c3c5;font-weight:800;margin:12px 0 7px}
+.lab-v3 .guide-step-label{float:left;display:grid;place-items:center;margin-right:10px;width:30px;height:30px;border-radius:50%;background:#13e6ef;color:#012d34;font-size:16px;font-weight:900}
+.lab-v3 .guide-main h2{font-size:19px;line-height:1.3;min-height:28px;margin:4px 0 12px}
+.lab-v3 .guide-step{margin:0 0 11px;padding:0;border:0;background:transparent}
+.lab-v3 .guide-step p{font-size:13px;line-height:1.6;color:#c8dbe6}
+.lab-v3 .guide-illustration{height:205px;border-radius:9px;background:radial-gradient(circle,#2b5368,#0b2131)}
+.lab-v3 .guide-checks{font-size:12px;padding:11px 2px 5px;color:#c8e2ed}
+.lab-v3 .guide-checks strong{display:block;color:#effdff;margin-bottom:6px;font-size:13px}
+.lab-v3 .guide-checks ul{padding-left:19px;margin:4px 0 0}
+.lab-v3 .guide-checks li{margin:3px 0;font-size:12px;line-height:1.48}
+.lab-v3 .guide-main .guide-tip{padding:11px 12px;margin:9px 0;border-radius:9px;font-size:12px;line-height:1.5;background:#063543;border:1px solid #1a7f8b}
+.lab-v3 .guide-actions{margin-top:11px}
+.lab-v3 .guide-actions .btn{font-size:13px}
+.lab-v3 .inspector{padding:13px}
+.lab-v3 .inspector h2{font-size:17px;margin:6px 0}
+.lab-v3 .inspector-description{font-size:12px;line-height:1.5;margin-bottom:5px}
+.lab-v3 .inspector-chips,.lab-v3 .inspector-safety{display:none}
+.lab-v3 .lab-footer{font-size:10px;color:#819fac;padding:19px 5px}
+.lab-v3 .case-reference[hidden]{display:none!important}
+.lab-v3 .case-reference:not([hidden]){z-index:18}
+.lab-v3 .mesh-notice:not([hidden]){font-size:12px}
+html.embedded .lab-global-header{display:none}
+html.embedded .lab-app-shell{min-height:auto}
+html.embedded .lab-quickrail{height:calc(100vh - 56px);top:0}
+html.embedded .lab-v3{padding:0 8px 14px}
+html.embedded .lab-v3 .lab-workflowbar{min-height:72px}
+html.embedded .lab-v3 .stage{height:660px}
+@media(max-width:1460px){
+ .lab-global-links a{padding:4px 9px;font-size:13px}
+ .lab-global-header{gap:15px;padding:0 17px}
+ .lab-v3 .lab-grid{grid-template-columns:minmax(0,1fr) 312px}
+ .lab-v3 .shelves{grid-template-columns:repeat(8,112px)}
+ .lab-v3 .tray-title p{display:none}
+ .lab-v3 .mode-options .btn{padding:10px 12px;font-size:12px}
+ .lab-v3 .bench-controls{gap:8px}
+ .lab-v3 .tool-button{min-width:55px;padding:6px 5px}
+}
+@media(max-width:1160px){
+ .lab-global-search{display:none}
+ .lab-global-links a{padding:4px 6px}
+ .lab-global-right{display:none}
+ .lab-v3 .lab-workflowbar{flex-wrap:wrap;gap:11px;padding:13px}
+ .lab-v3 .mode-options{margin-left:0}
+ .lab-v3 .lab-top-actions{margin-left:auto}
+ .lab-v3 .lab-grid{grid-template-columns:minmax(0,1fr)}
+ .lab-v3 .guide-column{position:static;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+ .lab-v3 .stage{height:650px}
+ .lab-v3 .shelves{grid-template-columns:repeat(8,128px)}
+ .lab-v3 .bench-controls{bottom:72px}
+}
+@media(max-width:760px){
+ .lab-global-header{height:59px;padding:0 12px;gap:8px}
+ .lab-global-brand{padding-right:10px;gap:6px}
+ .lab-global-brand strong{font-size:18px}
+ .lab-logo-mark{font-size:30px;width:32px;height:34px}
+ .lab-global-links{overflow-x:auto;gap:2px}
+ .lab-global-links a{font-size:11px;padding:0 6px}
+ .lab-global-links a:nth-child(n+4){display:none}
+ .lab-app-shell{grid-template-columns:55px minmax(0,1fr)}
+ .lab-quickrail{height:calc(100vh - 59px);padding:5px 3px;gap:3px}
+ .lab-quickrail .rail-tool{min-height:69px;padding:6px 1px}
+ .lab-quickrail .rail-tool>span{font-size:22px}
+ .lab-quickrail .rail-tool>small{font-size:9px}
+ .lab-quickrail .rail-tool.is-current:before{height:40px}
+ .page.lab-v3{padding:0 5px 12px}
+ .lab-v3 .lab-heading h1{font-size:22px}
+ .lab-v3 .lab-heading p{font-size:11px}
+ .lab-v3 .lab-workflowbar{padding:10px 5px}
+ .lab-v3 .mode-options{width:100%;overflow-x:auto}
+ .lab-v3 .mode-options .btn{flex:1;padding:8px;font-size:11px}
+ .lab-v3 .lab-top-actions{width:100%}
+ .lab-v3 .lab-top-actions .btn{flex:1}
+ .lab-v3 .tray-top{flex-wrap:wrap}
+ .lab-v3 .mesh-status{display:none}
+ .lab-v3 .parts-tray{padding:8px}
+ .lab-v3 .shelves{grid-template-columns:repeat(8,108px)}
+ .lab-v3 .inventory{min-height:141px}
+ .lab-v3 .inventory .inventory-icon{min-height:85px;height:85px}
+ .lab-v3 .stage{height:490px;min-height:490px}
+ .lab-v3 .bench-header{flex-direction:row;align-items:center}
+ .lab-v3 .bench-header-actions .btn:not(:last-child){display:none}
+ .lab-v3 .bench-controls{position:relative;bottom:auto;left:auto;transform:none;width:100%;max-width:none;overflow-x:auto;justify-content:flex-start;border-radius:0;padding:10px;gap:12px}
+ .lab-v3 .controls-group{flex:none}
+ .lab-v3 .scene-label{bottom:17px;font-size:9px}
+ .lab-v3 .bench-options>span{display:none}
+ .lab-v3 .guide-column{grid-template-columns:1fr}
+ .lab-v3 .guide-main{padding:15px}
+ .lab-v3 .guide-illustration{height:220px}
+ .lab-v3 .guide-step p{font-size:14px}
+ .lab-v3 .guide-checks li{font-size:13px}
+}
+
+/* Render the fast, detailed hardware SVG as the full card thumbnail, not as a
+   60px-letter badge. Actual installation objects are GLB/procedural 3D. */
+.lab-v3 .inventory .inventory-icon .hardware-glyph{
+ width:100%;height:100%;min-height:0;display:grid;place-items:center;
+ border:0;border-radius:0;background:transparent;box-shadow:none;
+}
+.lab-v3 .inventory .inventory-icon .hardware-glyph svg{
+ width:min(100%,142px);height:100%;max-height:111px;
+ filter:drop-shadow(1px 8px 7px #00131f9c);
+}
+.lab-v3 .inventory:hover .hardware-glyph svg{filter:drop-shadow(0 7px 9px #0d8a8a76)}
+.lab-v3 .inventory.active{border-color:#26e9e4;background:#0f3d49}
+.lab-v3 .inventory .inventory-text small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.embedded .lab-v3 .lab-workflowbar{padding:10px 12px}
+@media(max-width:760px){.lab-v3 .inventory .inventory-icon .hardware-glyph svg{max-height:85px}}
+
+
+/* Screen-tested legibility and hardware-inspection refinements */
+.lab-v3 .guide-illustration .placeholder{background:radial-gradient(circle at 52% 45%,#305568,#102739);color:#caebf3}
+.lab-v3 .guide-illustration .placeholder svg{
+  display:block;width:87%;height:93%;max-height:200px;
+  filter:drop-shadow(0 13px 13px #061521b8);
+}
+.lab-v3 .inventory .inventory-text b{font-size:13px;letter-spacing:-.1px}
+.lab-v3 .inventory .inventory-text small{font-size:11px}
+.lab-v3 .guide-step p{font-size:14px;line-height:1.68}
+.lab-v3 .guide-checks li{font-size:13px;line-height:1.53}
+.lab-v3 .guide-main .guide-tip{font-size:13px;line-height:1.55}
+.lab-v3 .tray-title p{font-size:13px}
+.lab-v3 .guide-illustration{background:radial-gradient(ellipse at center,#26455a,#091a29)}
+.lab-v3 .scene-label{bottom:118px}
+@media(max-width:760px){.lab-v3 .guide-illustration .placeholder svg{max-height:210px}}
+
+/* Snap alignment and reverse-removal coaching */
+.lab-v3 .placement-feedback{
+ position:absolute;left:50%;transform:translateX(-50%);bottom:10px;z-index:11;
+ width:max-content;max-width:min(88%,610px);border:1px solid #48a8aa;
+ border-radius:9px;background:#082c3de8;padding:9px 14px;
+ color:#d3fcf5;font-size:12px;font-weight:700;text-align:center;
+ line-height:1.5;pointer-events:none;box-shadow:0 7px 20px #02131d8a;
+}
+.lab-v3 .removal-action{width:100%;margin:12px 0 0;padding:12px;font-size:14px}
+.lab-v3 .removal-action[hidden]{display:none!important}
+.lab-v3 .bench-controls{bottom:63px}
+.lab-v3 .scene-label{bottom:129px}
+@media(max-width:760px){
+ .lab-v3 .placement-feedback{position:relative;bottom:auto;left:auto;transform:none;width:100%;max-width:none;font-size:12px;border-radius:0}
+}

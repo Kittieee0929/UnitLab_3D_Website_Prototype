@@ -20,7 +20,7 @@ footer{font-size:11px;color:#8ca9b5;margin:21px 0;line-height:1.65}.warn-note{ba
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script>
 <style>.resource-return-nav{display:flex;gap:8px;align-items:center;justify-content:flex-start;flex-wrap:wrap;background:#123443;border:1px solid #3b6574;border-radius:13px;padding:10px 12px;margin:0 0 16px}.resource-return-nav a{display:inline-block;color:#c8fbf2!important;border:1px solid #356274;border-radius:9px;text-decoration:none;padding:8px 11px;font:700 12px system-ui;background:#0a2636}.resource-return-nav a:hover{background:#275563}</style><style>
 html.embedded .page{max-width:none;padding:10px}
-body.embedded header.top,body.embedded .resource-return-nav,body.embedded footer{display:none!important}
+html.embedded header.top,html.embedded .resource-return-nav,html.embedded footer{display:none!important}
 body.embedded .stage{height:min(76vh,730px);min-height:510px}
 .layout.fallback-open>:not(#inlineFallback){display:none!important}
 .layout.fallback-open{display:block}
@@ -44,52 +44,266 @@ body.embedded .stage{height:min(76vh,730px);min-height:510px}
 .stage-direction{position:absolute;left:12%;right:9%;bottom:60px;z-index:2;display:flex;justify-content:space-between;align-items:center;pointer-events:none;color:#b6faf0;font-weight:850;font-size:10px;letter-spacing:1.3px;text-shadow:0 2px 6px #000;background:#0b213288;border:1px solid #396b74;padding:8px 12px;border-radius:99px}
 .stage-direction span:nth-child(2){font-size:18px}
 @media(max-width:830px){.inventory{grid-template-columns:80px minmax(0,1fr);min-height:87px}.inventory-icon{width:80px;height:70px}.stage-direction{bottom:52px;font-size:9px}}
-</style></head><body>
-<div class="page">
-<div class="resource-return-nav" role="navigation" aria-label="Learning Studio"><a href="academy.html#home">← Back to UnitLab</a></div>
-<header class="top"><div><div class="kicker">UNITLAB 3D / AUTHENTIC 3D HARDWARE PRACTICUM</div><h1>Assemble a PC. Prove you can.</h1><p class="sub">Real textured 3D hardware models, an interactive assembly bench, guided practice and independent performance grading. Rotate the workstation, drag parts from the cabinet, then reverse the build in disassembly mode.</p></div></header>
-<div class="modes"><div class="mode-options" role="group" aria-label="Select training mode"><button type="button" class="btn active" data-mode="tutorial">01 · Guided Build</button><button type="button" class="btn" data-mode="assembly">02 · Performance Build</button><button type="button" class="btn" data-mode="disassembly">03 · Disassembly Test</button></div><div class="badge" id="student">Guest · local demonstration</div></div>
-<div class="layout">
-<aside class="panel">
-<div class="panel-head"><div class="eyebrow">SUPPLY CABINET</div><h2>3D Parts Shelf</h2><p class="tiny">These are actual rotatable-model assets, not text-only buttons. Drag a hardware model from this shelf into the empty case. You can also drag the part directly from the shelf inside the 3D scene.</p></div>
-<div id="shelves" class="shelves"></div><div class="shelf-bottom"><p class="tiny">3D asset fidelity depends on mesh loading. Assets are educational representations, not exact SKU-specific CAD models.</p></div>
-</aside>
-<div class="inline-fallback" id="inlineFallback" hidden style="grid-column:1/-1;border:1px solid #327977;border-radius:16px;background:#10303d;padding:16px;margin:12px 0">
-<h2 style="margin:0 0 7px">3D backup viewer</h2><p style="color:#b8d6df;font-size:13px">Detailed assembly models could not initialize. The backup still shows a rotatable 3D computer, but graded drag-and-drop is unavailable until the detailed viewer is working.</p>
-<iframe id="native3dFallbackFrame" title="UnitLab 3D backup viewer" style="width:100%;height:760px;border:1px solid #477381;border-radius:12px;background:#09202f" loading="lazy"></iframe></div>
-<section class="workspace">
-<div class="stage" id="stage"><canvas id="assemblyCanvas" tabindex="0" aria-label="3D computer assembly workbench with hardware mounting slots"></canvas>
-<div class="overlay"><span class="label" id="modeLabel">◉ GUIDED ASSEMBLY</span><span class="label" id="assetsStatus">Loading 3D hardware…</span></div><div class="stage-direction"><span>3D PARTS SHELF</span><span>→</span><span>PC SYSTEM CASE</span></div>
-<div class="stage-status" id="stageStatus"><strong>Preparing 3D hardware</strong><p>Initializing the 3D workbench…</p></div>
-<div class="hint-bottom"><span>Drag visible 3D parts → case · Rotate empty area · Scroll to zoom</span><span id="hoverName">PC assembly station</span></div>
+</style><style>
+/* V2 workbench: classroom readability, realistic reference model and service bench */
+body{font-size:16px;line-height:1.65;color:#ebf6f9}
+.page{max-width:1850px;padding:20px 21px}
+.top h1{font-size:clamp(30px,3.1vw,42px);line-height:1.18}
+.top .sub{font-size:16px;max-width:1060px;line-height:1.65;color:#bed2de}
+.kicker,.eyebrow{font-size:12px;letter-spacing:1px}
+.btn{font-size:15px;min-height:45px;padding:12px 14px;line-height:1.35}
+.modes{padding:15px 18px}
+.modes .badge{font-size:13px}
+.layout{grid-template-columns:286px minmax(0,1fr) 320px;gap:18px}
+.panel-head{padding:19px 17px 11px}
+.panel h2{font-size:22px;line-height:1.28}
+.tiny,.big-info{font-size:14px;line-height:1.7;color:#bdd3dc}
+.shelves{padding:11px;gap:10px}
+.shelf{padding:10px}
+.shelf-name{font-size:12px;letter-spacing:.5px}
+.inventory{grid-template-columns:87px minmax(0,1fr);min-height:106px;gap:12px;padding:9px;margin-bottom:8px}
+.inventory-icon{width:87px;height:87px}
+.inventory .inventory-text b{font-size:15px;line-height:1.42;overflow-wrap:anywhere}
+.inventory .inventory-text small{font-size:13px;line-height:1.45;color:#b2cdd7;overflow-wrap:anywhere}
+.inventory .inventory-icon .model-loading{font-size:12px}
+.stage{height:clamp(590px,72vh,830px);background:radial-gradient(ellipse at 54% 38%,#263d47,#0a151e 74%)}
+.stage:after{opacity:.13}
+.overlay .label{font-size:12px;letter-spacing:.6px}
+.hint-bottom span{font-size:13px}
+.stage-direction{font-size:12px;bottom:63px;letter-spacing:.5px}
+.stage-status{max-width:420px}
+.guide{padding:19px}
+.guide h2{font-size:22px;line-height:1.3}
+.guide p,.guide .step p{font-size:15px;line-height:1.7}
+.guide .step strong{font-size:15px}
+.stats{font-size:14px}
+.big-info{font-size:15px}
+.chips span{font-size:12px}
+.warn-note{font-size:13px;line-height:1.7}
+.result table{font-size:13px}
+.result td,.result th{padding:11px 8px}
+.stage .case-reference{position:absolute;inset:0;z-index:13;display:flex;flex-direction:column;padding:13px;background:#101f2c;border-radius:17px}
+.case-reference .reference-top{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:9px 11px}
+.reference-top strong{display:block;font-size:19px;color:#e3fff2}
+.reference-top small{display:block;font-size:13px;color:#b6cedb;margin-top:3px;line-height:1.5}
+.case-reference model-viewer{width:100%;flex:1;min-height:340px;display:block;background:radial-gradient(circle,#29475c,#0e1c2c 78%);border-radius:12px}
+.reference-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 9px;font-size:13px;color:#b1d1d9}
+@media(max-width:1480px){.layout{grid-template-columns:minmax(260px,292px) minmax(0,1fr)}.rightcol{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}}
+@media(max-width:930px){.layout{grid-template-columns:1fr}.shelves{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));max-height:450px;overflow:auto}.rightcol{grid-column:1;grid-template-columns:1fr 1fr}.stage{height:clamp(510px,65vh,750px)}}
+@media(max-width:720px){.page{padding:12px}.layout{display:block}.shelves{grid-template-columns:1fr}.rightcol{display:block}.rightcol .panel{margin-top:14px}.stage{height:560px;min-height:510px;margin-top:14px}.stage-direction{font-size:10px;left:5%;right:5%}.hint-bottom span{font-size:11px}.overlay .label{font-size:10px}.case-reference .reference-top{flex-direction:column;align-items:flex-start}.case-reference model-viewer{min-height:300px}.inventory{min-height:98px}}
+html.embedded .page{padding:8px 10px}
+html.embedded header.top,html.embedded .resource-return-nav,html.embedded footer{display:none!important}
+html.embedded .stage{height:clamp(570px,75vh,830px)}
+</style><style>.mount-board{display:flex;width:100%;margin:10px 0 14px;padding:14px 18px!important;font-size:15px!important;line-height:1.4!important}.mount-board[hidden]{display:none!important}</style><link rel="stylesheet" href="assembly-lab-v3.css?rev=fix20261026"><link rel="stylesheet" href="assembly-lab-reference.css?rev=workbench-final-20261027"></head><body>
+<header class="lab-global-header" aria-label="UnitLab main navigation">
+  <a href="hub-v2.html" class="lab-global-brand"><span class="lab-logo-mark" aria-hidden="true">⬡</span><strong>UnitLab <em>3D</em></strong></a>
+  <nav class="lab-global-links" aria-label="Site navigation">
+    <a href="hub-v2.html">Home</a><a class="is-active" href="academy.html#workbench" aria-current="page">3D Lab</a>
+    <a href="academy.html#modules">Courses</a><a href="real-models.html">Hardware Library</a><a href="academy.html#quiz">Assessments</a>
+  </nav>
+  <div class="lab-global-right">
+    <label class="lab-search"><span aria-hidden="true">⌕</span><input type="search" id="labSearch" placeholder="Search PC parts…" aria-label="Search available PC parts" /></label>
+    <span class="lab-user-pill" id="student">Guest learner</span>
+  </div>
+</header>
+<div class="lab-app-shell">
+  <aside class="lab-quickrail" aria-label="Assembly tools and shortcuts">
+    <a href="#assemblyDesk" class="rail-tool is-current" aria-current="page"><span aria-hidden="true">▣</span><small>Assembly<br>Desk</small></a>
+    <a href="real-models.html" class="rail-tool"><span aria-hidden="true">⬡</span><small>Parts<br>Library</small></a>
+    <button type="button" class="rail-tool" id="railCaseView"><span aria-hidden="true">▯</span><small>Case View</small></button>
+    <a href="academy.html#safety" class="rail-tool"><span aria-hidden="true">⚒</span><small>Tools</small></a>
+    <button type="button" class="rail-tool" id="railGuides"><span aria-hidden="true">▤</span><small>Guides</small></button>
+    <button type="button" class="rail-tool" id="railSettings"><span aria-hidden="true">⚙</span><small>Settings</small></button>
+  </aside>
+<div class="page lab-v3">
+  <header class="lab-workflowbar">
+    <div class="lab-heading">
+      <h1>3D Assembly Lab</h1>
+      <p>Learn by doing <span>·</span> Build <span>·</span> Disassemble <span>·</span> Explore PC hardware</p>
+    </div>
+    <div class="mode-options" role="group" aria-label="Lab mode">
+      <button type="button" class="btn active" data-mode="tutorial"><span aria-hidden="true">▤</span> Guided Assembly</button>
+      <button type="button" class="btn" data-mode="assembly"><span aria-hidden="true">⚒</span> Free Build</button>
+      <button type="button" class="btn" data-mode="disassembly"><span aria-hidden="true">▣</span> Disassembly</button>
+    </div>
+    <div class="lab-top-actions">
+      <button type="button" class="btn" id="resetScene">⟳ Reset Lab</button>
+      <button type="button" class="btn" id="labHelpBtn" aria-controls="labHelpPanel" aria-expanded="false">ⓘ Help</button>
+    </div>
+  </header>
+  <div class="lab-help-panel" id="labHelpPanel" hidden>
+    <strong>How the interactive workbench works</strong>
+    <p>Choose a hardware part from the tray. Click the glowing mounting zone on the workbench or drag the selected part into place. Rotate, pan, zoom, or turn the case on its side before installation. Use Guided Assembly to learn the order; Free Build records mistakes; Disassembly starts with an assembled system.</p>
+    <p>Real 3D GLB parts load when selected. Exact brand geometry and screw/cable physics are not simulated.</p>
+  </div>
+  <div class="lab-grid">
+    <main class="lab-work-area">
+      <section class="parts-tray panel" aria-labelledby="trayTitle">
+        <div class="tray-top">
+          <div class="tray-title"><span aria-hidden="true">▣</span><h2 id="trayTitle">Parts Tray</h2><p>Drag parts to the workspace or click to select</p></div>
+          <span class="mesh-status" id="assetsStatus">Models on demand</span>
+        </div>
+        <div id="meshNotice" class="mesh-notice" role="status" aria-live="polite" hidden></div>
+        <div class="tray-filters" role="group" aria-label="Filter available parts">
+          <button type="button" data-filter="all" class="tray-filter active" aria-pressed="true">All Parts</button>
+          <button type="button" data-filter="core" class="tray-filter" aria-pressed="false">Core Hardware</button>
+          <button type="button" data-filter="storage" class="tray-filter" aria-pressed="false">RAM & Storage</button>
+          <button type="button" data-filter="cooling" class="tray-filter" aria-pressed="false">Cooling</button>
+          <button type="button" data-filter="power" class="tray-filter" aria-pressed="false">Power & GPU</button>
+        </div>
+        <div class="shelves" id="shelves" aria-label="Selectable 3D hardware components"></div>
+        <p class="tray-help">Actual GLB hardware models load when selected. Component scale and case mounting are instructional approximations.</p>
+      </section>
+
+      <section class="bench-panel panel" id="assemblyDesk" aria-label="Interactive assembly desk">
+        <div class="bench-header">
+          <div class="bench-header-title"><span class="status-indicator"></span><strong id="modeLabel">GUIDED ASSEMBLY</strong></div>
+          <div class="bench-header-actions">
+            <button type="button" class="btn" id="focusMotherboard">Motherboard view</button>
+            <button type="button" class="btn" id="focusCase">Case view</button>
+            <button type="button" class="btn" id="resetCamera">Reset view</button>
+          </div>
+        </div>
+        <div class="stage" id="stage">
+          <canvas id="assemblyCanvas" tabindex="0" aria-label="Interactive 3D PC case and motherboard on an anti-static workbench. Drag selected parts to highlighted installation zones."></canvas>
+          <div class="scene-label scene-label-board">ANTI-STATIC MAT · MOTHERBOARD PREP</div>
+          <div class="scene-label scene-label-case">CASE INSTALLATION AREA</div>
+          <div class="stage-status" id="stageStatus"><strong>Loading the 3D lab…</strong><p>Preparing genuine component meshes and the assembly workbench.</p></div>
+          <div class="stage-hint" id="hoverName">Drag to orbit • Scroll to zoom • Select a part to install</div>
+          <div class="placement-feedback" id="placementFeedback" role="status" aria-live="polite">Align parts to the highlighted motherboard or chassis socket.</div>
+
+          <div id="caseReference" class="case-reference" hidden aria-label="Rotatable complete computer reference model">
+            <div class="reference-top"><div><strong>Complete PC · Real 3D Model</strong><small>Reference view only. Use the workbench to assemble individual components.</small></div><button type="button" class="btn" id="closeReference">Return to assembly ×</button></div>
+            <model-viewer id="completeCase3D" camera-controls auto-rotate rotation-per-second="9deg" shadow-intensity="1" exposure="1.1" environment-image="neutral" alt="Complete 3D system unit" loading="lazy"></model-viewer>
+            <div class="reference-footer"><span id="referenceStatus">Ready for 3D preview</span><button type="button" class="btn" id="loadDetailedCase">Load high-detail model</button></div>
+          </div>
+        </div>
+
+        <div class="bench-controls" aria-label="3D viewport tools">
+          <div class="controls-group">
+            <span class="control-title">VIEW TOOLS</span>
+            <div class="control-actions">
+              <button class="tool-button" id="rotateTool" type="button" aria-pressed="true">⟳ <span>Rotate</span></button>
+              <button class="tool-button" id="panTool" type="button" aria-pressed="false">✥ <span>Pan</span></button>
+              <button class="tool-button" id="zoomInTool" type="button">＋ <span>Zoom in</span></button>
+              <button class="tool-button" id="zoomOutTool" type="button">－ <span>Zoom out</span></button>
+              <button class="tool-button" id="explodeViewBtn" type="button" aria-pressed="false">◇ <span>Explode</span></button>
+              <button class="tool-button" id="caseRefToggle" type="button" aria-controls="caseReference" aria-expanded="false">⬡ <span>Full PC</span></button>
+            </div>
+          </div>
+          <div class="controls-group">
+            <span class="control-title">CASE ORIENTATION</span>
+            <div class="control-actions">
+              <button type="button" class="tool-button" data-orientation="upright" aria-pressed="false">▯ <span>Upright</span></button>
+              <button type="button" class="tool-button selected" data-orientation="landscape" aria-pressed="true">▭ <span>On its side</span></button>
+              <button type="button" class="tool-button" data-orientation="inverted" aria-pressed="false">⇅ <span>Flip over</span></button>
+            </div>
+          </div>
+        </div>
+
+        <div id="removeTray" class="drop-tray" hidden><strong>DISASSEMBLY PARTS TRAY</strong><span>Drag a component here after removing it from the case, or select the component and tap this tray.</span></div>
+        <div class="bench-options" id="labSettingsPanel">
+          <label><input id="hints" type="checkbox" checked> Show installation highlights</label>
+          <label><input id="glass" type="checkbox"> Show glass panel</label>
+          <label><input id="rgb" type="checkbox" checked> Bench lighting</label>
+          <span>Practice simulation · Manufacturer-specific fastening is not modeled</span>
+        </div>
+      </section>
+    </main>
+
+    <aside class="guide-column" aria-label="Assembly instructions and component details">
+      <section class="panel guide guide-main">
+        <div class="guide-header"><strong><span aria-hidden="true">▤</span> Assembly Guide</strong><span id="stepNumber">1 / 8</span></div>
+        <div class="guide-progress"><div class="bar"><i id="progressFill"></i></div><div class="stats" id="progressText">0 / 8 components installed</div></div>
+        <div class="guide-stage-caption" id="modeKicker">GUIDED TRAINING</div>
+        <div class="guide-step-label" id="stepBadge">1</div><h2 id="stepHeading">Prepare the motherboard</h2>
+        <div class="guide-step"><p id="stepInstruction">Place the motherboard on the anti-static mat. Then add the CPU, RAM, and NVMe storage.</p></div>
+        <div class="guide-illustration"><model-viewer id="preview3D" camera-controls auto-rotate rotation-per-second="18deg" shadow-intensity="1" environment-image="neutral" interaction-prompt="none" loading="lazy" alt="3D preview of selected hardware component" style="display:none"></model-viewer><div class="placeholder" id="previewPlaceholder">Preparing 3D hardware preview…</div></div>
+        <div class="guide-checks"><strong>What to look for</strong><ul id="stepChecklist"><li>CPU socket and alignment marker</li><li>Memory slots</li><li>M.2 SSD slot</li><li>Motherboard power connectors</li></ul></div>
+        <button type="button" class="btn primary mount-board" id="mountBoardBtn" hidden>Move assembled motherboard into case →</button>
+        <p class="guide-tip"><strong>Tip:</strong> Choose a part from the top tray and click the matching highlighted location on the desk. You can also drag parts onto the target.</p>
+        <button type="button" id="removeSelectedBtn" class="btn primary removal-action" hidden>Remove selected hardware ↗</button>
+        <div class="guide-actions"><button type="button" class="btn" id="stepBackBtn" disabled>← Previous</button><button type="button" class="btn primary" id="stepNextBtn">Next Step →</button></div>
+        <div class="performance-actions">
+          <button class="btn primary" id="submitBtn" hidden>Submit practice performance</button>
+          <button class="btn" id="againBtn" hidden>Try again</button>
+          <button class="btn" id="csvBtn" hidden>Download CSV</button>
+        </div>
+        <div id="result" aria-live="polite"></div>
+      </section>
+      <section class="panel inspector">
+        <span class="lab-eyebrow">CURRENT PART</span>
+        <h2 id="inspectedName">Motherboard</h2>
+        <p class="inspector-description" id="inspectedInfo">Choose a 3D component to learn its function and location.</p>
+        <p class="inspector-chips" id="inspectedChips">Model asset details</p>
+        <div class="inspector-safety"><strong>Safety reminder</strong><p id="safety">Unplug power and follow approved ESD practices when working with real equipment.</p></div>
+      </section>
+    </aside>
+  </div>
+  <div class="inline-fallback" id="inlineFallback" hidden>
+    <h2>Backup 3D Viewer</h2><p>The interactive scene could not start in this browser. You can still inspect a rotatable 3D PC, but practice scoring and part placement require WebGL.</p>
+    <iframe id="native3dFallbackFrame" title="3D hardware backup viewer" loading="lazy"></iframe>
+  </div>
+  <footer class="lab-footer">UnitLab 3D · CBAR training prototype. Part assets attributed to <a href="https://github.com/brickshow/pc-anatomy" target="_blank" rel="noopener">PC Anatomy</a> under its repository license. <a href="MODEL_ATTRIBUTION.md">Model source notes</a>. Practice scoring does not replace teacher-observed competency assessment.</footer>
 </div>
-<div id="removeTray" class="drop-tray" hidden><strong>↘ REMOVED COMPONENTS CABINET</strong><span>Drag a part out of the 3D case and release it in this tray (or select a part then tap here).</span></div>
-<div class="panel" style="padding:13px 16px"><div class="controls"><label><input type="checkbox" id="rgb" checked> RGB fans</label><label><input type="checkbox" id="hints" checked> Show tutorial trail</label><label><input type="checkbox" id="glass"> Glass side panel</label><button class="btn" id="resetCamera">Reset camera</button><button class="btn" id="resetScene">Restart this activity</button></div></div>
-</section>
-<aside class="rightcol">
-<div class="panel guide"><div class="eyebrow" id="modeKicker">GUIDED TRAINING</div><h2 id="stepHeading">Follow the highlighted mounting point</h2><div class="step"><strong id="stepNumber">STEP 1</strong><p id="stepInstruction">Install each item into the real 3D build in the proper order.</p></div>
-<div class="bar"><i id="progressFill"></i></div><div class="stats" id="progressText">0 / 8 tasks completed</div>
-<div class="controls" style="margin-top:14px"><button class="btn primary" id="submitBtn" hidden>Submit performance</button><button class="btn" id="csvBtn" hidden>Download report CSV</button><button class="btn" id="againBtn" hidden>Try again</button></div><div id="result" aria-live="polite"></div></div>
-<div class="panel guide"><div class="eyebrow">3D HARDWARE INSPECTOR</div><h2 id="inspectedName">Motherboard</h2><div class="miniModel"><div class="placeholder" id="previewPlaceholder">Choose a part to preview</div><model-viewer id="preview3D" camera-controls auto-rotate rotation-per-second="22deg" shadow-intensity=".7" environment-image="neutral" interaction-prompt="none" loading="lazy" alt="Interactive 3D preview of a computer hardware part" style="display:none"></model-viewer></div><p class="big-info" id="inspectedInfo">Choose a component to learn its function.</p><div class="chips" id="inspectedChips"><span>Actual textured GLB</span><span>Learning model</span></div><div class="eyebrow">SAFETY NOTE</div><p class="tiny" id="safety">Always isolate mains power and follow the teacher's safety guidance during physical PC servicing.</p>
-<div class="warn-note" style="margin-top:13px">For class demonstration only. Actual assessment requires your approved/adopted rubric and observation by the teacher. Local records are not secure institutional grades.</div></div>
-</aside></div>
-<footer>© 2026 UnitLab 3D · 3D models credited to <a href="https://github.com/brickshow/pc-anatomy" target="_blank" rel="noopener">PC Anatomy</a> under its MIT license; see <a href="MODEL_ATTRIBUTION.md">attribution</a>. Uses Three.js for a shared scene and model-viewer for inspection. If the detailed renderer cannot start, a native 3D viewer opens instead. Student names/identifiable research data must not be entered into local demo accounts.</footer>
 </div>
 <script>
 (function(){
 let ready=false,failed=false;
 function showWorkingFallback(reason){
  if(ready||failed)return;failed=true;
+ const status=document.getElementById('stageStatus');
+ if(status){
+  status.hidden=false;
+  const head=document.createElement('strong');
+  head.textContent='3D engine did not start';
+  const detail=document.createElement('p');
+  detail.textContent=reason||'The 3D engine could not initialize. Check your connection or try the backup lab.';
+  const link=document.createElement('a');
+  link.className='btn primary';link.href='worklab-pro.html?embedded=1';
+  link.textContent='Open backup 3D workbench ↗';
+  status.replaceChildren(head,detail,link);
+ }
  const backup=document.getElementById('inlineFallback');
  if(backup){backup.hidden=false;const frame=document.getElementById('native3dFallbackFrame');if(frame&&!frame.getAttribute('src'))frame.src='worklab-pro.html?embedded=1'}
- const layout=document.querySelector('.layout');if(layout)layout.classList.add('fallback-open');
 }
-addEventListener('unitlab3d:performance-ready',()=>{ready=true;const box=document.getElementById('stageStatus');if(box)box.hidden=true});
-addEventListener('error',e=>{if(!ready&&(e.target?.tagName==='SCRIPT'||e.message)){showWorkingFallback('3D JavaScript or graphics engine failed to start.')}},true);
-addEventListener('unhandledrejection',()=>{if(!ready)showWorkingFallback('3D resources failed to load.')});
-setTimeout(()=>{if(!ready)showWorkingFallback('The graphics engine did not initialize. A 3D backup is available below.')},12000);
+addEventListener('unitlab3d:performance-ready',()=>{ready=true;/* WebGL is rendering; detailed hardware may still download. */});
+addEventListener('unitlab3d:engine-unavailable',e=>showWorkingFallback(e.detail?.message||'The graphics engine could not be loaded.'));
+addEventListener('unitlab3d:performance-error',()=>showWorkingFallback('The browser cannot render the 3D desk. Use the backup viewer.'));
+addEventListener('error',e=>{
+ // Ignore optional model-viewer thumbnail/preview errors. The true engine
+ // failure is handled by performance-3d-boot.js instead.
+ if(!ready&&e.target?.tagName==='SCRIPT'&&e.target?.src?.includes('performance-3d-boot.js')){
+  showWorkingFallback('The local 3D bootstrap script could not load. Check GitHub Pages deployment and refresh.');
+ }
+},true);
+setTimeout(()=>{if(!ready)showWorkingFallback('The primary graphics source and backup provider could not initialize the scene. Open the backup 3D lab below.')},26000);
 })();
 </script>
-<script type="module" src="performance-3d.js"></script>
+<script type="module" src="performance-3d-boot.js?rev=workbench-final-20261027"></script>
 <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.3.1/model-viewer.min.js"></script>
+<script>
+/* Let the parent Learning Studio scroll the entire lab page, instead of nesting
+   a second scrollbar inside the 3D canvas iframe. No assessment data is sent. */
+(function(){
+  if (!new URLSearchParams(location.search).has("embedded")) return;
+  let previousHeight=0;
+  const reportHeight=()=>{
+    const node=document.querySelector(".page");
+    if(!node || window.parent===window) return;
+    const h=Math.ceil(node.getBoundingClientRect().height)+24;
+    if(Math.abs(h-previousHeight)<4)return;
+    previousHeight=h;
+    window.parent.postMessage({type:"unitlab3d:workbench-height",height:h},location.origin);
+  };
+  if("ResizeObserver" in window){
+    const observer=new ResizeObserver(reportHeight);
+    const node=document.querySelector(".page");
+    if(node)observer.observe(node);
+  }
+  window.addEventListener("load",reportHeight);
+  window.addEventListener("resize",reportHeight);
+  setTimeout(reportHeight,250);
+})();
+</script>
 </body></html>

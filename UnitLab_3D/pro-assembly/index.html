@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UnitLab 3D | Pro Assembly Simulator</title>
+
+    <style>
+      .site-attribution {
+        position: fixed;
+        right: max(12px, env(safe-area-inset-right));
+        bottom: max(12px, env(safe-area-inset-bottom));
+        z-index: 2147483647;
+        display: inline-flex;
+        align-items: center;
+        padding: 0.48rem 0.72rem;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: 999px;
+        background: rgba(8, 10, 18, 0.72);
+        color: #fff;
+        font: 700 12px/1.1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        letter-spacing: 0.02em;
+        text-decoration: none;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.26);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        pointer-events: auto;
+      }
+
+      .site-attribution:hover,
+      .site-attribution:focus-visible {
+        transform: translateY(-1px);
+        background: rgba(16, 20, 34, 0.86);
+        outline: 2px solid rgba(255, 255, 255, 0.36);
+        outline-offset: 2px;
+      }
+
+      @media (max-width: 640px) {
+        .site-attribution {
+          right: max(10px, env(safe-area-inset-right));
+          bottom: max(10px, env(safe-area-inset-bottom));
+          padding: 0.42rem 0.62rem;
+          font-size: 11px;
+        }
+      }
+    </style>
+  <link rel="stylesheet" href="./simulator.css" /></head>
+  <body>
+<nav class="unitlab-pro-navigation" aria-label="UnitLab tools">
+  <a class="unitlab-home-link" href="../hub-v2.html" title="UnitLab 3D homepage">⬡ UnitLab <strong>3D</strong></a>
+  <span class="unitlab-pro-label">PRO ASSEMBLY</span>
+  <a href="../performance-3d.html" title="Return to the original guided laboratory">Guided workbench</a>
+  <a href="https://pc-anatomy.com/" target="_blank" rel="noopener noreferrer" title="Explore a separately developed open-source 3D PC disassembly timeline">Disassembly reference ↗</a>
+  <a href="../academy.html#builder">PC Builder</a>
+  <a href="../academy.html#modules">Lessons</a>
+</nav>
+<div class="unitlab-training-disclaimer" role="note">Real interactive assembly engine • Demo parts and illustrative prices only • Not a validated CBAR assessment</div>
+    <div id="app" aria-label="Three.js custom PC building simulator"></div>
+    <aside class="hud hud-left" aria-label="Parts catalog">
+      <div class="brand-card">
+        <p class="eyebrow">UNITLAB 3D · LICENSED PRISM FORGE ENGINE</p>
+        <h1>Pro Assembly Simulator</h1>
+        <p class="lede">Learn assembly with modeled chassis targets, compatibility examples and step-by-step installation. Training catalog only—not actual retailer listings.</p>
+      </div>
+      <div class="toolbar" aria-label="Primary simulator controls">
+        <button id="guidedStepBtn" type="button">Guided step</button>
+        <button id="autoBuildBtn" type="button">Auto build</button>
+        <button id="resetBtn" type="button">Reset</button>
+      </div>
+      <div id="catalog" class="catalog"></div>
+    </aside>
+
+    <aside class="hud hud-right" aria-label="Build telemetry">
+      <section class="glass-panel telemetry">
+        <div class="panel-header">
+          <span>Build Telemetry</span>
+          <strong id="grade">Bench Mode</strong>
+        </div>
+        <div class="metrics-grid">
+          <div><span>Perf.</span><strong id="perfMetric">0</strong></div>
+          <div><span>Watts</span><strong id="wattMetric">0W</strong></div>
+          <div><span>Demo cost</span><strong id="budgetMetric">$0</strong></div>
+          <div><span>Thermal</span><strong id="thermalMetric">—</strong></div>
+        </div>
+        <div id="compatibility" class="compatibility"></div>
+      </section>
+
+      <section class="glass-panel build-plan">
+        <div class="panel-header"><span>Assembly Quest</span><strong id="progressText">0/9</strong></div>
+        <ol id="stepList" class="step-list"></ol>
+      </section>
+
+      <section class="glass-panel control-panel">
+        <button id="powerBtn" type="button" class="power-button">Power on</button>
+        <button id="explodeBtn" type="button">Exploded view</button>
+        <button id="thermalBtn" type="button">Thermal scan</button>
+        <button id="qualityBtn" type="button">Cinematic quality</button>
+      </section>
+
+      <section class="glass-panel log-panel">
+        <div class="panel-header"><span>Workshop Log</span><strong>Live</strong></div>
+        <div id="buildLog" class="build-log"></div>
+      </section>
+    </aside>
+
+    <div id="toast" role="status" aria-live="polite"></div>
+    <div class="bottom-hint">
+      <span>Mouse: orbit • Wheel: zoom</span>
+      <span>Click a part card, then click the glowing 3D slot</span>
+      <span>Shortcuts: A auto-build · P power · X exploded · T thermal</span>
+    </div>
+
+    <a
+      class="site-attribution"
+      href="https://carlomigueldy.dev"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Visit carlomigueldy.dev"
+    >carlomigueldy.dev</a>
+    <script type="importmap">
+      {
+        "imports":{
+          "three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
+          "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"
+        }
+      }
+    </script>
+    <script type="module" src="./simulator.js"></script>
+  </body>
+</html>

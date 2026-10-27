@@ -1,0 +1,253 @@
+/* UnitLab 3D shared navigation and visual language — preview branch.
+   Used by the main academy and the 3D Parts Gallery, with the same
+   navigation hierarchy as hub-v2.html. Existing learning content is retained. */
+:root {
+  --ul-bg:#070d16; --ul-surface:#101c2b; --ul-surface2:#142738;
+  --ul-line:#273e50; --ul-mint:#80f3cd; --ul-text:#eef8fb;
+  --ul-muted:#93abbd; --ul-head:"Space Grotesk",Inter,system-ui,sans-serif;
+  --ul-body:"DM Sans",Inter,system-ui,sans-serif;
+}
+body.unitlab-unified {
+  background:radial-gradient(ellipse 70% 90% at 75% 0%,#122637 0%,#080e18 65%);
+  color:var(--ul-text);font-family:var(--ul-body);font-size:14px;line-height:1.55;
+}
+.unitlab-unified *, .unitlab-unified *::before, .unitlab-unified *::after{box-sizing:border-box}
+.unitlab-unified a:focus-visible,
+.unitlab-unified button:focus-visible,
+.unitlab-unified input:focus-visible,
+.unitlab-unified select:focus-visible{outline:3px solid #b2ffee;outline-offset:3px}
+.unitlab-unified .app-shell{display:flex;min-height:100vh;align-items:stretch}
+.unitlab-unified .rail{
+  width:256px;flex:0 0 256px;position:sticky;top:0;height:100vh;
+  padding:29px 17px 22px;background:#09131f;
+  border-right:1px solid #203347;display:flex;flex-direction:column;
+  z-index:40;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#305268 transparent;
+}
+.unitlab-unified .brand{padding:5px 10px 38px;display:flex;align-items:center;gap:11px}
+.unitlab-unified .brand:hover{text-decoration:none}
+.unitlab-unified .brand .stamp{
+  flex:none;min-width:45px;width:45px;height:45px;
+  display:grid;place-items:center;background:linear-gradient(145deg,#225c58,#102936);
+  border:1px solid #85f9ce84;border-radius:13px;color:#e6fff7;
+  font:700 26px/1 var(--ul-head);box-shadow:0 6px 18px #4beab322;
+}
+.unitlab-unified .brand .stamp span{font-size:10px;color:#8af6d2}
+.unitlab-unified .brand strong{display:block;color:var(--ul-text);font:700 20px/1.05 var(--ul-head);letter-spacing:-.6px;white-space:nowrap}
+.unitlab-unified .brand strong span{color:var(--ul-mint)}
+.unitlab-unified .brand small{display:block;font:700 8px/1.5 var(--ul-body);letter-spacing:1.45px;color:#87a5b3;margin-top:7px}
+.unitlab-unified .rail-caption{padding:0 15px;margin:0 0 12px;color:#668294;font:700 10px/1.3 var(--ul-head);letter-spacing:2px}
+.unitlab-unified .nav{display:flex;flex-direction:column;gap:3px}
+.unitlab-unified .rail .nav-button{
+  display:flex;align-items:center;gap:12px;text-align:left;min-height:44px;
+  width:100%;padding:10px 13px;border:1px solid transparent;border-radius:10px;
+  background:transparent;color:#9aafbf;font:700 12.5px/1.4 var(--ul-body);
+  text-decoration:none;cursor:pointer;transition:background .2s,color .2s,border-color .2s;
+}
+.unitlab-unified .rail .nav-button>span:first-child{color:#8deed1;font:600 19px/1 var(--ul-head);width:23px;text-align:center;flex:none}
+.unitlab-unified .rail .nav-button:hover{background:#142a3b;color:#e9fffe;border-color:transparent}
+.unitlab-unified .rail .nav-button.active,
+.unitlab-unified .rail .nav-button[aria-current="page"]{
+  color:#dffff1;background:linear-gradient(100deg,#1d4a4e,#102939);
+  border-color:#41816f85;box-shadow:inset 3px 0 var(--ul-mint);
+}
+.unitlab-unified .rail .nav-button .nav-mini{margin-left:auto;font-size:10px;color:#80d5bc}
+.unitlab-unified .rail .rail-divider{height:1px;background:#213448;margin:26px 12px}
+.unitlab-unified .rail-bottom{margin-top:auto;padding:16px 8px 0}
+.unitlab-unified .rail-notice{
+  display:flex;align-items:flex-start;gap:11px;background:linear-gradient(115deg,#123136,#0d222a);
+  border:1px solid #284b4c;border-radius:12px;padding:14px 12px;margin:0 0 15px;
+}
+.unitlab-unified .rail-notice:before{content:"";width:8px;height:8px;border-radius:50%;flex:none;margin-top:3px;background:#86f5ca;box-shadow:0 0 12px #66efb9}
+.unitlab-unified .rail-notice span{display:block;color:#b3fae1;font:700 9px var(--ul-head);letter-spacing:.8px}
+.unitlab-unified .rail-notice p{color:#8eb2b7;font:500 10px/1.5 var(--ul-body);margin:5px 0 0}
+.unitlab-unified .rail .bottom-link{font-size:12px;color:#a6eada;min-height:42px;padding:10px 8px}
+.unitlab-unified .rail .legacy-link{display:block;padding:8px;margin:4px 0;color:#89aebd;font-size:11px;text-decoration:none}
+.unitlab-unified .rail .legacy-link:hover{color:#a6f5dd}
+.unitlab-unified .main-column{display:flex;flex-direction:column;min-width:0;flex:1}
+.unitlab-unified .topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  height:76px;padding:0 clamp(24px,3.4vw,55px);background:#0c1825eb;
+  border-bottom:1px solid #213448;position:sticky;top:0;z-index:22;
+}
+.unitlab-unified .breadcrumb{
+  display:flex;align-items:center;gap:9px;color:#7e9cab;
+  font:700 10px var(--ul-head);letter-spacing:1.3px;white-space:nowrap;
+}
+.unitlab-unified .breadcrumb a{font:700 10px var(--ul-head);letter-spacing:1.3px;color:#92b1c1;text-decoration:none}
+.unitlab-unified .breadcrumb a:hover{color:var(--ul-mint)}
+.unitlab-unified .breadcrumb b{color:#4a697c;padding:0}
+.unitlab-unified .breadcrumb #pageCrumb{color:#e2f5f6}
+.unitlab-unified .top-right{display:flex;align-items:center;gap:12px}
+.unitlab-unified .label-pill{
+  border:0;background:none;padding:0;white-space:nowrap;color:#85aeb1;
+  font:700 10px var(--ul-head);letter-spacing:.8px;
+}
+.unitlab-unified .label-pill:before{content:"";display:inline-block;width:7px;height:7px;margin-right:9px;border-radius:50%;background:var(--ul-mint);box-shadow:0 0 10px #5fe3b4}
+.unitlab-unified .user-badge{
+  display:grid;place-items:center;min-width:34px;height:34px;
+  border:1px solid #3c7a73;background:linear-gradient(140deg,#204750,#16303b);
+  border-radius:50%;color:#bcffeb;font:700 11px var(--ul-head);padding:3px 6px;
+  max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.unitlab-unified .topbar .btn{
+  background:transparent;border:1px solid #2e4758;
+  border-radius:9px;color:#c6dfe6;padding:9px 11px;
+  font:700 11px var(--ul-body);box-shadow:none;min-height:36px;
+}
+.unitlab-unified .topbar .btn:hover{background:#18354a;transform:none}
+.unitlab-unified .menu-toggle{display:none;background:#152839;border:1px solid #2e4b5a;border-radius:9px;min-height:42px;min-width:42px;color:#dcf4ee;padding:8px}
+.unitlab-unified .main{
+  width:min(100%,1640px);padding:40px clamp(24px,3.4vw,55px) 74px;margin:0 auto;
+}
+.unitlab-unified .main .view-heading{margin:0 0 30px}
+.unitlab-unified .main .view-heading h1{font:700 clamp(30px,2.9vw,43px)/1.17 var(--ul-head);letter-spacing:-1.45px}
+.unitlab-unified .main .view-heading p{font:500 13px/1.8 var(--ul-body);color:#a6bece}
+.unitlab-unified .main .eyebrow{color:#8fe6d0;font:700 10px var(--ul-head);letter-spacing:1.7px}
+.unitlab-unified .main .hero{background:radial-gradient(ellipse 72% 150% at 92% 48%,#19374a 0%,#101f30 50%,#0d1c2c 80%);border:1px solid #2a4f5b}
+.unitlab-unified .main .view h1,.unitlab-unified .main .view h2,.unitlab-unified .main .view h3{font-family:var(--ul-head)}
+.unitlab-unified .main .resource-card,
+.unitlab-unified .main .learning-paper,
+.unitlab-unified .main .journey,
+.unitlab-unified .main .tool-card,
+.unitlab-unified .main .builder-field,
+.unitlab-unified .main .lesson-tab,
+.unitlab-unified .main .pc-viewport,
+.unitlab-unified .main .compatibility,
+.unitlab-unified .main .part-summary{border-color:#2a4356;background-color:#101e2d}
+.unitlab-unified .main .lesson-tab.active{background:#20444b;border-color:#59ae9c;color:#dffdf3}
+.unitlab-unified .main .workbench-stage{border:1px solid #30576a;border-radius:17px;background:#091724;min-height:750px;overflow:hidden}
+.unitlab-unified .main .workbench-stage iframe{width:100%;min-height:750px;height: min(1090px, 125vh);border:0;display:block;background:#091724}
+.unitlab-unified .main .footer{color:#698393}
+.unitlab-unified .footer{border-top:1px solid #203246;color:#698393;font:600 9px var(--ul-head);letter-spacing:1px}
+.unitlab-unified .rail-scrim{display:none}
+.unitlab-unified .resource-return-nav{display:none}
+.unitlab-unified.gallery-page .page{max-width:1640px;width:100%;padding:38px clamp(24px,3.4vw,55px) 74px}
+.unitlab-unified.gallery-page .page h1{font:700 clamp(30px,2.9vw,43px)/1.17 var(--ul-head);letter-spacing:-1.45px}
+.unitlab-unified.gallery-page .page .header{margin-bottom:20px}
+.unitlab-unified.gallery-page .page .header h1{margin:7px 0 11px}
+.unitlab-unified.gallery-page .page .sub{color:#a6bece}
+.unitlab-unified.gallery-page .page .panel{background:linear-gradient(160deg,#132636,#0d1c2a);border-color:#2a4356}
+.unitlab-unified.gallery-page .page .btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px}
+@media(max-width:1090px){
+  .unitlab-unified .rail{width:220px;flex-basis:220px;padding-left:10px;padding-right:10px}
+  .unitlab-unified .brand strong{font-size:17px}
+  .unitlab-unified .brand small{font-size:7px;letter-spacing:1px}
+  .unitlab-unified .topbar{padding:0 24px}
+}
+@media(max-width:890px){
+  .unitlab-unified .rail{
+    width:min(300px,85vw);height:100dvh;position:fixed;top:0;left:0;
+    transform:translateX(-104%);transition:transform .25s ease;
+    box-shadow:20px 0 50px #0006;z-index:80;flex-basis:auto;
+  }
+  .unitlab-unified .rail.open{transform:translateX(0)}
+  .unitlab-unified .rail-scrim:not([hidden]){display:block;position:fixed;inset:0;z-index:70;background:#0009;border:0}
+  .unitlab-unified .menu-toggle{display:grid;place-items:center}
+  .unitlab-unified .topbar{height:68px;padding:0 16px}
+  .unitlab-unified .main{padding:26px 18px 52px}
+  .unitlab-unified.gallery-page .page{padding:26px 18px 52px}
+}
+@media(max-width:620px){
+  .unitlab-unified .label-pill{display:none}
+  .unitlab-unified .top-right{gap:7px}
+  .unitlab-unified .breadcrumb{font-size:9px;letter-spacing:.3px}
+  .unitlab-unified .breadcrumb a{font-size:9px}
+  .unitlab-unified .main{padding:24px 15px 48px}
+  .unitlab-unified.gallery-page .page{padding:24px 15px 48px}
+  .unitlab-unified .topbar .btn{padding:7px 8px;font-size:10px}
+  .unitlab-unified .main .workbench-stage iframe{height:85vh;min-height:700px}
+}
+@media(prefers-reduced-motion:reduce){
+  .unitlab-unified .rail,.unitlab-unified .nav-button{transition:none!important}
+}
+
+/* Verified DepEd/TESDA resource library, October 2026 */
+.unitlab-unified .resource-explainer{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 21px}
+.unitlab-unified .resource-explainer>div{padding:17px 18px;background:#112b35;border:1px solid #305261;border-radius:13px;min-width:0}
+.unitlab-unified .resource-explainer strong{display:flex;align-items:center;gap:9px;font:700 12px var(--ul-head);color:#e8faf5}
+.unitlab-unified .resource-explainer p{color:#a5c0c9;font-size:11px;line-height:1.65;margin:8px 0 0}
+.unitlab-unified .resource-legend-icon{min-width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:#315658;color:#a8ffe2;font:700 10px var(--ul-head)}
+.unitlab-unified .resource-legend-icon.portal{background:#454467;color:#c4c7ff}
+.unitlab-unified .resource-legend-icon.collection{background:#5a4c37;color:#ffe0ad}
+.unitlab-unified .resource-tools{display:grid;grid-template-columns:minmax(220px,340px) 1fr auto;align-items:end;gap:14px;margin:20px 0 16px}
+.unitlab-unified .resource-search-group{display:grid;gap:7px}
+.unitlab-unified .resource-search-group label{font:700 10px var(--ul-head);letter-spacing:1px;color:#9bdcce}
+.unitlab-unified .resource-search-group input{height:44px;width:100%;background:#102838;border:1px solid #3c6270;color:#ecfafa;border-radius:9px;padding:10px 13px;font:500 12px var(--ul-body);min-width:0}
+.unitlab-unified .resource-search-group input::placeholder{color:#86a4b3}
+.unitlab-unified .resource-filters{display:flex;flex-wrap:wrap;gap:7px}
+.unitlab-unified .resource-filter{min-height:42px;border:1px solid #34566a;background:#142a3c;color:#bad3de;border-radius:9px;padding:9px 12px;font:700 11px var(--ul-body);transition:.15s}
+.unitlab-unified .resource-filter:hover{background:#1c4554;border-color:#76c9b3}
+.unitlab-unified .resource-filter.selected{color:#093124;background:#8af0cf;border-color:#8af0cf}
+.unitlab-unified .resource-count{color:#84b5ba;font:600 10px var(--ul-body);white-space:nowrap;align-self:center}
+.unitlab-unified .resource-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-top:18px}
+.unitlab-unified .resource-card{display:flex;flex-direction:column;min-height:275px;padding:20px 20px 16px;border:1px solid #2f5362;background:linear-gradient(157deg,#112735,#0e1e2d);border-radius:15px}
+.unitlab-unified .resource-card-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:17px}
+.unitlab-unified .resource-card-top>span:last-child{color:#93adbb;font:700 10px var(--ul-head);letter-spacing:1px}
+.unitlab-unified .resource-type{display:inline-flex;align-items:center;min-height:24px;padding:3px 9px;border-radius:6px;border:1px solid #4d8f75;background:#245443;color:#b4f8de;font:700 9px var(--ul-head);letter-spacing:.6px;white-space:nowrap}
+.unitlab-unified .resource-type.type-catalog{border-color:#60609a;background:#37355b;color:#c9c6ff}
+.unitlab-unified .resource-type.type-collection{border-color:#94754c;background:#504334;color:#ffdaa9}
+.unitlab-unified .resource-card .res-kicker{font:700 9px var(--ul-head);letter-spacing:1px;color:#7bb9c0;margin:0 0 8px}
+.unitlab-unified .resource-card h3{font:700 17px/1.3 var(--ul-head);letter-spacing:-.2px;margin:0 0 9px;color:#eafcf8}
+.unitlab-unified .resource-card p{font-size:12px;line-height:1.62;color:#a9c1cf;margin:0 0 12px}
+.unitlab-unified .resource-card small{display:block;font-size:10px;color:#84b4ba}
+.unitlab-unified .resource-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:auto;padding-top:17px}
+.unitlab-unified .resource-card a.resource-open{margin:0;display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:10px 13px;background:#70dfbc;color:#092c25;border:1px solid #75edc7;border-radius:8px;text-decoration:none;font:700 11px var(--ul-body)}
+.unitlab-unified .resource-card a.resource-open:hover{background:#aaffdf;color:#092c25}
+.unitlab-unified .resource-card a.resource-secondary{margin:0;color:#a0dcca;font:700 11px var(--ul-body);text-decoration:underline}
+.unitlab-unified .resource-file-note{border-top:1px solid #2c4555;margin-top:15px;padding-top:10px;color:#88a3b1;font-size:10px;line-height:1.55}
+.unitlab-unified .resource-no-match{grid-column:1/-1;padding:26px;border-radius:12px;border:1px dashed #4d7886;color:#bdd2df;background:#132b3b}
+.unitlab-unified .lesson-source-box{margin:24px 0 18px;padding:19px;background:#102f38;border:1px solid #3a6c70;border-radius:12px}
+.unitlab-unified .lesson-source-box .source-box-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-bottom:10px}
+.unitlab-unified .lesson-source-box .source-box-head b{font:700 10px var(--ul-head);color:#a1eed7;letter-spacing:1px}
+.unitlab-unified .lesson-source-box .source-box-head small{color:#a1c0c4;font-size:10px}
+.unitlab-unified .learning-paper a.lesson-source-link{display:flex;align-items:center;gap:12px;min-height:50px;border-top:1px solid #315660;text-decoration:none;color:#e8f9f4;padding:9px 4px}
+.unitlab-unified .learning-paper a.lesson-source-link:hover{color:#9ef9d8;background:#20434d}
+.unitlab-unified .lesson-source-link>span{padding:5px 7px;background:#275e4b;border:1px solid #438c70;color:#b0ffdf;border-radius:5px;font:700 10px var(--ul-head)}
+.unitlab-unified .lesson-source-link strong{flex:1;font:700 12px var(--ul-body);line-height:1.4}
+.unitlab-unified .lesson-source-link i{font-size:17px;font-style:normal}
+.unitlab-unified .lesson-source-box>p{margin:12px 0 0;color:#8eb3ba;font-size:10px;line-height:1.6}
+@media(max-width:1180px){.unitlab-unified .resource-tools{grid-template-columns:1fr}.unitlab-unified .resource-count{justify-self:start}}
+@media(max-width:760px){.unitlab-unified .resource-explainer{grid-template-columns:1fr}.unitlab-unified .resource-grid{grid-template-columns:1fr}.unitlab-unified .resource-filters{gap:6px}.unitlab-unified .resource-filter{font-size:10px;padding:8px 10px}.unitlab-unified .resource-card{min-height:unset}}
+
+
+/* Learning materials rebuild — only verified available presentations / PDFs / guides */
+.unitlab-unified .resource-type.type-slides,
+.unitlab-unified .media-kind.type-slides{border:1px solid #7772b2;background:#35365d;color:#d8d2ff}
+.unitlab-unified .resource-type.type-pdf,
+.unitlab-unified .media-kind.type-pdf{border:1px solid #4eaa83;background:#245443;color:#b4f8de}
+.unitlab-unified .resource-type.type-guide,
+.unitlab-unified .media-kind.type-guide{border:1px solid #7a8db1;background:#244460;color:#c5e5ff}
+.unitlab-unified .resource-card .resource-file-note{border-top:1px solid #2c4555;margin-top:15px;padding-top:10px;color:#97b0bc;font-size:11px;line-height:1.6}
+.unitlab-unified .lesson-source-box{
+  margin:26px 0 20px;padding:19px;background:linear-gradient(145deg,#0f2938,#0d202c);
+  border:1px solid #41716e;border-radius:16px;
+}
+.unitlab-unified .lesson-source-box .source-box-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.unitlab-unified .lesson-source-box .source-box-head b{font:700 12px var(--ul-head);color:#bcf6e5;letter-spacing:.7px}
+.unitlab-unified .lesson-source-box .source-box-head small{font:600 10px var(--ul-body);color:#95b4c2}
+.unitlab-unified .learning-paper .lesson-source-intro{font-size:12px;color:#a0becc;margin:12px 0 17px;line-height:1.65}
+.unitlab-unified .lesson-media-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:stretch}
+.unitlab-unified .lesson-media-card{display:flex;flex-direction:column;min-width:0;border:1px solid #345369;background:#112739;border-radius:13px;padding:17px;min-height:230px;gap:8px}
+.unitlab-unified .lesson-media-card.featured{background:linear-gradient(135deg,#1a3d48,#152638);border:1px solid #5cbca3}
+.unitlab-unified .lesson-media-label{display:flex;justify-content:space-between;align-items:center;gap:7px;font:700 9px var(--ul-head);color:#9bbcc8;letter-spacing:.35px}
+.unitlab-unified .lesson-media-label>span:last-child{text-align:right}
+.unitlab-unified .media-kind{padding:4px 7px;border-radius:6px;font:700 9px var(--ul-head);letter-spacing:.35px;white-space:nowrap}
+.unitlab-unified .lesson-media-card h4{margin:3px 0 0;font:700 16px/1.4 var(--ul-head);color:#efffff}
+.unitlab-unified .learning-paper .lesson-media-card p{font:500 12px/1.64 var(--ul-body);margin:0;color:#b1cad4}
+.unitlab-unified .lesson-media-card>small{display:block;color:#8db0c4;font:600 10px var(--ul-body);margin-top:2px}
+.unitlab-unified .lesson-media-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:12px}
+.unitlab-unified .learning-paper .lesson-media-open{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 13px;border:1px solid #75edc7;border-radius:8px;background:#70dfbc;color:#092c25;text-decoration:none;font:800 11px var(--ul-body);transition:background .18s}
+.unitlab-unified .learning-paper .lesson-media-open:hover{background:#a6ffe0;color:#082d23}
+.unitlab-unified .lesson-preview-btn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:9px 11px;border-radius:8px;border:1px solid #558497;color:#d3f2f8;background:#163749;font:700 11px var(--ul-body)}
+.unitlab-unified .lesson-preview-btn:hover{background:#25566b}
+.unitlab-unified .learning-paper .lesson-media-card p.lesson-provider-note{margin-top:4px;padding:9px 0 0;border-top:1px solid #2b4856;font-size:10px;color:#9caebb;line-height:1.5}
+.unitlab-unified .learning-paper .lesson-media-footnote{font:500 11px/1.8 var(--ul-body);color:#b9c8c8;margin:17px 0 0;border-top:1px solid #2c5160;padding-top:15px}
+.unitlab-unified .lesson-pdf-preview{margin-top:18px;background:#0a1723;border:1px solid #456679;border-radius:12px;overflow:hidden;padding:12px}
+.unitlab-unified .lesson-pdf-preview .pdf-preview-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.unitlab-unified .lesson-pdf-preview .pdf-preview-heading strong{font:700 12px var(--ul-head)}
+.unitlab-unified .lesson-pdf-preview .pdf-preview-heading button{background:#2a4859;padding:9px 11px;border:1px solid #3b6477;border-radius:8px;color:#e6f6ff}
+.unitlab-unified .lesson-pdf-preview iframe{width:100%;height:min(72vh,660px);min-height:420px;background:#fff;border:0;border-radius:7px;margin:10px 0;display:block}
+.unitlab-unified .lesson-pdf-preview>a{display:inline-block;margin:5px 0;color:#93f7d8;font:700 12px var(--ul-body)}
+.unitlab-unified .lesson-pdf-preview>p{font-size:11px;margin:10px 0;color:#a8bdcd}
+@media(max-width:1040px){.unitlab-unified .lesson-media-grid{grid-template-columns:1fr}}
+@media(max-width:650px){.unitlab-unified .lesson-source-box{padding:13px}.unitlab-unified .lesson-media-card{min-height:unset;padding:14px}.unitlab-unified .lesson-pdf-preview iframe{min-height:350px;height:65vh}}

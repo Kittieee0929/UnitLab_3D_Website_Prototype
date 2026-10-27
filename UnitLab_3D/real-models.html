@@ -36,11 +36,26 @@ model-viewer{display:block;position:absolute;inset:0;width:100%;height:100%;outl
 @media(max-width:440px){.parts{grid-template-columns:repeat(2,minmax(0,1fr))}.viewer-foot{bottom:8px;left:8px;right:8px;flex-wrap:wrap}.viewer-actions{gap:5px}.viewer-actions button{padding:7px}}
 </style>
 <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.3.1/model-viewer.min.js"></script>
-<style>.resource-return-nav{display:flex;gap:8px;align-items:center;justify-content:flex-start;flex-wrap:wrap;background:#123443;border:1px solid #3b6574;border-radius:13px;padding:10px 12px;margin:0 0 16px}.resource-return-nav a{display:inline-block;color:#c8fbf2!important;border:1px solid #356274;border-radius:9px;text-decoration:none;padding:8px 11px;font:700 12px system-ui;background:#0a2636}.resource-return-nav a:hover{background:#275563}</style></head>
-<body><main class="page">
-<div class="resource-return-nav" role="navigation" aria-label="Learning Studio sections"><a href="academy.html#home">⌂ Home</a><a href="academy.html#modules">Learning modules</a><a href="academy.html#plans">Lesson plans</a><a href="academy.html#curriculum">DepEd resources</a><a href="academy.html#builder">PC Builder</a><a href="training.html">Safe practice</a></div>
+<style>.resource-return-nav{display:flex;gap:8px;align-items:center;justify-content:flex-start;flex-wrap:wrap;background:#123443;border:1px solid #3b6574;border-radius:13px;padding:10px 12px;margin:0 0 16px}.resource-return-nav a{display:inline-block;color:#c8fbf2!important;border:1px solid #356274;border-radius:9px;text-decoration:none;padding:8px 11px;font:700 12px system-ui;background:#0a2636}.resource-return-nav a:hover{background:#275563}</style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="unified-shell.css"><link rel="stylesheet" href="simple-topnav.css"></head>
+<body class="unitlab-unified gallery-page"><div class="app-shell"><header class="rail" id="primaryRail">
+<a class="brand" href="hub-v2.html" aria-label="UnitLab 3D home"><span class="stamp">U<span>3D</span></span><span><strong>UnitLab <span>3D</span></strong><small>HARDWARE LEARNING STUDIO</small></span></a>
+<nav class="nav" id="mainNav" aria-label="Primary navigation">
+<a class="nav-button" href="hub-v2.html">Home</a>
+<a class="nav-button" href="academy.html#modules">Lessons</a>
+<a class="nav-button active" href="real-models.html" aria-current="page">3D Parts</a>
+<a class="nav-button" href="academy.html#builder">PC Builder</a>
+<a class="nav-button" href="pro-assembly/index.html">3D Lab</a>
+<a class="nav-button" href="academy.html#quiz">Quizzes</a>
+<a class="nav-button" href="academy.html#curriculum">Resources</a>
+<a href="hub-v2.html#progress" class="nav-button mobile-only">My progress</a>
+<a href="academy.html#plans" class="nav-button mobile-only">Lesson plans</a><a href="academy.html#safety" class="nav-button mobile-only">Lab safety</a>
+</nav><button type="button" id="loginSidebar" hidden>Student sign in</button>
+</header>
+<div class="main-column"><header class="topbar"><div class="breadcrumb">3D Parts</div><div class="top-right"><a href="hub-v2.html#progress" class="gallery-progress">Progress</a><button type="button" class="menu-toggle" id="menuToggle" aria-controls="mainNav" aria-expanded="false" aria-label="Open navigation"><span></span><span></span><span></span></button></div></header>
+<main class="page">
+<div class="resource-return-nav" role="navigation" aria-label="Learning Studio sections"><a href="hub-v2.html">⌂ Home</a><a href="academy.html#modules">Learning modules</a><a href="academy.html#plans">Lesson plans</a><a href="academy.html#curriculum">DepEd resources</a><a href="academy.html#builder">PC Builder</a><a href="performance-3d.html">Safe practice</a></div>
 <header class="header"><div><div class="eyebrow">UNITLAB 3D / REAL MESH ASSET COLLECTION</div><h1>Actual 3D PC Components.</h1><p class="sub">Detailed, independently rotatable glTF models—not the box-shaped WebGL illustrations. Inspect the motherboard, GPU, RAM, storage, PSU and the full system unit before your guided assembly.</p></div>
-<div class="top-actions"><a class="btn" href="academy.html#workbench">← Learning Studio</a><a class="btn primary" href="training.html">Start guided assembly →</a></div></header>
+<div class="top-actions"><a class="btn" href="performance-3d.html">← Learning Studio</a><a class="btn primary" href="pro-assembly/index.html">Open Pro Assembly →</a></div></header>
 <div class="layout">
 <aside class="panel"><div class="inventory-title"><div><div class="section-label">PARTS INVENTORY</div><h2>Hardware cabinet</h2></div><span class="kicker" id="partCount">12 MODELS</span></div><div id="parts" class="parts" role="group" aria-label="Choose a realistic 3D PC part"></div>
 <div class="inside" style="border-top:1px solid #2c5265"><p style="margin:0">These are genuine 3D meshes, not pictures. Drag directly on the model to inspect its shape, ports and hardware details.</p></div></aside>
@@ -55,8 +70,8 @@ model-viewer{display:block;position:absolute;inset:0;width:100%;height:100%;outl
 <div class="panel"><div class="notes"><div class="section-label">COMPONENT INSPECTOR</div><h2 id="partName">Graphics Card</h2><p id="partDesc">Inspect a real 3D computer graphics card model.</p>
 <div class="meta"><span id="meshLabel">Detailed mesh</span><span>Interactive 360°</span><span>Textured GLB</span></div><div class="section-label">SAFE HANDLING</div><p id="partSafety">Disconnect power and check manufacturer instructions before physical assembly.</p>
 <div class="summary"><div class="section-label">YOUR SELECTED PC BUILD</div><strong id="priceTotal">No saved build</strong><p id="buildSpecs" style="margin:7px 0 0">Choose components in the PC Builder to show your CPU, GPU, RAM and total.</p></div>
-<div class="box-links"><a class="btn primary" href="academy.html#builder">Configure parts & prices →</a><a class="btn" href="training.html">Guided / assessed assembly →</a><a class="btn" href="worklab-pro.html">Fallback WebGL viewer ↗</a></div>
+<div class="box-links"><a class="btn primary" href="academy.html#builder">Configure parts & prices →</a><a class="btn" href="performance-3d.html">Guided / assessed assembly →</a><a class="btn" href="worklab-pro.html">Fallback WebGL viewer ↗</a></div>
 </div></div>
 <div class="panel"><div class="notes"><div class="section-label">ABOUT THE 3D ASSETS</div><p>Models come from the MIT-licensed open-source <a href="https://github.com/brickshow/pc-anatomy" target="_blank" rel="noopener">PC Anatomy</a> project. Exact product names in our price catalog are labels, not guarantees that the geometry matches that SKU. Files load from its public GitHub repository.</p><div class="support">If a model is temporarily unavailable, use the fallback viewer or continue with your drag-and-drop performance training. A stable internet connection is needed for this high-detail gallery.</div></div></div>
-</aside></div><footer class="footer">UnitLab 3D • Classroom-based action research prototype. High-detail models © their respective contributors, reused with upstream MIT license notice. The learning website's independent tutorial, grading, and existing research resources are preserved.</footer></main>
-<script defer src="real-models.js"></script></body></html>
+</aside></div><footer class="footer">UnitLab 3D • Classroom-based action research prototype. High-detail models © their respective contributors, reused with upstream MIT license notice. The learning website's independent tutorial, grading, and existing research resources are preserved.</footer></main></div></div><button type="button" class="rail-scrim" id="railScrim" aria-label="Close navigation" hidden></button>
+<script defer src="real-models.js"></script><script src="unified-nav.js" defer></script></body></html>

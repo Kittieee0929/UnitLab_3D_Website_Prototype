@@ -1,0 +1,182 @@
+name: UnitLab 3D browser smoke test
+
+on:
+  push:
+    branches:
+      - design/unitlab-learning-hub-v1
+    paths:
+      - 'UnitLab_3D/**'
+      - '.github/workflows/lab-smoke.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: unitlab-3d-lab-test-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  webgl-lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser automation
+        run: npm install --no-save --ignore-scripts playwright-core@1.56.1
+      - name: Prevent single-vs-list selector regressions
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const code=fs.readFileSync('UnitLab_3D/performance-3d.js','utf8');
+          const errors=[...code.matchAll(/(?<!\$)\$\(['"][^'"]+['"]\)\.forEach/g)].map(m=>m[0]);
+          if(errors.length)throw new Error('Single-element selector used with forEach: '+errors.join(', '));
+          console.log('Static selector test PASS');
+          NODE
+      - name: Start local UnitLab static server
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/unitlab-server.log 2>&1 &
+          echo $! > /tmp/unitlab-server.pid
+      - name: Validate lab layout, controls and WebGL startup
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright-core');
+          (async () => {
+            const browser = await chromium.launch({
+              headless: true,
+              executablePath: process.env.CHROME_PATH || '/usr/bin/google-chrome',
+              args: ['--no-sandbox', '--enable-webgl', '--enable-unsafe-swiftshader', '--use-gl=angle', '--use-angle=swiftshader']
+            });
+            const page = await browser.newPage({ viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 });
+            const errors = [];
+            page.on('pageerror', err => errors.push(err.stack||err.message));
+            page.on('console', msg => { if(msg.type()==='error') console.log('BROWSER ERROR:', msg.text().slice(0,500)); });
+            await page.goto('http://127.0.0.1:8765/UnitLab_3D/performance-3d.html', { waitUntil:'domcontentloaded', timeout:30000 });
+            await page.waitForTimeout(25000);
+            const initial = await page.evaluate(() => ({
+              loaded: document.querySelector('#stageStatus')?.hidden === true,
+              status: document.querySelector('#stageStatus')?.innerText?.slice(0,600),
+              width: document.querySelector('#assemblyCanvas')?.width,
+              height: document.querySelector('#assemblyCanvas')?.height,
+              tray: document.querySelectorAll('.inventory').length,
+              title: document.querySelector('.lab-heading h1')?.textContent,
+              initialMode: document.querySelector('#modeLabel')?.textContent,
+              guide: document.querySelector('#stepHeading')?.textContent,
+              viewport: document.querySelector('.stage')?.getBoundingClientRect().width
+            }));
+            console.log('INITIAL:', JSON.stringify(initial));
+            console.log('MODEL FIT:', JSON.stringify(await page.evaluate(()=>window.__unitlabFit||{})));
+            await page.screenshot({path:'/tmp/unitlab-lab-1600.png',fullPage:true});
+            if(!initial.loaded)throw new Error('3D Lab did not render: '+initial.status);
+            if(initial.tray < 8)throw new Error('Parts tray incomplete');
+            if(initial.width < 500)throw new Error('3D canvas unexpectedly small');
+            // Actual 3D part installation: verify a real scene click moves
+            // the motherboard from "ready" to "placed" and advances the guide.
+            const boardPoint=await page.evaluate(()=>window.__unitlabQA?.targetClient('motherboard'));
+            if(!boardPoint)throw new Error('3D part placement API not available');
+            console.log('MOTHERBOARD TARGET:',JSON.stringify(boardPoint));
+            await page.mouse.click(boardPoint.x,boardPoint.y);
+            await page.waitForTimeout(450);
+            const boardState=await page.evaluate(()=>window.__unitlabQA?.snapshot());
+            console.log('BOARD INSTALL:',JSON.stringify(boardState));
+            if(boardState.step!==1||boardState.placed.motherboard!=='motherboard')
+              throw new Error('Guided motherboard placement failed');
+            await page.screenshot({path:'/tmp/unitlab-after-board-install.png',fullPage:true});
+            for(const id of ['cpu','ram','storage','cooler']){
+              await page.locator('.inventory[data-part="'+id+'"]').click();
+              await page.waitForTimeout(300);
+              let pt=await page.evaluate(id=>window.__unitlabQA.targetClient(id),id);
+              if(!pt.withinStage){
+                await page.locator('#focusMotherboard').click();
+                await page.waitForTimeout(750);
+                pt=await page.evaluate(id=>window.__unitlabQA.targetClient(id),id);
+              }
+              if(!pt.withinStage)throw new Error('Socket offscreen: '+id);
+              await page.mouse.click(pt.x,pt.y);
+              await page.waitForTimeout(850);
+              const st=await page.evaluate(()=>window.__unitlabQA.snapshot());
+              const a=await page.evaluate(id=>window.__unitlabQA.anchors().find(x=>x.id===id),id);
+              console.log('CONNECTOR',id,JSON.stringify(a));
+              if(st.placed[id]!==id||a.parent!=='board'||a.distance>.085)
+                throw new Error('Misaligned '+id+': '+JSON.stringify({st,a}));
+            }
+            await page.locator('#mountBoardBtn').click();
+            await page.waitForTimeout(1450);
+            const mounted=await page.evaluate(()=>window.__unitlabQA.snapshot());
+            if(!mounted.boardMounted||mounted.parentBoard!=='case'||mounted.boardLocal.some((v,i)=>Math.abs(v-[-.40,.35,-.83][i])>.01))throw new Error('Motherboard is not actually seated on case standoffs: '+JSON.stringify(mounted));
+            for(const id of ['motherboard','cpu','ram','storage','cooler']){
+              const a=await page.evaluate(id=>window.__unitlabQA.anchors().find(x=>x.id===id),id);
+              if(a.parent!=='board'||a.distance>.085)throw new Error(id+' shifted when board entered the chassis');
+            }
+            for(const id of ['psu','gpu','casefans']){
+              await page.locator('.inventory[data-part="'+id+'"]').click();
+              await page.waitForTimeout(350);
+              let pt=await page.evaluate(id=>window.__unitlabQA.targetClient(id),id);
+              if(!pt.withinStage){
+                await page.locator('#focusCase').click();
+                await page.waitForTimeout(650);
+                pt=await page.evaluate(id=>window.__unitlabQA.targetClient(id),id);
+              }
+              if(!pt.withinStage)throw new Error('Case socket offscreen: '+id+' '+JSON.stringify(pt)+' '+JSON.stringify(await page.evaluate(()=>window.__unitlabQA.snapshot())));
+              await page.mouse.click(pt.x,pt.y);
+              await page.waitForTimeout(850);
+              const st=await page.evaluate(()=>window.__unitlabQA.snapshot());
+              console.log('CASE AFTER CLICK',id,JSON.stringify(st));
+              const a=await page.evaluate(id=>window.__unitlabQA.anchors().find(x=>x.id===id),id);
+              console.log('CASE CONNECTOR',id,JSON.stringify(a));
+              if(a.distance>.085)throw new Error(id+' missed case connector');
+            }
+            const full=await page.evaluate(()=>window.__unitlabQA.snapshot());
+            if(full.step!==8)throw new Error('Not fully built: '+JSON.stringify(full));
+            await page.screenshot({path:'/tmp/unitlab-complete-assembly.png',fullPage:true});
+
+            await page.locator('[data-filter="storage"]').click();
+            const visibleParts = await page.locator('.inventory:visible').count();
+            console.log('STORAGE FILTER:',visibleParts);
+            if(visibleParts!==2)throw new Error('Storage filter returned '+visibleParts+' parts instead of 2');
+            await page.locator('[data-filter="all"]').click();
+            await page.locator('[data-orientation="upright"]').click();
+            const pressed = await page.locator('[data-orientation="upright"]').getAttribute('aria-pressed');
+            if(pressed!=='true')throw new Error('Orientation toggle not working');
+            await page.locator('#explodeViewBtn').click();
+            if((await page.locator('#explodeViewBtn').getAttribute('aria-pressed'))!=='true')throw new Error('Explode toggle not working');
+            await page.locator('#labHelpBtn').click();
+            if(await page.locator('#labHelpPanel').isHidden())throw new Error('Help did not open');
+            await page.locator('#labSearch').fill('graphics');
+            const gpu = await page.locator('.inventory[data-part="gpu"]').isVisible();
+            if(!gpu)throw new Error('Hardware search not working');
+            await page.locator('#labSearch').fill('');
+            await page.locator('[data-mode="disassembly"]').click();
+
+            for(const id of ['casefans','gpu','psu','cooler','storage','ram','cpu','motherboard']){
+              const before=await page.evaluate(()=>window.__unitlabQA.snapshot());
+              await page.locator('#removeSelectedBtn').click();
+              await page.waitForTimeout(570);
+              const after=await page.evaluate(()=>window.__unitlabQA.snapshot());
+              console.log('REVERSE DISASSEMBLY',id,JSON.stringify(after));
+              if(!after.removed.includes(id)||after.step!==before.step+1)
+                throw new Error('Wrong reverse removal: '+id);
+            }
+            const allOut=await page.evaluate(()=>window.__unitlabQA.snapshot());
+            if(allOut.removed.length!==8)throw new Error('Disassembly not complete');
+            const mode = await page.locator('#modeLabel').textContent();
+            if(mode.trim()!=='DISASSEMBLY')throw new Error('Disassembly mode did not activate');
+            await page.screenshot({path:'/tmp/unitlab-lab-tested.png',fullPage:true});
+            if(errors.length)throw new Error('JavaScript page errors: '+errors.join(' | '));
+            console.log('SMOKE TEST PASSED');
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unitlab-browser-screenshots
+          path: |
+            /tmp/unitlab-lab-1600.png
+            /tmp/unitlab-lab-tested.png
+            /tmp/unitlab-after-board-install.png
+            /tmp/unitlab-complete-assembly.png
+          if-no-files-found: ignore

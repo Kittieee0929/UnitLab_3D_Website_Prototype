@@ -67,29 +67,112 @@ localStorage.setItem(STORE_KEY,JSON.stringify(snapshot));
 const frame=document.getElementById('labFrame');if(frame?.contentWindow)frame.contentWindow.postMessage({type:'unitlab3d:updatebuild',snapshot},location.origin);
 }
 function setPreset(i){const p=PRESETS[i];if(!p)return;build={...p.build};sync();renderBuilder()}
+/* Explain every detected mismatch with the actual selected products.
+   Suggestions are explicit learner choices, never automatic silent substitutions. */
+const cheapest=(key,predicate)=>catalog(key).options.filter(predicate).sort((a,b)=>a.price-b.price)[0]||null;
+const action=(key,item)=>item?{key,id:item.id,label:"Choose "+item.name,price:item.price}:null;
 const checks=()=>{
-const cpu=get('cpu'),mb=get('board'),ram=get('ram'),gpu=get('gpu'),psu=get('psu'),pcase=get('case'),cooler=get('cooler');
-const rows=[];
-const add=(kind,message)=>rows.push({kind,message});
-add(cpu.socket===mb.socket?'pass':'fail','CPU socket '+cpu.socket+' and motherboard socket '+mb.socket);
-add(ram.ram===mb.ram?'pass':'fail',ram.ram+' memory with '+mb.ram+' board');
-const n=ram.dimms||2,m=mb.slots||2;
-add(n<=m?'pass':'fail',n+' RAM sticks for '+m+' available DIMM slots');
-if(n===4)add('warn','Four DIMMs can reduce supported memory frequency; verify EXPO/XMP, rank, BIOS and QVL. Four sticks do not create four-channel RAM on these consumer boards.');
-if(cpu.id==='r5700x3d')add('warn','5700X3D needs supported BIOS and adequate cooling; retail CPU has no bundled cooler.');
-if(gpu.id==='none')add(cpu.igpu?'pass':'fail','Integrated GPU requirement: '+(cpu.igpu?'CPU provides display graphics':'CPU needs a dedicated graphics card'));
-else {
-add((gpu.length||0)<=pcase.gpuMax?'pass':'fail','Graphics card ≈'+gpu.length+'mm vs case GPU clearance '+pcase.gpuMax+'mm');
-add(psu.capacity>=(gpu.recommendedPsu||500)?'pass':'fail',gpu.name+' recommended PSU ≥'+(gpu.recommendedPsu||500)+'W; selected '+psu.capacity+'W');
-if(gpu.model==='5070')add(psu.power16pin?'pass':'warn','RTX 5070 needs a suitable 16-pin connection or manufacturer-approved adapter. Verify power cables and PSU revision.');
-}
-add(pcase.forms.includes(mb.form)?'pass':'fail',mb.form+' motherboard in selected case');
-add((cooler.sockets||[]).includes(cpu.socket)?'pass':'fail','Cooler socket compatibility '+cpu.socket);
-if(cooler.tdp&&cooler.tdp<cpu.watts)add('fail','Selected cooler rating below approximate processor design power');
-const budget=cpu.watts+(gpu.watts||0)+100;
-if(psu.capacity<budget)add('fail','Approximate system demand '+budget+'W exceeds PSU capacity');
-add('warn','Exact motherboard BIOS revision, storage slot, case cooler clearance, actual adapter and cables still need manufacturer verification.');
-return rows
+ const cpu=get('cpu'),mb=get('board'),ram=get('ram'),gpu=get('gpu'),psu=get('psu'),pcase=get('case'),cooler=get('cooler');
+ const rows=[];
+ const add=(kind,id,title,why,fix,actions=[],details="")=>rows.push({
+  kind,id,title,why,fix,actions:actions.filter(Boolean),details,
+  message:title+": "+why
+ });
+ const boardForCPU=cheapest('board',o=>o.socket===cpu.socket&&o.ram===ram.ram&&(o.slots||2)>=(ram.dimms||2));
+ const boardOnly=cheapest('board',o=>o.socket===cpu.socket);
+ const cpuForBoard=cheapest('cpu',o=>o.socket===mb.socket);
+ const ramForBoard=cheapest('ram',o=>o.ram===mb.ram&&(o.dimms||2)<=(mb.slots||2));
+ const boardForRam=cheapest('board',o=>o.ram===ram.ram&&o.socket===cpu.socket&&(o.slots||2)>=(ram.dimms||2));
+ if(cpu.socket!==mb.socket){
+  add('fail','socket','CPU and motherboard sockets do not match',
+   cpu.name+" uses "+cpu.socket+", but "+mb.name+" uses "+mb.socket+". The CPU cannot be installed in this board.",
+   "Keep your CPU and choose a "+cpu.socket+" motherboard, or keep this motherboard and choose a "+mb.socket+" CPU.",
+   [action('board',boardForCPU||boardOnly),action('cpu',cpuForBoard)]);
+ }else add('pass','socket','CPU socket fits motherboard',cpu.socket+" matches "+mb.socket+".","Still verify exact CPU support and firmware revision.");
+ if(ram.ram!==mb.ram){
+  add('fail','memory','Incorrect RAM generation',
+   ram.name+" is "+ram.ram+", while "+mb.name+" requires "+mb.ram+". DDR4 and DDR5 are physically incompatible.",
+   "Choose a "+mb.ram+" memory kit, or change to a compatible "+ram.ram+" motherboard.",
+   [action('ram',ramForBoard),action('board',boardForRam)]);
+ }else add('pass','memory','RAM type matches motherboard',ram.ram+" DIMMs match the board's memory standard.","Verify the memory QVL for rated speed.");
+ const dimms=ram.dimms||2,slots=mb.slots||2;
+ if(dimms>slots){
+  const lessSticks=cheapest('ram',o=>o.ram===mb.ram&&(o.dimms||2)<=slots);
+  const moreSlots=cheapest('board',o=>o.socket===cpu.socket&&o.ram===ram.ram&&(o.slots||2)>=dimms);
+  add('fail','dimms','Not enough memory slots',
+   "Your selected kit uses "+dimms+" DIMMs, but "+mb.name+" has only "+slots+" physical DIMM slots.",
+   "Choose a kit with "+slots+" or fewer sticks, or a supported board with at least "+dimms+" slots.",
+   [action('ram',lessSticks),action('board',moreSlots)]);
+ }else add('pass','dimms','RAM stick count fits',dimms+" selected sticks fit in "+slots+" physical motherboard slots.","Install in the board maker's recommended positions.");
+ if(dimms===4)add('warn','four-dimms','Four-stick memory configuration',
+  "Four DIMMs can require a lower supported RAM clock and make memory training more demanding.",
+  "Check the exact motherboard QVL and BIOS. Two suitably sized DIMMs may be simpler.",
+  [action('ram',cheapest('ram',o=>o.ram===mb.ram&&(o.dimms||2)===2&&(Number(o.capacity)||0)>=(Number(ram.capacity)||0)))]);
+ if(gpu.id==='none'&&!cpu.igpu){
+  const replacementGpu=cheapest('gpu',o=>o.id!=='none'&&(o.length||0)<=pcase.gpuMax&&(o.recommendedPsu||0)<=psu.capacity);
+  const replacementCpu=cheapest('cpu',o=>o.socket===mb.socket&&o.igpu);
+  add('fail','graphics','No usable graphics output',
+    cpu.name+" does not have integrated graphics, and no discrete GPU is selected.",
+    "Add a compatible graphics card or choose a processor with integrated graphics.",
+    [action('gpu',replacementGpu),action('cpu',replacementCpu)]);
+ }else add('pass','graphics','Display hardware available',gpu.id==='none'?"CPU provides integrated graphics.":"A dedicated graphics card is selected.","Confirm your monitor can connect to an active display output.");
+ if(gpu.id!=='none'){
+  const length=gpu.length||0,clearance=pcase.gpuMax||0;
+  if(length>clearance){
+    const wider=cheapest('case',o=>o.forms.includes(mb.form)&&(o.gpuMax||0)>=length);
+    const shorter=cheapest('gpu',o=>o.id!=='none'&&(o.length||0)<=clearance);
+    add('fail','gpu-clearance','Graphics card will not fit the case',
+      "The chosen "+gpu.name+" is approximately "+length+" mm long; "+pcase.name+" only allows "+clearance+" mm in this learning catalog.",
+      "Choose a case with "+length+" mm or more GPU clearance, or use a shorter card.",
+      [action('case',wider),action('gpu',shorter)]);
+  }else add('pass','gpu-clearance','GPU length fits example case',length+" mm graphics card vs "+clearance+" mm listed case clearance.","Check the exact model's radiator/fan clearance as well.");
+  const rec=gpu.recommendedPsu||500;
+  if(psu.capacity<rec){
+    const better=cheapest('psu',o=>o.capacity>=rec&&o.capacity>=cpu.watts+(gpu.watts||0)+100);
+    add('fail','psu-rated','PSU below graphics card recommendation',
+      gpu.name+" recommends approximately "+rec+" W system power, but "+psu.name+" provides "+psu.capacity+" W.",
+      "Choose a power supply rated at least "+rec+" W with the required GPU connectors.",
+      [action('psu',better)]);
+  }else add('pass','psu-rated','Meets GPU wattage guideline',psu.capacity+" W PSU meets the GPU's "+rec+" W reference.","Check actual PSU model and cable count.");
+  if(gpu.model==='5070'&&!psu.power16pin){
+    add('warn','gpu-cable','GPU power connector must be confirmed',
+      "The selected RTX 5070-class card may use a 16-pin connector, but this PSU listing does not confirm a native 16-pin lead.",
+      "Verify exact board/PSU cable specifications and use only a manufacturer-approved adapter.",
+      [action('psu',cheapest('psu',o=>o.power16pin&&o.capacity>=rec))]);
+  }
+ }
+ if(!pcase.forms.includes(mb.form)){
+   add('fail','case','Motherboard form factor does not fit',
+     mb.name+" is "+mb.form+", but "+pcase.name+" supports "+pcase.forms.join(", ")+".",
+     "Choose a case that explicitly supports "+mb.form+".",
+     [action('case',cheapest('case',o=>o.forms.includes(mb.form)&&(o.gpuMax||0)>=(gpu.length||0)))]);
+ }else add('pass','case','Board size fits case',mb.form+" is supported by the selected case.","Verify standoff locations.");
+ if(!(cooler.sockets||[]).includes(cpu.socket)){
+  add('fail','cooler','CPU cooler mounting is incompatible',
+   cooler.name+" does not list "+cpu.socket+" mounting, required by "+cpu.name+".",
+   "Choose a cooler with a compatible "+cpu.socket+" kit.",
+   [action('cooler',cheapest('cooler',o=>(o.sockets||[]).includes(cpu.socket)))]);
+ }else add('pass','cooler','Cooler supports CPU socket',cooler.name+" lists "+cpu.socket+" mounting.","Confirm case height and package accessories.");
+ if(cooler.tdp&&cooler.tdp<cpu.watts){
+  add('fail','thermal','Cooler capacity may be insufficient',
+   "Processor power estimate is "+cpu.watts+" W, but the cooler's approximate rating is "+cooler.tdp+" W.",
+   "Choose a cooler with a higher thermal rating.",
+   [action('cooler',cheapest('cooler',o=>(o.sockets||[]).includes(cpu.socket)&&(!o.tdp||o.tdp>=cpu.watts)))]);
+ }
+ const basicLoad=cpu.watts+(gpu.watts||0)+100;
+ if(psu.capacity<basicLoad){
+  add('fail','power','Estimated PC load exceeds PSU wattage',
+    "Approximate CPU+GPU+other system demand is "+basicLoad+" W vs a "+psu.capacity+" W PSU.",
+    "Choose a higher quality PSU with adequate headroom and correct cables.",
+    [action('psu',cheapest('psu',o=>o.capacity>=Math.max(basicLoad, gpu.recommendedPsu||0)))]);
+ }
+ if(cpu.id==='r5700x3d')add('warn','firmware','Check Ryzen 7 5700X3D BIOS support',
+  "AM4 socket match does not guarantee firmware support; this CPU also needs adequate cooling.",
+  "Check your exact motherboard revision and CPU support list before purchase.");
+ add('warn','verify','Confirm the exact SKU before purchasing',
+  "Sample prices, BIOS revisions, connector variants and case clearances may differ from your actual hardware.",
+  "Compare the exact manufacturer's CPU support list, QVL, PSU cable specifications and case dimensions.");
+ return rows;
 };
 function total(){return CAT.reduce((n,c)=>n+get(c.key).price,0)}
 function renderBuilderPro(){
@@ -104,31 +187,84 @@ container.innerHTML=html;
 container.querySelectorAll('[data-cat]').forEach(el=>el.addEventListener('change',e=>{build[e.target.dataset.cat]=e.target.value;window.unitlabFocus=e.target.dataset.cat;sync();renderBuilder()}));
 container.querySelectorAll('[data-buildpreset]').forEach(el=>el.addEventListener('click',()=>setPreset(+el.dataset.buildpreset)));
 const t=total();$('#totalCost').textContent=formatter(t);
-const list=checks();const fails=list.filter(r=>r.kind==='fail').length;const warns=list.filter(r=>r.kind==='warn').length;
-const status=$('#buildRating');status.textContent=fails?fails+' COMPATIBILITY ISSUE'+(fails>1?'S':''):(warns?'BASIC FIT OK · REVIEW NOTES':'BASIC CHECKS PASS');status.style.background=fails?'#793d45':'#1b5a4f';
-$('#compatibilityPanel').innerHTML='<h3>Compatibility & hardware checks</h3>'+list.map(r=>'<div class="check-result"><span class="'+(r.kind==='pass'?'ok':r.kind==='fail'?'bad':'warn')+'">'+(r.kind==='pass'?'✓':r.kind==='fail'?'✕':'!')+'</span><span>'+safe(r.message)+'</span></div>').join('');
+const list=checks(),issues=list.filter(r=>r.kind==='fail'),warnings=list.filter(r=>r.kind==='warn'),passing=list.filter(r=>r.kind==='pass');
+const fails=issues.length,warns=warnings.length;
+const status=$('#buildRating');
+status.textContent=fails?fails+' ISSUE'+(fails===1?'':'S')+' · FIX BELOW':'BASIC COMPATIBILITY PASSES';
+status.classList.toggle('has-errors',fails>0);
+status.style.background=fails?'#873e48':'#22684f';
+const fixButtons=r=>(r.actions||[]).map((a,i)=>'<button type="button" class="compat-fix" data-fix-key="'+safe(a.key)+'" data-fix-id="'+safe(a.id)+'" title="Change '+safe(a.key)+' to '+safe(a.label)+'">'+(i===0?'Recommended: ':'Alternative: ')+safe(a.label)+' · '+formatter(a.price)+' →</button>').join('');
+const issueCard=r=>'<article class="compat-card compat-'+safe(r.kind)+'"><div class="compat-card-header"><span class="compat-icon" aria-hidden="true">✕</span><h4>'+safe(r.title)+'</h4></div><p><b>What is wrong:</b> '+safe(r.why)+'</p><p><b>How to fix:</b> '+safe(r.fix)+'</p><div class="compat-fixes">'+fixButtons(r)+'</div></article>';
+const warningCard=r=>'<div class="compat-note"><strong>Review: '+safe(r.title)+'</strong><p>'+safe(r.why)+' '+safe(r.fix)+'</p>'+fixButtons(r)+'</div>';
+$('#compatibilityPanel').innerHTML=
+ '<div class="compat-head"><div><span class="compat-eyebrow">LIVE HARDWARE VALIDATION</span><h3>Build compatibility</h3><p>'+ (fails?'Resolve the '+fails+' issue'+(fails===1?'':'s')+' below before assembling.':'Core compatibility checks pass. Review the notes before purchase or assembly.')+'</p></div><span class="compat-count '+(fails?'is-bad':'is-good')+'">'+fails+' issues</span></div>'+
+ '<div class="compat-summary"><span>'+passing.length+' passing checks</span><span>'+warns+' review notes</span><span>Approx. load: '+(get('cpu').watts+(get('gpu').watts||0)+100)+' W</span></div>'+
+ (fails?'<div class="compat-issues">'+issues.map(issueCard).join('')+'</div>':'<div class="compat-success">✓ No detected hard mismatches in this educational catalog.</div>')+
+ '<details class="compat-review"><summary>Important checks & limitations ('+warns+')</summary>'+warnings.map(warningCard).join('')+'</details>'+
+ '<details class="compat-passing"><summary>Show '+passing.length+' passing checks</summary><ul>'+passing.map(r=>'<li><strong>'+safe(r.title)+'</strong> — '+safe(r.why)+'</li>').join('')+'</ul></details>'+
+ '<p class="compat-disclaimer">Educational estimates, not a guarantee. Real-world BIOS, exact component dimensions, cables and current seller stock must be independently confirmed.</p>';
+$('#compatibilityPanel').querySelectorAll('[data-fix-key]').forEach(button=>button.addEventListener('click',()=>{
+  const key=button.dataset.fixKey,id=button.dataset.fixId;
+  if(!catalog(key)?.options.some(o=>o.id===id))return;
+  build[key]=id;window.unitlabFocus=key;sync();renderBuilder();
+  $('#compatibilityPanel')?.scrollIntoView({behavior:'smooth',block:'nearest'});
+}));
 const focus=CAT.find(c=>c.key===(window.unitlabFocus||'gpu'))||CAT[0],p=get(focus.key);
 $('#selectedDetail').innerHTML='<div class="eyebrow">CONFIGURED HARDWARE • '+safe(focus.title)+'</div><h3>'+safe(p.name)+'</h3><p>'+safe(p.desc||'')+'</p><p><b>Unit price:</b> '+formatter(p.price)+'<br><b>Price basis:</b> '+safe(p.sourceDate||'Illustrative estimate')+'</p><p><a href="'+safe(p.spec||p.url||EASY)+'" target="_blank" rel="noopener">Specifications / official or retailer reference ↗</a></p><p><b>Installed memory:</b> '+safe(get('ram').name)+' / '+(get('ram').dimms||2)+' DIMM modules.</p>';
 const summary=document.querySelector('.builder-actions');
 let extra=document.getElementById('unitlabNewActions');
 if(!extra){extra=document.createElement('div');extra.id='unitlabNewActions';extra.style.cssText='width:100%;display:grid;gap:10px;padding:12px 0';summary.appendChild(extra)}
 extra.innerHTML='<div style="border:1px solid #366572;background:#102f3c;border-radius:12px;padding:14px"><strong style="display:block;font-size:21px;color:#d9fff5">FINAL PARTS TOTAL: '+formatter(t)+'</strong><small>All eight selected categories included. Estimated component-only total in PHP; shipping, assembly, tax adjustments and stock not guaranteed.</small></div><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn outline small" id="viewLivePc">View selected parts in 3D ↗</button><button class="btn outline small" id="downloadQuote">Download itemized price quotation CSV</button></div>';
-$('#viewLivePc').addEventListener('click',()=>{sync();navigate('workbench')});
+$('#viewLivePc').addEventListener('click',()=>{
+ const conflicts=checks().filter(r=>r.kind==='fail');
+ if(conflicts.length){
+  const pane=$('#compatibilityPanel');
+  pane?.scrollIntoView({behavior:'smooth',block:'start'});
+  pane?.classList.add('compat-attention');
+  setTimeout(()=>pane?.classList.remove('compat-attention'),1700);
+  return;
+ }
+ sync();navigate('workbench');
+});
 $('#downloadQuote').addEventListener('click',()=>{const lines=[['UnitLab PC Build · '+priceDate],['Category','Product','Price PHP','Basis','Source URL'],...CAT.map(c=>{const x=get(c.key);return [c.title,x.name,x.price,x.sourceDate||'illustrative',x.url||EASY]}),['TOTAL','',t,'Excludes shipping / extra service','']];const csv=lines.map(a=>a.map(s=>'"'+String(s??'').replaceAll('"','""')+'"').join(',')).join('\r\n');const a=document.createElement('a'),url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv'}));a.href=url;a.download='UnitLab3D_Build_PHP_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)});
 sync();renderPC();renderPreviewModel(p);
 }
-function renderPreviewModel(p){ // Existing illustration is retained but now displays the selected named hardware.
- const root=$('#pcVisualizer');if(!root)return;
- const ram=get('ram'),gpu=get('gpu'),cpu=get('cpu');
- const name=root.querySelector('.build-overlay');
- if(name)name.remove();
- const d=document.createElement('div');d.className='build-overlay';d.style.cssText='position:absolute;bottom:14px;left:8px;right:8px;border:1px solid #37737a;background:#071824d9;padding:10px 12px;border-radius:11px;font-size:11px;line-height:1.65;color:#b9eafa;z-index:2;';
- d.textContent=cpu.name+'  •  '+gpu.name+'  •  '+(ram.dimms||2)+' RAM sticks';
- root.appendChild(d);
- const visual=root.querySelector('.ram-visual');
- if(visual)visual.innerHTML=Array.from({length:ram.dimms||2},()=>'<i></i>').join('');
- const g=root.querySelector('.gpu-visual');
- if(g){g.textContent=gpu.id==='none'?'ONBOARD GRAPHICS':gpu.model==='5070'?'GEFORCE RTX 5070':gpu.name.replace(/.*(RTX \d+).*/,'$1');g.style.opacity=gpu.id==='none'?'.12':'1'}
+function renderPreviewModel(p){
+ const root=$('#pcVisualizer');
+ if(!root)return;
+ /* Use a licensed, actual GLB computer mesh rather than a CSS block drawing.
+    Mesh is a generic hardware learning example, NOT the selected product SKU. */
+ const m='https://raw.githubusercontent.com/brickshow/pc-anatomy/main/public/models/system_unit_update.glb';
+ const fallback='https://raw.githubusercontent.com/brickshow/pc-anatomy/main/public/models/system_unit.glb';
+ const cpu=get('cpu'),gpu=get('gpu'),ram=get('ram');
+ root.replaceChildren();
+ const viewer=document.createElement('model-viewer');
+ viewer.setAttribute('src',m);
+ viewer.setAttribute('camera-controls','');
+ viewer.setAttribute('auto-rotate','');
+ viewer.setAttribute('rotation-per-second','10deg');
+ viewer.setAttribute('interaction-prompt','none');
+ viewer.setAttribute('environment-image','neutral');
+ viewer.setAttribute('shadow-intensity','1');
+ viewer.setAttribute('exposure','1.08');
+ viewer.setAttribute('loading','lazy');
+ viewer.setAttribute('alt','Interactive generic PC chassis 3D model. This is a reference computer, not the exact selected CPU, GPU, memory or case.');
+ viewer.className='real-build-model';
+ let triedBackup=false;
+ viewer.addEventListener('error',()=>{
+  if(!triedBackup){triedBackup=true;viewer.src=fallback;return;}
+  root.querySelector('.build-loading')?.replaceChildren(document.createTextNode('3D reference unavailable. Your parts and compatibility checks still work.'));
+ });
+ viewer.addEventListener('load',()=>{
+  const status=root.querySelector('.build-loading');if(status)status.hidden=true;
+ });
+ const loading=document.createElement('div');
+ loading.className='build-loading';
+ loading.textContent='Loading licensed real 3D case reference…';
+ const overlay=document.createElement('div');
+ overlay.className='build-overlay';
+ overlay.textContent=cpu.name+' • '+gpu.name+' • '+(ram.dimms||2)+' RAM sticks';
+ root.append(viewer,loading,overlay);
 }
 renderBuilder=renderBuilderPro;
 window.addEventListener('message',event=>{if(event.origin!==location.origin||event.data?.type!=='unitlab3d:choose')return;const {key,id}=event.data;if(!['cpu','gpu','ram'].includes(key)||!catalog(key).options.some(p=>p.id===id))return;build[key]=id;window.unitlabFocus=key;sync();renderBuilder()});
