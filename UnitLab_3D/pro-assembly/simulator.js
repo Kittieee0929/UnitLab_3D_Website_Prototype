@@ -84,7 +84,7 @@ const state = {
   powered: false,
   exploded: false,
   thermal: false,
-  cinematic: true,
+  cinematic: false,
   hoverCategory: null,
   log: ['Workbench calibrated. Select a part, then click its glowing 3D slot.'],
   errors: [],
@@ -120,7 +120,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.85));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.12;
+renderer.toneMappingExposure = 1.0;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 app.appendChild(renderer.domElement);
@@ -138,14 +138,15 @@ controls.enablePan = false;
 const composer = new EffectComposer(renderer);
 const renderPass = new RenderPass(scene, camera);
 const outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene, camera);
-outlinePass.edgeStrength = 3.4;
-outlinePass.edgeGlow = 0.88;
+outlinePass.edgeStrength = 2.0;
+outlinePass.edgeGlow = 0.22;
 outlinePass.edgeThickness = 1.35;
 outlinePass.visibleEdgeColor.set('#ffffff');
 outlinePass.hiddenEdgeColor.set('#18f4ff');
-const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.72, 0.48, 0.22);
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.24, 0.60, 0.70);
 composer.addPass(renderPass);
 composer.addPass(outlinePass);
+bloomPass.enabled = false; // cleaner materials by default; optional cinematic mode
 composer.addPass(bloomPass);
 composer.addPass(new OutputPass());
 
@@ -211,10 +212,10 @@ function createMaterialLibrary() {
     pcb: new THREE.MeshStandardMaterial({ color: '#101d2a', roughness: 0.52, metalness: 0.18, envMapIntensity: 0.4 }),
     copper: new THREE.MeshStandardMaterial({ color: '#ce7a3a', roughness: 0.28, metalness: 0.85 }),
     gold: new THREE.MeshStandardMaterial({ color: '#f7c96d', roughness: 0.24, metalness: 0.9 }),
-    glass: new THREE.MeshPhysicalMaterial({ color: '#ccefff', roughness: 0.05, metalness: 0, transmission: 0.35, opacity: 0.22, transparent: true, thickness: 0.08, ior: 1.35, envMapIntensity: 1.4 }),
-    smokedGlass: new THREE.MeshPhysicalMaterial({ color: '#6be8ff', roughness: 0.12, metalness: 0, transmission: 0.15, opacity: 0.16, transparent: true, thickness: 0.08, ior: 1.35 }),
-    hologram: new THREE.MeshBasicMaterial({ color: '#18f4ff', transparent: true, opacity: 0.17, blending: THREE.AdditiveBlending, depthWrite: false }),
-    tableGlow: new THREE.MeshBasicMaterial({ color: '#2ceaff', transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false }),
+    glass: new THREE.MeshPhysicalMaterial({ color: '#ccefff', roughness: 0.05, metalness: 0, transmission: 0.25, opacity: 0.12, transparent: true, thickness: 0.08, ior: 1.35, envMapIntensity: 1.4 }),
+    smokedGlass: new THREE.MeshPhysicalMaterial({ color: '#6be8ff', roughness: 0.12, metalness: 0, transmission: 0.10, opacity: 0.10, transparent: true, thickness: 0.08, ior: 1.35 }),
+    hologram: new THREE.MeshBasicMaterial({ color: '#18f4ff', transparent: true, opacity: 0.09, blending: THREE.AdditiveBlending, depthWrite: false }),
+    tableGlow: new THREE.MeshBasicMaterial({ color: '#2ceaff', transparent: true, opacity: 0.10, blending: THREE.AdditiveBlending, depthWrite: false }),
     label: new THREE.SpriteMaterial({ color: '#ffffff', transparent: true, depthWrite: false }),
   };
 }
@@ -1170,7 +1171,7 @@ function toggleQuality() {
   state.cinematic = !state.cinematic;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, state.cinematic ? 1.85 : 1.15));
   bloomPass.enabled = state.cinematic;
-  renderer.toneMappingExposure = state.cinematic ? 1.12 : 1.0;
+  renderer.toneMappingExposure = state.cinematic ? 1.10 : 1.0;
   addLog(state.cinematic ? 'Cinematic quality enabled: bloom, high DPR, ACES exposure.' : 'Performance quality enabled: lighter render path.');
   updateAfterStateChange();
 }
@@ -1190,7 +1191,7 @@ function animate() {
   });
   rgbMaterials.forEach((mat, index) => {
     if (!mat.emissive) return;
-    const pulse = state.powered ? 0.95 + Math.sin(elapsed * 2.7 + index) * 0.45 : 0.35 + Math.sin(elapsed * 1.2 + index) * 0.08;
+    const pulse = state.powered ? 0.32 + Math.sin(elapsed * 2.7 + index) * 0.13 : 0.13 + Math.sin(elapsed * 1.2 + index) * 0.03;
     mat.emissiveIntensity = Math.max(0.08, pulse);
   });
   dustGroup.rotation.y = Math.sin(elapsed * 0.08) * 0.025;
