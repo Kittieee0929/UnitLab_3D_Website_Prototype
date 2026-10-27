@@ -362,7 +362,7 @@ const LEARNING_ROUTES=new Set(["modules","plans","curriculum","safety","quiz"]);
 function closeRail(){const rail=$("#primaryRail"),scrim=$("#railScrim"),button=$("#menuToggle");if(rail)rail.classList.remove("open");if(scrim)scrim.hidden=true;if(button){button.setAttribute("aria-expanded","false");button.setAttribute("aria-label","Open navigation")}}
 function toggleRail(){const rail=$("#primaryRail"),scrim=$("#railScrim"),button=$("#menuToggle");if(!rail||!button)return;const open=!rail.classList.contains("open");rail.classList.toggle("open",open);if(scrim)scrim.hidden=!open;button.setAttribute("aria-expanded",String(open));button.setAttribute("aria-label",open?"Close navigation":"Open navigation")}
 function toggleLearning(expanded){const links=$("#learnLinks"),toggle=$("#learnToggle");if(!links||!toggle)return;links.hidden=!expanded;toggle.setAttribute("aria-expanded",String(expanded));toggle.classList.toggle("expanded",expanded)}
-function navigate(page){if(page==="home"){window.location.assign("hub-v2.html");return}if(page==="workbench"){window.location.assign("performance-3d.html");return}if(!$("#view-"+page))return;
+function navigate(page){if(page==="home"){window.location.assign("hub-v2.html");return}if(page==="workbench"){window.location.assign("pro-assembly/index.html");return}if(!$("#view-"+page))return;
 state.page=page;$$(".view").forEach(e=>e.classList.toggle("active",e.id==="view-"+page));
 $$("[data-go]").forEach(e=>e.classList.toggle("active",e.classList.contains("nav-button")&&e.dataset.go===page));
 /* Learning, Builder and Lab now share flat navigation, matching the main hub. */
