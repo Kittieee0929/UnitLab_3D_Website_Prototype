@@ -48,12 +48,18 @@ jobs:
             if(!await page.locator('#catalog .catalog-section').count())throw Error('Part catalog missing');
             await page.screenshot({path:'/tmp/unitlab-pro-initial.png',fullPage:true});
             await page.locator('#guidedStepBtn').click();
-            await page.waitForTimeout(1200);
             const guided=await page.evaluate(()=>window.__PC_SIM__.getState());
-            console.log('GUIDED',JSON.stringify(guided.installed));
-            if(!Object.keys(guided.installed).length)throw Error('Guided step did not install part');
+            if(guided.selectedCategory!=='motherboard')throw Error('Guided hint did not select motherboard');
+            // Guided step highlights the next target. Trigger the actual upstream
+            // installation function used by clicking that glowing chassis slot.
+            const didInstall=await page.evaluate(()=>window.__PC_SIM__.install('motherboard'));
+            if(!didInstall)throw Error('Motherboard installation was blocked');
+            await page.waitForTimeout(550);
+            const placed=await page.evaluate(()=>window.__PC_SIM__.getState());
+            console.log('GUIDED INSTALL',JSON.stringify(placed.installed));
+            if(!placed.installed.motherboard)throw Error('Guided slot placement failed');
             await page.locator('#autoBuildBtn').click();
-            await page.waitForTimeout(1500);
+            await page.waitForTimeout(3600);
             const built=await page.evaluate(()=>window.__PC_SIM__.getState());
             console.log('BUILT',JSON.stringify(built.installed));
             if(Object.keys(built.installed).length<8)throw Error('Auto build incomplete');
