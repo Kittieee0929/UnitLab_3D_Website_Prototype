@@ -1,0 +1,79 @@
+name: UnitLab Pro Assembly Browser Test
+
+on:
+  push:
+    branches:
+      - design/unitlab-learning-hub-v1
+    paths:
+      - 'UnitLab_3D/pro-assembly/**'
+      - '.github/workflows/pro-assembly-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pro-assembly-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  simulator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser runner
+        run: npm install --no-save --ignore-scripts playwright-core@1.56.1
+      - name: Serve repository
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/unitlab-server.log 2>&1 &
+      - name: Load and operate MIT-licensed simulator
+        run: |
+          node <<'NODE'
+          const {chromium}=require('playwright-core');
+          (async()=>{
+            const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/google-chrome',args:['--no-sandbox','--enable-webgl','--enable-unsafe-swiftshader','--use-gl=angle','--use-angle=swiftshader']});
+            const page=await browser.newPage({viewport:{width:1600,height:900},deviceScaleFactor:1});
+            const errors=[];page.on('pageerror',e=>errors.push(e.message));
+            page.on('console',msg=>{if(msg.type()==='error')console.log('CONSOLE ERROR',msg.text().slice(0,500))});
+            await page.goto('http://127.0.0.1:8765/UnitLab_3D/pro-assembly/index.html',{waitUntil:'domcontentloaded'});
+            await page.waitForFunction(()=>window.__PC_SIM__?.getState,{timeout:35000});
+            const initial=await page.evaluate(()=>window.__PC_SIM__.getState());
+            console.log('INITIAL',JSON.stringify(initial).slice(0,2000));
+            const canvas=await page.locator('#app canvas').count();
+            if(!canvas)throw Error('3D rendering canvas missing');
+            if(!await page.locator('#catalog .catalog-section').count())throw Error('Part catalog missing');
+            await page.screenshot({path:'/tmp/unitlab-pro-initial.png',fullPage:true});
+            await page.locator('#guidedStepBtn').click();
+            await page.waitForTimeout(1200);
+            const guided=await page.evaluate(()=>window.__PC_SIM__.getState());
+            console.log('GUIDED',JSON.stringify(guided.installed));
+            if(!Object.keys(guided.installed).length)throw Error('Guided step did not install part');
+            await page.locator('#autoBuildBtn').click();
+            await page.waitForTimeout(1500);
+            const built=await page.evaluate(()=>window.__PC_SIM__.getState());
+            console.log('BUILT',JSON.stringify(built.installed));
+            if(Object.keys(built.installed).length<8)throw Error('Auto build incomplete');
+            await page.screenshot({path:'/tmp/unitlab-pro-built.png',fullPage:true});
+            await page.locator('#explodeBtn').click();
+            const exploded=await page.evaluate(()=>window.__PC_SIM__.getState());
+            if(!exploded.exploded)throw Error('Exploded view did not activate');
+            await page.locator('#resetBtn').click();
+            const reset=await page.evaluate(()=>window.__PC_SIM__.getState());
+            if(Object.keys(reset.installed).length)throw Error('Reset failed');
+            if(errors.length)throw Error('Browser page errors: '+errors.join(' | '));
+            console.log('PRO ASSEMBLY SMOKE TEST PASSED');
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unitlab-pro-assembly-browser-captures
+          path: |
+            /tmp/unitlab-pro-initial.png
+            /tmp/unitlab-pro-built.png
+          if-no-files-found: ignore
